@@ -1,4 +1,4 @@
--- [[ FishHub Loader ]] --
+-- [[ FishHub Loader - Final Corrected ]] --
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 if getgenv().FishHubLoaded then
@@ -11,8 +11,8 @@ print("[FishHub]: Đang tải hệ thống từ GitHub...")
 
 local CoreGui = game:GetService("CoreGui")
 
--- Link raw đã cập nhật chuẩn cấu trúc mới
-local autoFarmUrl = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit/Controllers/AutoFarm.lua"
+-- Đúng chuẩn: Cachuoine/zensuMou
+local autoFarmUrl = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/Controllers/AutoFarm.lua"
 
 local success, response = pcall(function()
     return game:HttpGet(autoFarmUrl)
@@ -31,7 +31,7 @@ end
 
 local runSuccess, AutoFarm = pcall(func)
 if not runSuccess or not AutoFarm then
-    warn("[FishHub Error]: Lỗi thực thi AutoFarm: " .. tostring(AutoFarm))
+    warn("[FishHub Error]: Lỗi thực thi: " .. tostring(AutoFarm))
     return
 end
 
