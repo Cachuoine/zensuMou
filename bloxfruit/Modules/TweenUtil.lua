@@ -1,44 +1,45 @@
--- [[ Tween Module ]] --
-local Players = game:GetService("Players")
+-- [[ Modules/TweenUtil.lua ]] --
 local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local TweenModule = {}
-local activeTween = nil
+local TweenUtil = {}
+local currentTween = nil
+local isTweening = false
 
-function TweenModule.Cancel()
-    if activeTween then
-        activeTween:Cancel()
-        activeTween = nil
-    end
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-    end
-end
-
-function TweenModule.To(targetPosition)
-    TweenModule.Cancel()
-    
+function TweenUtil.TweenTo(targetCFrame, speed)
+    speed = speed or 350
     local character = LocalPlayer.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-    
-    local rootPart = character.HumanoidRootPart
-    local distance = (rootPart.Position - targetPosition).Magnitude
-    
-    -- Lấy tốc độ từ GameConfig
-    local speed = 320
-    pcall(function()
-        local config = require(game:GetService("ReplicatedStorage").bloxfruit.Config.GameConfig)
-        speed = config.TweenSpeed or 320
-    end)
-    
-    local time = distance / speed
-    
-    local info = TweenInfo.new(time, Enum.EasingStyle.Linear)
-    activeTween = TweenService:Create(rootPart, info, {CFrame = CFrame.new(targetPosition)})
-    
-    activeTween:Play()
-    activeTween.Completed:Wait()
+    local hrp = character.HumanoidRootPart
+
+    local distance = (hrp.Position - targetCFrame.Position).Magnitude
+    if distance < 15 then 
+        isTweening = false
+        return 
+    end
+
+    if not isTweening then
+        if currentTween then currentTween:Cancel() end
+        
+        local timeTaken = distance / speed
+        if timeTaken < 0.1 then timeTaken = 0.1 end
+
+        local tweenInfo = TweenInfo.new(timeTaken, Enum.EasingStyle.Linear)
+        currentTween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame + Vector3.new(0, 35, 0)})
+        
+        isTweening = true
+        currentTween:Play()
+        
+        currentTween.Completed:Connect(function()
+            isTweening = false
+        end)
+    end
 end
 
-return TweenModule
+function TweenUtil.Cancel()
+    if currentTween then currentTween:Cancel() end
+    isTweening = false
+end
+
+return TweenUtil
