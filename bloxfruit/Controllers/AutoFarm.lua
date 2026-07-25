@@ -5,7 +5,7 @@ local Workspace = game:GetService("Workspace")
 local vim = game:GetService("VirtualInputManager")
 
 local success, TweenUtil = pcall(function()
-    return loadstring(game:HttpGet("https://raw.githubusercontent.com/zensuMou/bloxfruit/main/Modules/TweenUtil.lua"))()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit/Modules/TweenUtil.lua"))()
 end)
 
 local AutoFarmController = {}
