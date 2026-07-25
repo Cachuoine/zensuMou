@@ -1,22 +1,37 @@
+-- [[ FishHub Loader ]] --
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 if getgenv().FishHubLoaded then
-    warn("[FishHub]: Đã chạy trước đó!")
+    warn("[FishHub]: Đã được khởi chạy trước đó!")
     return
 end
 getgenv().FishHubLoaded = true
 
-print("[FishHub]: Đang khởi động Loader...")
+print("[FishHub]: Đang tải hệ thống từ GitHub...")
 
 local CoreGui = game:GetService("CoreGui")
 
--- Tải AutoFarm Controller từ GitHub
-local success, AutoFarm = pcall(function()
-    return loadstring(game:HttpGet("https://raw.githubusercontent.com/zensuMou/bloxfruit/main/Controllers/AutoFarm.lua"))()
+-- Link raw đã cập nhật chuẩn cấu trúc mới
+local autoFarmUrl = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit/Controllers/AutoFarm.lua"
+
+local success, response = pcall(function()
+    return game:HttpGet(autoFarmUrl)
 end)
 
-if not success or not AutoFarm then
-    warn("[FishHub Error]: Không thể tải AutoFarm Controller từ GitHub!")
+if not success or not response then
+    warn("[FishHub Error]: Không thể tải AutoFarm Controller!")
+    return
+end
+
+local func, syntaxError = loadstring(response)
+if not func then
+    warn("[FishHub Error]: Lỗi cú pháp: " .. tostring(syntaxError))
+    return
+end
+
+local runSuccess, AutoFarm = pcall(func)
+if not runSuccess or not AutoFarm then
+    warn("[FishHub Error]: Lỗi thực thi AutoFarm: " .. tostring(AutoFarm))
     return
 end
 
@@ -54,4 +69,4 @@ Btn.MouseButton1Click:Connect(function()
     end
 end)
 
-print("[FishHub]: Khởi chạy giao diện thành công!")
+print("[FishHub]: Khởi chạy thành công!")
