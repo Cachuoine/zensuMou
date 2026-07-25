@@ -1,4 +1,4 @@
--- [[ FishHub.lua - Full Auto Farm Quest & Enemy System ]] --
+-- [[ FishHub.lua - Optimized Auto Farm & Anti-Spam Tween ]] --
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
@@ -70,43 +70,43 @@ local BtnCorner = Instance.new("UICorner")
 BtnCorner.CornerRadius = UDim.new(0, 8)
 BtnCorner.Parent = AutoFarmBtn
 
--- 2. Hàm hỗ trợ Tween di chuyển mượt mà
+-- 2. Hệ thống Tween thông minh (Không bị giật)
 local currentTween = nil
+local isTweening = false
+
 local function TweenTo(targetCFrame)
     local character = LocalPlayer.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") then return end
     local hrp = character.HumanoidRootPart
 
-    if currentTween then 
-        currentTween:Cancel() 
-    end
-
     local distance = (hrp.Position - targetCFrame.Position).Magnitude
-    local speed = 350 -- Tốc độ bay (studs/s)
-    local timeTaken = distance / speed
-    if timeTaken < 0.1 then timeTaken = 0.1 end
-
-    local tweenInfo = TweenInfo.new(timeTaken, Enum.EasingStyle.Linear)
-    currentTween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame + Vector3.new(0, 40, 0)})
-    currentTween:Play()
-end
-
--- 3. Kiểm tra nhiệm vụ và tìm quái thông minh
-local function HasActiveQuest()
-    local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
-    if playerGui then
-        local mainGui = playerGui:FindFirstChild("Main")
-        if mainGui then
-            local questGui = mainGui:FindFirstChild("Quest")
-            if questGui and questGui.Visible then
-                return true
-            end
-        end
+    -- Nếu đã ở rất gần mục tiêu thì không tạo tween mới nữa để tránh giật
+    if distance < 15 then 
+        isTweening = false
+        return 
     end
-    return false
+
+    if not isTweening then
+        if currentTween then currentTween:Cancel() end
+        
+        local speed = 350 -- Tốc độ bay
+        local timeTaken = distance / speed
+        if timeTaken < 0.1 then timeTaken = 0.1 end
+
+        local tweenInfo = TweenInfo.new(timeTaken, Enum.EasingStyle.Linear)
+        currentTween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame + Vector3.new(0, 35, 0)})
+        
+        isTweening = true
+        currentTween:Play()
+        
+        currentTween.Completed:Connect(function()
+            isTweening = false
+        end)
+    end
 end
 
-local function GetClosestEnemy(enemyName)
+-- 3. Tìm kiếm quái vật gần nhất trong Sea 3
+local function GetClosestEnemy()
     local enemiesFolder = Workspace:FindFirstChild("Enemies")
     if not enemiesFolder then return nil end
 
@@ -119,13 +119,10 @@ local function GetClosestEnemy(enemyName)
 
     for _, enemy in ipairs(enemiesFolder:GetChildren()) do
         if enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-            -- Nếu tìm theo tên hoặc quét bất kỳ quái nào gần nhất
-            if not enemyName or enemy.Name:find(enemyName) then
-                local distance = (hrp.Position - enemy.HumanoidRootPart.Position).Magnitude
-                if distance < shortestDistance then
-                    shortestDistance = distance
-                    closestEnemy = enemy
-                end
+            local distance = (hrp.Position - enemy.HumanoidRootPart.Position).Magnitude
+            if distance < shortestDistance then
+                shortestDistance = distance
+                closestEnemy = enemy
             end
         end
     end
@@ -133,47 +130,45 @@ local function GetClosestEnemy(enemyName)
     return closestEnemy
 end
 
--- 4. Vòng lặp Auto Farm thực tế
+-- 4. Vòng lặp Auto Farm tối ưu
 local isFarmActive = false
 
 local function StartAutoFarm()
     task.spawn(function()
-        print("[AutoFarm]: 🚀 Hệ thống cày cấp thông minh đã kích hoạt!")
+        print("[AutoFarm]: 🚀 Bắt đầu vòng lặp cày cấp mượt mà!")
         
         while isFarmActive do
             pcall(function()
                 local character = LocalPlayer.Character
                 if character and character:FindFirstChild("HumanoidRootPart") then
                     
-                    -- Kiểm tra xem đã nhận nhiệm vụ chưa
-                    if not HasActiveQuest() then
-                        print("[AutoFarm]: 📜 Chưa có nhiệm vụ, đang tìm NPC nhận quest...")
-                        -- (Tạm thời di chuyển về trung tâm hoặc vị trí nhận quest Sea 3)
-                        TweenTo(CFrame.new(-5000, 100, -3000))
-                    else
-                        -- Đã có nhiệm vụ -> Tìm quái vật xung quanh để farm
-                        local targetEnemy = GetClosestEnemy() -- Quét quái gần nhất
+                    -- Vì đang ở cấp Max (2800), bỏ qua bước tìm quest, tập trung farm thẳng quái cấp cao tại Sea 3
+                    local targetEnemy = GetClosestEnemy()
+                    
+                    if targetEnemy and targetEnemy:FindFirstChild("HumanoidRootPart") then
+                        -- Bay thẳng tới quái gần nhất
+                        TweenTo(targetEnemy.HumanoidRootPart.CFrame)
                         
-                        if targetEnemy and targetEnemy:FindFirstChild("HumanoidRootPart") then
-                            print("[AutoFarm]: ⚔️ Đang bay tới tiêu diệt quái: " .. targetEnemy.Name)
-                            TweenTo(targetEnemy.HumanoidRootPart.CFrame)
-                            
-                            -- Giả lập tấn công liên tục
+                        -- Giả lập đánh quái liên tục khi đã đến gần
+                        local distance = (character.HumanoidRootPart.Position - targetEnemy.HumanoidRootPart.Position).Magnitude
+                        if distance < 30 then
                             vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
                             task.wait(0.05)
                             vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
-                        else
-                            print("[AutoFarm]: 🔍 Không tìm thấy quái xung quanh, đang mở rộng phạm vi...")
-                            task.wait(1)
                         end
+                    else
+                        print("[AutoFarm]: 🔍 Đang tìm kiếm bãi quái trên bản đồ...")
+                        -- Bay đến khu vực trung tâm Sea 3 nếu chưa thấy quái quanh đó
+                        TweenTo(CFrame.new(-12500, 330, -15000)) 
                     end
                 end
             end)
-            task.wait(0.5)
+            task.wait(0.3)
         end
         
         if currentTween then currentTween:Cancel() end
-        print("[AutoFarm]: 🛑 Đã dừng vòng lặp cày cấp.")
+        isTweening = false
+        print("[AutoFarm]: 🛑 Đã dừng cày cấp.")
     end)
 end
 
@@ -190,4 +185,4 @@ AutoFarmBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-print("[FishHub]: Khởi chạy hệ thống hoàn tất từ GitHub!")
+print("[FishHub]: Khởi chạy hệ thống mượt mà thành công!")
