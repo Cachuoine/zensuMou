@@ -4,9 +4,14 @@ local LocalPlayer = Players.LocalPlayer
 local Workspace = game:GetService("Workspace")
 local vim = game:GetService("VirtualInputManager")
 
--- Trỏ đường dẫn require tùy theo cách bạn host trên GitHub (hoặc dùng loadstring module con)
--- Ví dụ gọi module tween:
-local TweenUtil = loadstring(game:HttpGet("https://raw.githubusercontent.com/zensuMou/bloxfruit/main/UI/Modules/TweenUtil.lua"))()
+local tweenUrl = "https://raw.githubusercontent.com/zensuMou/bloxfruit/main/Modules/TweenUtil.lua"
+local success, TweenUtil = pcall(function()
+    return loadstring(game:HttpGet(tweenUrl))()
+end)
+
+if not success or not TweenUtil then
+    warn("[AutoFarm]: Không thể tải TweenUtil module!")
+end
 
 local AutoFarmController = {}
 local isRunning = false
@@ -40,7 +45,7 @@ function AutoFarmController.Start()
     isRunning = true
     
     task.spawn(function()
-        print("[AutoFarm Controller]: 🚀 Bắt đầu chạy ngầm...")
+        print("[AutoFarm Controller]: Bắt đầu chạy ngầm...")
         while isRunning do
             pcall(function()
                 local character = LocalPlayer.Character
@@ -51,7 +56,9 @@ function AutoFarmController.Start()
                     end
                     
                     if currentTarget and currentTarget:FindFirstChild("HumanoidRootPart") then
-                        TweenUtil.TweenTo(currentTarget.HumanoidRootPart.CFrame)
+                        if TweenUtil and TweenUtil.TweenTo then
+                            TweenUtil.TweenTo(currentTarget.HumanoidRootPart.CFrame)
+                        end
                         
                         local distance = (character.HumanoidRootPart.Position - currentTarget.HumanoidRootPart.Position).Magnitude
                         if distance < 35 then
@@ -60,23 +67,24 @@ function AutoFarmController.Start()
                             vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
                         end
                     else
-                        -- Mặc định bay về Tiki Outpost nếu không thấy quái
-                        TweenUtil.TweenTo(CFrame.new(-16516, 50, 1050))
+                        if TweenUtil and TweenUtil.TweenTo then
+                            TweenUtil.TweenTo(CFrame.new(-16516, 50, 1050))
+                        end
                         currentTarget = nil
                     end
                 end
             end)
             task.wait(0.3)
         end
-        TweenUtil.Cancel()
+        if TweenUtil and TweenUtil.Cancel then TweenUtil.Cancel() end
         currentTarget = nil
-        print("[AutoFarm Controller]: 🛑 Đã dừng.")
+        print("[AutoFarm Controller]: Đã dừng.")
     end)
 end
 
 function AutoFarmController.Stop()
     isRunning = false
-    TweenUtil.Cancel()
+    if TweenUtil and TweenUtil.Cancel then TweenUtil.Cancel() end
 end
 
 return AutoFarmController
