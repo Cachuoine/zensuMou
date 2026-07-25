@@ -1,44 +1,46 @@
--- [[ Main Client Loader - Blox Fruits Auto Farm ]] --
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = Players.LocalPlayer
+-- [[ Mainclient.lua ]] --
+if not game:IsLoaded() then game.Loaded:Wait() end
 
--- Đảm bảo game đã load hoàn tất trước khi chạy script
-if not game:IsLoaded() then
-    game.Loaded:Wait()
-end
-
-print("[MainClient]: Đang khởi động hệ thống Auto Farm...")
-
--- Đường dẫn chính
-local RootFolder = ReplicatedStorage:WaitForChild("bloxfruit", 10)
-if not RootFolder then
-    warn("[MainClient]: Không tìm thấy thư mục bloxfruit trong ReplicatedStorage!")
+if getgenv().ProjectLoaded then
+    warn("System already loaded!")
     return
 end
+getgenv().ProjectLoaded = true
 
-local ConfigPath = RootFolder:WaitForChild("Config")
-local ModulesPath = RootFolder:WaitForChild("Modules")
--- (Nếu Controllers nằm trong ReplicatedStorage hoặc ở dạng LocalScript riêng, bạn chỉnh lại path cho phù hợp nhé)
+print("Initializing Mainclient...")
 
--- Load các Controller chính
--- Giả sử các Controller được đặt trong ReplicatedStorage.bloxfruit.Controllers hoặc bạn require từ chỗ lưu trữ tương ứng
-local ControllersPath = RootFolder:FindFirstChild("Controllers")
+local CoreGui = game:GetService("CoreGui")
 
-local success, err = pcall(function()
-    -- Load cơ bản các thành phần để test hệ thống
-    local GameConfig = require(ConfigPath:WaitForChild("GameConfig"))
-    local TweenUtil = require(ModulesPath:WaitForChild("TweenUtil"))
-    
-    print("[MainClient]: Đã tải xong Config và Modules thành công!")
-    print("[MainClient]: Tốc độ bay cấu hình hiện tại: " .. tostring(GameConfig.TweenSpeed))
-    
-    -- Ví dụ test di chuyển đến vị trí đảo khởi đầu (Pirate Starter / Marine Starter)
-    -- TweenUtil.To(Vector3.new(100, 10, 100))
+-- Tải Controller AutoFarm từ GitHub của bạn
+local AutoFarm = loadstring(game:HttpGet("https://raw.githubusercontent.com/zensuMou/bloxfruit/main/UI/Controllers/AutoFarm.lua"))()
+
+-- Tạo UI đơn giản để test nút bấm
+if CoreGui:FindFirstChild("BloxFruitUI") then CoreGui.BloxFruitUI:Destroy() end
+
+local ScreenGui = Instance.new("ScreenGui", CoreGui)
+ScreenGui.Name = "BloxFruitUI"
+
+local Btn = Instance.new("TextButton", ScreenGui)
+Btn.Size = UDim2.new(0, 200, 0, 50)
+Btn.Position = UDim2.new(0.5, -100, 0.2, 0)
+Btn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+Btn.Text = "Toggle Auto Farm: OFF"
+Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+Btn.Font = Enum.Font.SourceSansBold
+Btn.TextSize = 16
+
+local active = false
+Btn.MouseButton1Click:Connect(function()
+    active = not active
+    if active then
+        Btn.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+        Btn.Text = "Toggle Auto Farm: ON"
+        AutoFarm.Start()
+    else
+        Btn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        Btn.Text = "Toggle Auto Farm: OFF"
+        AutoFarm.Stop()
+    end
 end)
 
-if not success then
-    warn("[MainClient]: Lỗi khi khởi động hệ thống: " .. tostring(err))
-else
-    print("[MainClient]: Hệ thống đã sẵn sàng hoạt động ổn định!")
-end
+print("Mainclient Loaded Successfully!")
