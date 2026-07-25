@@ -1,4 +1,4 @@
--- [[ FishHub.lua - Thêm hệ thống Tween Movement ]] --
+-- [[ FishHub.lua - Full Script + Tween Movement ]] --
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
@@ -15,7 +15,6 @@ local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local TweenService = game:GetService("TweenService")
-local vim = game:GetService("VirtualInputManager")
 
 -- Xóa UI cũ nếu có
 if CoreGui:FindFirstChild("FishHubUI") then
@@ -76,7 +75,6 @@ local function TweenTo(targetCFrame)
     if not character or not character:FindFirstChild("HumanoidRootPart") then return end
     local hrp = character.HumanoidRootPart
 
-    -- Hủy tween cũ nếu đang chạy dở
     if currentTween then 
         currentTween:Cancel() 
     end
@@ -84,36 +82,38 @@ local function TweenTo(targetCFrame)
     local distance = (hrp.Position - targetCFrame.Position).Magnitude
     local speed = 350 -- Tốc độ bay (studs/s)
     local timeTaken = distance / speed
+    if timeTaken < 0.1 then timeTaken = 0.1 end
 
     local tweenInfo = TweenInfo.new(timeTaken, Enum.EasingStyle.Linear)
-    currentTween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame + Vector3.new(0, 50, 0)}) -- Bay cao hơn đầu quái 50 studs
+    currentTween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame + Vector3.new(0, 40, 0)})
     currentTween:Play()
 end
 
--- 3. Vòng lặp Auto Farm tích hợp kiểm tra di chuyển
+-- 3. Vòng lặp Auto Farm thực hiện bay
 local isFarmActive = false
 
 local function StartAutoFarm()
     task.spawn(function()
-        print("[AutoFarm]: 🚀 Bắt đầu vòng lặp cày cấp thông minh!")
+        print("[AutoFarm]: 🚀 Bắt đầu vòng lặp bay đến mục tiêu!")
         
         while isFarmActive do
-            pcall(function()
-                local character = LocalPlayer.Character
-                if character and character:FindFirstChild("HumanoidRootPart") then
-                    -- Ví dụ: Test bay đến tọa độ đảo trung tâm hoặc vị trí chỉ định
-                    -- (Sau này chỗ này sẽ lấy tọa độ NPC hoặc quái thực tế theo cấp độ)
-                    local targetPos = CFrame.new(1000, 150, -1000) 
-                    
-                    print("[AutoFarm]: Đang bay đến mục tiêu...")
-                    TweenTo(targetPos)
-                end
+            local success, err = pcall(function()
+                -- Tọa độ mẫu trên bản đồ (Ví dụ: Đảo trung tâm Sea 1/2/3 tùy vị trí)
+                local targetPos = CFrame.new(1000, 150, -1000) 
+                
+                print("[AutoFarm]: ✈️ Đang bay tới tọa độ chỉ định...")
+                TweenTo(targetPos)
             end)
-            task.wait(3) -- Chu kỳ kiểm tra lại
+            
+            if not success then
+                warn("[AutoFarm Lỗi]: " .. tostring(err))
+            end
+            
+            task.wait(4) -- Đợi 4 giây thực hiện tween lại một lần
         end
         
         if currentTween then currentTween:Cancel() end
-        print("[AutoFarm]: 🛑 Đã dừng cày cấp.")
+        print("[AutoFarm]: 🛑 Đã dừng vòng lặp bay.")
     end)
 end
 
@@ -130,4 +130,4 @@ AutoFarmBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-print("[FishHub]: Khởi chạy hệ thống hoàn tất!")
+print("[FishHub]: Khởi chạy hệ thống thành công!")
