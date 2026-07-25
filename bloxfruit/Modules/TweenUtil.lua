@@ -3,9 +3,6 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 
-local GameConfig = loadstring(game:HttpGet("..."))() -- Hoặc require nếu chạy trong môi trường Studio/Lune, tùy vào bộ load script của bạn.
--- Lưu ý: Nếu bạn dùng hệ thống load file nội bộ, hãy dùng require(script.Parent.Parent.Config.GameConfig)
-
 local TweenModule = {}
 local activeTween = nil
 
@@ -28,7 +25,7 @@ function TweenModule.To(targetPosition)
     local rootPart = character.HumanoidRootPart
     local distance = (rootPart.Position - targetPosition).Magnitude
     
-    -- Lấy tốc độ từ GameConfig (mặc định 320 nếu chưa load được)
+    -- Lấy tốc độ từ GameConfig
     local speed = 320
     pcall(function()
         local config = require(game:GetService("ReplicatedStorage").bloxfruit.Config.GameConfig)
@@ -41,8 +38,6 @@ function TweenModule.To(targetPosition)
     activeTween = TweenService:Create(rootPart, info, {CFrame = CFrame.new(targetPosition)})
     
     activeTween:Play()
-    
-    -- Tắt va chạm (nếu cần) và cố định nhân vật bay thẳng tới đích
     activeTween.Completed:Wait()
 end
 
