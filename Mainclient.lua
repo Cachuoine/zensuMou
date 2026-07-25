@@ -1,47 +1,44 @@
--- [[ Mainclient.lua - Core Client Initializer ]]
+-- [[ Main Client Loader - Blox Fruits Auto Farm ]] --
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
 
-if not ns_load then
-    warn("[Mainclient Error] Thiếu hàm nạp ns_load từ FishHub!")
+-- Đảm bảo game đã load hoàn tất trước khi chạy script
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
+print("[MainClient]: Đang khởi động hệ thống Auto Farm...")
+
+-- Đường dẫn chính
+local RootFolder = ReplicatedStorage:WaitForChild("bloxfruit", 10)
+if not RootFolder then
+    warn("[MainClient]: Không tìm thấy thư mục bloxfruit trong ReplicatedStorage!")
     return
 end
 
--- 1. Tải giao diện người dùng (UI Library) từ thư mục bloxfruit/UI/
--- (Bạn có thể thay thế bằng file UI thực tế của bạn, ví dụ: Fluent, Rayfield, hoặc UI tự thiết kế)
-local UIModule = ns_load("bloxfruit/UI/MainUI.lua")
+local ConfigPath = RootFolder:WaitForChild("Config")
+local ModulesPath = RootFolder:WaitForChild("Modules")
+-- (Nếu Controllers nằm trong ReplicatedStorage hoặc ở dạng LocalScript riêng, bạn chỉnh lại path cho phù hợp nhé)
 
-if not UIModule then
-    warn("[Mainclient Error] Không thể khởi tạo giao diện người dùng!")
-    return
+-- Load các Controller chính
+-- Giả sử các Controller được đặt trong ReplicatedStorage.bloxfruit.Controllers hoặc bạn require từ chỗ lưu trữ tương ứng
+local ControllersPath = RootFolder:FindFirstChild("Controllers")
+
+local success, err = pcall(function()
+    -- Load cơ bản các thành phần để test hệ thống
+    local GameConfig = require(ConfigPath:WaitForChild("GameConfig"))
+    local TweenUtil = require(ModulesPath:WaitForChild("TweenUtil"))
+    
+    print("[MainClient]: Đã tải xong Config và Modules thành công!")
+    print("[MainClient]: Tốc độ bay cấu hình hiện tại: " .. tostring(GameConfig.TweenSpeed))
+    
+    -- Ví dụ test di chuyển đến vị trí đảo khởi đầu (Pirate Starter / Marine Starter)
+    -- TweenUtil.To(Vector3.new(100, 10, 100))
+end)
+
+if not success then
+    warn("[MainClient]: Lỗi khi khởi động hệ thống: " .. tostring(err))
+else
+    print("[MainClient]: Hệ thống đã sẵn sàng hoạt động ổn định!")
 end
-
--- 2. Tải các Controllers và Modules logic cốt lõi từ thư mục bloxfruit/Controllers/
-local Controllers = {
-    Tween = ns_load("bloxfruit/Controllers/TweenController.lua"),
-    AutoFarm = ns_load("bloxfruit/Controllers/AutoFarmController.lua"),
-    Combat = ns_load("bloxfruit/Controllers/CombatController.lua"),
-}
-
--- 3. Khởi tạo giao diện và liên kết các tính năng
-local function InitializeClient()
-    local Window = UIModule:CreateWindow({
-        Title = "FishHub | Blox Fruits",
-        SubTitle = "Modular Architecture",
-        TabWidth = 160
-    })
-
-    -- Tạo các Tab chính trên giao diện
-    local TabMain = Window:AddTab({ Title = "Auto Farm", Icon = "rbxassetid://0" })
-    local TabTeleport = Window:AddTab({ Title = "Teleport", Icon = "rbxassetid://0" })
-    local TabSettings = Window:AddTab({ Title = "Settings", Icon = "rbxassetid://0" })
-
-    -- Liên kết logic từ Controllers vào các Tab nếu module tồn tại
-    if Controllers.AutoFarm and Controllers.AutoFarm.Init then
-        Controllers.AutoFarm.Init(TabMain)
-    end
-
-    if Controllers.Tween and Controllers.Tween.Init then
-        Controllers.Tween.Init(TabTeleport)
-    end
-end
-
-InitializeClient()
