@@ -1,4 +1,4 @@
--- [[ FishHub.lua - Tiki Outpost Pure Farm ]] --
+-- [[ FishHub.lua - Tiki Outpost Target Locking Farm ]] --
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
@@ -9,7 +9,7 @@ if getgenv().FishHubLoaded then
 end
 getgenv().FishHubLoaded = true
 
-print("[FishHub]: Đang khởi động hệ thống Tiki Outpost Farm mới nhất...")
+print("[FishHub]: Đang khởi động hệ thống Tiki Outpost Farm với Target Lock...")
 
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -129,25 +129,29 @@ local function GetClosestEnemy()
     return closestEnemy
 end
 
--- 4. Vòng lặp Auto Farm trực tiếp Tiki Outpost
+-- 4. Vòng lặp Auto Farm có khóa mục tiêu (Target Locking)
 local isFarmActive = false
+local currentTarget = nil
 
 local function StartAutoFarm()
     task.spawn(function()
-        print("[AutoFarm]: 🚀 Bắt đầu vòng lặp farm Tiki Outpost trực tiếp!")
+        print("[AutoFarm]: 🚀 Bắt đầu vòng lặp khóa mục tiêu Tiki Outpost!")
         
         while isFarmActive do
             pcall(function()
                 local character = LocalPlayer.Character
                 if character and character:FindFirstChild("HumanoidRootPart") then
                     
-                    local targetEnemy = GetClosestEnemy()
+                    -- Kiểm tra xem mục tiêu hiện tại còn sống và hợp lệ không
+                    if not currentTarget or not currentTarget:FindFirstChild("HumanoidRootPart") or not currentTarget:FindFirstChild("Humanoid") or currentTarget.Humanoid.Health <= 0 then
+                        currentTarget = GetClosestEnemy() -- Chỉ tìm con mới khi con cũ đã chết hoặc mất tích
+                    end
                     
-                    if targetEnemy and targetEnemy:FindFirstChild("HumanoidRootPart") then
-                        print("[AutoFarm]: ⚔️ Đang tiếp cận quái: " .. targetEnemy.Name)
-                        TweenTo(targetEnemy.HumanoidRootPart.CFrame)
+                    if currentTarget and currentTarget:FindFirstChild("HumanoidRootPart") then
+                        print("[AutoFarm]: ⚔️ Đang tập trung tiêu diệt: " .. currentTarget.Name)
+                        TweenTo(currentTarget.HumanoidRootPart.CFrame)
                         
-                        local distance = (character.HumanoidRootPart.Position - targetEnemy.HumanoidRootPart.Position).Magnitude
+                        local distance = (character.HumanoidRootPart.Position - currentTarget.HumanoidRootPart.Position).Magnitude
                         if distance < 35 then
                             vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
                             task.wait(0.05)
@@ -156,6 +160,7 @@ local function StartAutoFarm()
                     else
                         print("[AutoFarm]: 🏝️ Đang bay về đảo Tiki Outpost tìm quái...")
                         TweenTo(CFrame.new(-16516, 50, 1050)) 
+                        currentTarget = nil
                     end
                 end
             end)
@@ -164,6 +169,7 @@ local function StartAutoFarm()
         
         if currentTween then currentTween:Cancel() end
         isTweening = false
+        currentTarget = nil
         print("[AutoFarm]: 🛑 Đã dừng cày cấp.")
     end)
 end
@@ -181,4 +187,4 @@ AutoFarmBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-print("[FishHub]: Khởi chạy phiên bản Tiki thuần túy thành công!")
+print("[FishHub]: Khởi chạy hệ thống khóa mục tiêu thành công!")
