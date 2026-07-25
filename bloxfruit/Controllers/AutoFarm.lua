@@ -1,91 +1,82 @@
--- [[ Auto Farm Controller (Full Integration) ]] --
+-- [[ Controllers/AutoFarm.lua ]] --
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
+local Workspace = game:GetService("Workspace")
+local vim = game:GetService("VirtualInputManager")
 
-local ConfigPath = ReplicatedStorage:WaitForChild("bloxfruit"):WaitForChild("Config")
-local ModulesPath = ReplicatedStorage:WaitForChild("bloxfruit"):WaitForChild("Modules")
-local ControllersPath = ReplicatedStorage:WaitForChild("bloxfruit"):WaitForChild("Controllers")
+-- Trỏ đường dẫn require tùy theo cách bạn host trên GitHub (hoặc dùng loadstring module con)
+-- Ví dụ gọi module tween:
+local TweenUtil = loadstring(game:HttpGet("https://raw.githubusercontent.com/zensuMou/bloxfruit/main/UI/Modules/TweenUtil.lua"))()
 
-local QuestConfig = require(ConfigPath:WaitForChild("QuestConfig"))
-local EnemyConfig = require(ConfigPath:WaitForChild("EnemyConfig"))
-local WeaponConfig = require(ConfigPath:WaitForChild("WeaponConfig"))
-local GameConfig = require(ConfigPath:WaitForChild("GameConfig"))
+local AutoFarmController = {}
+local isRunning = false
+local currentTarget = nil
 
-local TweenUtil = require(ModulesPath:WaitForChild("TweenUtil"))
-local QuestController = require(ControllersPath:WaitForChild("QuestController"))
-local CombatController = require(ControllersPath:WaitForChild("CombatController"))
-local SkillController = require(ControllersPath:WaitForChild("SkillController"))
+local function GetClosestEnemy()
+    local enemiesFolder = Workspace:FindFirstChild("Enemies")
+    if not enemiesFolder then return nil end
 
-local AutoFarm = {}
-AutoFarm.Running = false
+    local character = LocalPlayer.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return nil end
+    local hrp = character.HumanoidRootPart
 
--- Lấy nhiệm vụ theo level
-local function GetCurrentQuest()
-    local success, result = pcall(function()
-        local playerLevel = LocalPlayer.Data.Level.Value
-        for _, quest in ipairs(QuestConfig) do
-            if playerLevel >= quest.MinLevel and playerLevel <= quest.MaxLevel then
-                return quest
+    local closestEnemy = nil
+    local shortestDistance = math.huge
+
+    for _, enemy in ipairs(enemiesFolder:GetChildren()) do
+        if enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+            local distance = (hrp.Position - enemy.HumanoidRootPart.Position).Magnitude
+            if distance < shortestDistance then
+                shortestDistance = distance
+                closestEnemy = enemy
             end
         end
-    end)
-    return success and result or nil
+    end
+    return closestEnemy
 end
 
-function AutoFarm.Start()
-    if AutoFarm.Running then return end
-    AutoFarm.Running = true
+function AutoFarmController.Start()
+    if isRunning then return end
+    isRunning = true
     
     task.spawn(function()
-        print("[AutoFarm]: Đã khởi động hệ thống cày cấp toàn diện!")
-        while AutoFarm.Running do
+        print("[AutoFarm Controller]: 🚀 Bắt đầu chạy ngầm...")
+        while isRunning do
             pcall(function()
-                local currentQuest = GetCurrentQuest()
-                if currentQuest then
-                    -- 1. Kiểm tra xem đã nhận nhiệm vụ chưa
-                    local hasQuest = QuestController.HasActiveQuest()
+                local character = LocalPlayer.Character
+                if character and character:FindFirstChild("HumanoidRootPart") then
                     
-                    if not hasQuest then
-                        -- Chưa có quest thì bay đến NPC nhận
-                        print("[AutoFarm]: Đang bay đến nhận nhiệm vụ: " .. currentQuest.QuestName)
-                        TweenUtil.To(currentQuest.NPCSpawn)
-                        task.wait(0.5)
+                    if not currentTarget or not currentTarget:FindFirstChild("HumanoidRootPart") or not currentTarget:FindFirstChild("Humanoid") or currentTarget.Humanoid.Health <= 0 then
+                        currentTarget = GetClosestEnemy()
+                    end
+                    
+                    if currentTarget and currentTarget:FindFirstChild("HumanoidRootPart") then
+                        TweenUtil.TweenTo(currentTarget.HumanoidRootPart.CFrame)
                         
-                        -- Gửi yêu cầu nhận nhiệm vụ lên server
-                        QuestController.AcceptQuest(currentQuest.QuestName, currentQuest.QuestLevel)
-                        task.wait(1)
-                    else
-                        -- Đã có quest, tiến hành bay đến bãi quái
-                        local enemyData = EnemyConfig[currentQuest.MobName]
-                        if enemyData then
-                            -- Trang bị vũ khí mặc định (ví dụ: Melee hoặc Sword từ WeaponConfig)
-                            CombatController.EquipWeapon(WeaponConfig.DefaultWeapon or "Combat")
-                            
-                            -- Bay đến đầu bãi quái (có thể cộng thêm offset trên không để né đòn)
-                            local farmPos = enemyData.SpawnPos + Vector3.new(0, 15, 0)
-                            TweenUtil.To(farmPos)
-                            
-                            -- Vòng lặp đánh quái tại chỗ
-                            local startTime = tick()
-                            while AutoFarm.Running and QuestController.HasActiveQuest() and (tick() - startTime < 30) do
-                                CombatController.Attack()
-                                SkillController.UseSkills()
-                                task.wait(0.2)
-                            end
+                        local distance = (character.HumanoidRootPart.Position - currentTarget.HumanoidRootPart.Position).Magnitude
+                        if distance < 35 then
+                            vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+                            task.wait(0.05)
+                            vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
                         end
+                    else
+                        -- Mặc định bay về Tiki Outpost nếu không thấy quái
+                        TweenUtil.TweenTo(CFrame.new(-16516, 50, 1050))
+                        currentTarget = nil
                     end
                 end
             end)
-            task.wait(0.5)
+            task.wait(0.3)
         end
+        TweenUtil.Cancel()
+        currentTarget = nil
+        print("[AutoFarm Controller]: 🛑 Đã dừng.")
     end)
 end
 
-function AutoFarm.Stop()
-    AutoFarm.Running = false
+function AutoFarmController.Stop()
+    isRunning = false
     TweenUtil.Cancel()
-    print("[AutoFarm]: Đã dừng hoạt động.")
 end
 
-return AutoFarm
+return AutoFarmController
