@@ -1,4 +1,4 @@
--- [[ FishHub.lua - Tiki Outpost Auto Farm Optimized ]] --
+-- [[ FishHub.lua - Tiki Outpost Pure Farm ]] --
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
@@ -9,7 +9,7 @@ if getgenv().FishHubLoaded then
 end
 getgenv().FishHubLoaded = true
 
-print("[FishHub]: Đang khởi động hệ thống Blox Fruits Hub...")
+print("[FishHub]: Đang khởi động hệ thống Tiki Outpost Farm mới nhất...")
 
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -70,7 +70,7 @@ local BtnCorner = Instance.new("UICorner")
 BtnCorner.CornerRadius = UDim.new(0, 8)
 BtnCorner.Parent = AutoFarmBtn
 
--- 2. Hệ thống Tween mượt mà không giật
+-- 2. Hệ thống Tween mượt mà
 local currentTween = nil
 local isTweening = false
 
@@ -88,7 +88,7 @@ local function TweenTo(targetCFrame)
     if not isTweening then
         if currentTween then currentTween:Cancel() end
         
-        local speed = 350 -- Tốc độ bay
+        local speed = 350
         local timeTaken = distance / speed
         if timeTaken < 0.1 then timeTaken = 0.1 end
 
@@ -104,7 +104,7 @@ local function TweenTo(targetCFrame)
     end
 end
 
--- 3. Tìm kiếm quái vật gần nhất tại Sea 3
+-- 3. Tìm kiếm quái vật gần nhất
 local function GetClosestEnemy()
     local enemiesFolder = Workspace:FindFirstChild("Enemies")
     if not enemiesFolder then return nil end
@@ -129,12 +129,12 @@ local function GetClosestEnemy()
     return closestEnemy
 end
 
--- 4. Vòng lặp Auto Farm tập trung tại Tiki Outpost
+-- 4. Vòng lặp Auto Farm trực tiếp Tiki Outpost
 local isFarmActive = false
 
 local function StartAutoFarm()
     task.spawn(function()
-        print("[AutoFarm]: 🚀 Bắt đầu cày cấp tại Tiki Outpost!")
+        print("[AutoFarm]: 🚀 Bắt đầu vòng lặp farm Tiki Outpost trực tiếp!")
         
         while isFarmActive do
             pcall(function()
@@ -144,10 +144,9 @@ local function StartAutoFarm()
                     local targetEnemy = GetClosestEnemy()
                     
                     if targetEnemy and targetEnemy:FindFirstChild("HumanoidRootPart") then
-                        -- Bay tới quái gần nhất
+                        print("[AutoFarm]: ⚔️ Đang tiếp cận quái: " .. targetEnemy.Name)
                         TweenTo(targetEnemy.HumanoidRootPart.CFrame)
                         
-                        -- Tấn công khi đến gần
                         local distance = (character.HumanoidRootPart.Position - targetEnemy.HumanoidRootPart.Position).Magnitude
                         if distance < 35 then
                             vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
@@ -155,8 +154,7 @@ local function StartAutoFarm()
                             vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
                         end
                     else
-                        print("[AutoFarm]: 🏝️ Đang bay về khu vực trung tâm Tiki Outpost...")
-                        -- Tọa độ chính xác khu vực đảo Tiki Outpost
+                        print("[AutoFarm]: 🏝️ Đang bay về đảo Tiki Outpost tìm quái...")
                         TweenTo(CFrame.new(-16516, 50, 1050)) 
                     end
                 end
@@ -183,4 +181,4 @@ AutoFarmBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-print("[FishHub]: Khởi chạy hệ thống hoàn tất!")
+print("[FishHub]: Khởi chạy phiên bản Tiki thuần túy thành công!")
