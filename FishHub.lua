@@ -1,4 +1,4 @@
--- [[ FishHub.lua - Main Hub & UI Launcher ]] --
+-- [[ FishHub.lua - Full UI & Auto Farm Integration ]] --
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
@@ -15,19 +15,19 @@ print("[FishHub]: Đang khởi động hệ thống Blox Fruits Hub...")
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local vim = game:GetService("VirtualInputManager")
 
--- Xóa UI cũ nếu có sẵn
+-- Xóa UI cũ nếu có
 if CoreGui:FindFirstChild("FishHubUI") then
     CoreGui.FishHubUI:Destroy()
 end
 
--- Tạo ScreenGui chính
+-- 1. Tạo giao diện ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "FishHubUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = CoreGui
 
--- Khung Menu
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 380, 0, 260)
@@ -41,7 +41,6 @@ local Corner = Instance.new("UICorner")
 Corner.CornerRadius = UDim.new(0, 10)
 Corner.Parent = MainFrame
 
--- Thanh tiêu đề
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Size = UDim2.new(1, 0, 0, 45)
 TitleLabel.BackgroundColor3 = Color3.fromRGB(35, 38, 55)
@@ -56,7 +55,6 @@ local TitleCorner = Instance.new("UICorner")
 TitleCorner.CornerRadius = UDim.new(0, 10)
 TitleCorner.Parent = TitleLabel
 
--- Nút Bật/Tắt Auto Farm
 local AutoFarmBtn = Instance.new("TextButton")
 AutoFarmBtn.Size = UDim2.new(0.85, 0, 0, 45)
 AutoFarmBtn.Position = UDim2.new(0.075, 0, 0.3, 0)
@@ -71,21 +69,44 @@ local BtnCorner = Instance.new("UICorner")
 BtnCorner.CornerRadius = UDim.new(0, 8)
 BtnCorner.Parent = AutoFarmBtn
 
--- Xử lý sự kiện bấm nút
+-- 2. Logic Vòng lặp Auto Farm
 local isFarmActive = false
+
+local function StartAutoFarm()
+    task.spawn(function()
+        print("[AutoFarm]: Đã kích hoạt vòng lặp cày cấp!")
+        while isFarmActive do
+            pcall(function()
+                -- Lấy vị trí nhân vật hiện tại
+                local char = LocalPlayer.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    local hrp = char.HumanoidRootPart
+                    -- Ví dụ test mô phỏng: In ra tọa độ hoặc thực hiện logic bay/đánh quái ở đây
+                    -- print("Đang quét tìm nhiệm vụ và quái...")
+                    
+                    -- Giả lập hành động tấn công nhẹ (click chuột trái)
+                    vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+                    task.wait(0.1)
+                    vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+                end
+            end)
+            task.wait(1) -- Chu kỳ quét mỗi giây
+        end
+        print("[AutoFarm]: Đã dừng vòng lặp cày cấp.")
+    end)
+end
+
+-- 3. Xử lý sự kiện bấm nút UI
 AutoFarmBtn.MouseButton1Click:Connect(function()
     isFarmActive = not isFarmActive
     if isFarmActive then
         AutoFarmBtn.BackgroundColor3 = Color3.fromRGB(45, 180, 80)
         AutoFarmBtn.Text = "Auto Farm Level: ON"
-        print("[FishHub]: Đã bật trạng thái Auto Farm!")
-        -- Sau này chỗ này sẽ gọi hàm AutoFarm.Start()
+        StartAutoFarm()
     else
         AutoFarmBtn.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
         AutoFarmBtn.Text = "Auto Farm Level: OFF"
-        print("[FishHub]: Đã tắt trạng thái Auto Farm!")
-        -- Sau này chỗ này sẽ gọi hàm AutoFarm.Stop()
     end
 end)
 
-print("[FishHub]: Khởi chạy giao diện thành công từ GitHub!")
+print("[FishHub]: Khởi chạy hệ thống và giao diện thành công từ GitHub!")
