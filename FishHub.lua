@@ -1,4 +1,4 @@
--- [[ FishHub.lua - Optimized Auto Farm & Anti-Spam Tween ]] --
+-- [[ FishHub.lua - Tiki Outpost Auto Farm Optimized ]] --
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
@@ -45,7 +45,7 @@ Corner.Parent = MainFrame
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Size = UDim2.new(1, 0, 0, 45)
 TitleLabel.BackgroundColor3 = Color3.fromRGB(35, 38, 55)
-TitleLabel.Text = "   🐟 FishHub - Blox Fruits Auto Farm"
+TitleLabel.Text = "   🐟 FishHub - Tiki Outpost Auto Farm"
 TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleLabel.TextSize = 16
 TitleLabel.Font = Enum.Font.SourceSansBold
@@ -60,7 +60,7 @@ local AutoFarmBtn = Instance.new("TextButton")
 AutoFarmBtn.Size = UDim2.new(0.85, 0, 0, 45)
 AutoFarmBtn.Position = UDim2.new(0.075, 0, 0.3, 0)
 AutoFarmBtn.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
-AutoFarmBtn.Text = "Auto Farm Level: OFF"
+AutoFarmBtn.Text = "Auto Farm Tiki: OFF"
 AutoFarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 AutoFarmBtn.TextSize = 16
 AutoFarmBtn.Font = Enum.Font.SourceSansBold
@@ -70,7 +70,7 @@ local BtnCorner = Instance.new("UICorner")
 BtnCorner.CornerRadius = UDim.new(0, 8)
 BtnCorner.Parent = AutoFarmBtn
 
--- 2. Hệ thống Tween thông minh (Không bị giật)
+-- 2. Hệ thống Tween mượt mà không giật
 local currentTween = nil
 local isTweening = false
 
@@ -80,7 +80,6 @@ local function TweenTo(targetCFrame)
     local hrp = character.HumanoidRootPart
 
     local distance = (hrp.Position - targetCFrame.Position).Magnitude
-    -- Nếu đã ở rất gần mục tiêu thì không tạo tween mới nữa để tránh giật
     if distance < 15 then 
         isTweening = false
         return 
@@ -105,7 +104,7 @@ local function TweenTo(targetCFrame)
     end
 end
 
--- 3. Tìm kiếm quái vật gần nhất trong Sea 3
+-- 3. Tìm kiếm quái vật gần nhất tại Sea 3
 local function GetClosestEnemy()
     local enemiesFolder = Workspace:FindFirstChild("Enemies")
     if not enemiesFolder then return nil end
@@ -130,36 +129,35 @@ local function GetClosestEnemy()
     return closestEnemy
 end
 
--- 4. Vòng lặp Auto Farm tối ưu
+-- 4. Vòng lặp Auto Farm tập trung tại Tiki Outpost
 local isFarmActive = false
 
 local function StartAutoFarm()
     task.spawn(function()
-        print("[AutoFarm]: 🚀 Bắt đầu vòng lặp cày cấp mượt mà!")
+        print("[AutoFarm]: 🚀 Bắt đầu cày cấp tại Tiki Outpost!")
         
         while isFarmActive do
             pcall(function()
                 local character = LocalPlayer.Character
                 if character and character:FindFirstChild("HumanoidRootPart") then
                     
-                    -- Vì đang ở cấp Max (2800), bỏ qua bước tìm quest, tập trung farm thẳng quái cấp cao tại Sea 3
                     local targetEnemy = GetClosestEnemy()
                     
                     if targetEnemy and targetEnemy:FindFirstChild("HumanoidRootPart") then
-                        -- Bay thẳng tới quái gần nhất
+                        -- Bay tới quái gần nhất
                         TweenTo(targetEnemy.HumanoidRootPart.CFrame)
                         
-                        -- Giả lập đánh quái liên tục khi đã đến gần
+                        -- Tấn công khi đến gần
                         local distance = (character.HumanoidRootPart.Position - targetEnemy.HumanoidRootPart.Position).Magnitude
-                        if distance < 30 then
+                        if distance < 35 then
                             vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
                             task.wait(0.05)
                             vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
                         end
                     else
-                        print("[AutoFarm]: 🔍 Đang tìm kiếm bãi quái trên bản đồ...")
-                        -- Bay đến khu vực trung tâm Sea 3 nếu chưa thấy quái quanh đó
-                        TweenTo(CFrame.new(-12500, 330, -15000)) 
+                        print("[AutoFarm]: 🏝️ Đang bay về khu vực trung tâm Tiki Outpost...")
+                        -- Tọa độ chính xác khu vực đảo Tiki Outpost
+                        TweenTo(CFrame.new(-16516, 50, 1050)) 
                     end
                 end
             end)
@@ -177,12 +175,12 @@ AutoFarmBtn.MouseButton1Click:Connect(function()
     isFarmActive = not isFarmActive
     if isFarmActive then
         AutoFarmBtn.BackgroundColor3 = Color3.fromRGB(45, 180, 80)
-        AutoFarmBtn.Text = "Auto Farm Level: ON"
+        AutoFarmBtn.Text = "Auto Farm Tiki: ON"
         StartAutoFarm()
     else
         AutoFarmBtn.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
-        AutoFarmBtn.Text = "Auto Farm Level: OFF"
+        AutoFarmBtn.Text = "Auto Farm Tiki: OFF"
     end
 end)
 
-print("[FishHub]: Khởi chạy hệ thống mượt mà thành công!")
+print("[FishHub]: Khởi chạy hệ thống hoàn tất!")
