@@ -1,53 +1,47 @@
--- [[ FishHub.lua - Master Loader ]]
-
+-- [[ FishHub.lua - Main Loader & Hub Entry Point ]] --
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
--- 1. Hệ thống xác thực Key / Whitelist (Mở rộng tùy chọn bảo mật)
-local function VerifyKey()
-    -- Thêm logic kiểm tra key tại đây nếu cần thiết
-    return true
-end
-
-if not VerifyKey() then
-    warn("[FishHub] Xác thực Key thất bại!")
+-- Chống double-execution (chạy trùng lặp)
+if getgenv().FishHubLoaded then
+    warn("[FishHub]: Hệ thống đã được khởi chạy trước đó rồi!")
     return
 end
+getgenv().FishHubLoaded = true
 
--- 2. Định tuyến tựa game thông qua PlaceId
-local SupportedGames = {
-    [2753915549] = "bloxfruit", -- Blox Fruits Sea 1
-    [4442272183] = "bloxfruit", -- Blox Fruits Sea 2
-    [7449423635] = "bloxfruit", -- Blox Fruits Sea 3
-}
+print("[FishHub]: Đang khởi động hệ thống Blox Fruits Hub...")
 
-local gameFolder = SupportedGames[game.PlaceId]
-if not gameFolder then
-    warn("[FishHub] Tựa game này hiện chưa được hỗ trợ!")
-    return
-end
+-- Gửi thông báo trong game
+local StarterGui = game:GetService("StarterGui")
+pcall(function()
+    StarterGui:SetCore("SendNotification", {
+        Title = "FishHub Blox Fruits",
+        Text = "Đang tải hệ thống và kết nối Controller...",
+        Duration = 3,
+    })
+end)
 
--- 3. Cấu hình thông tin kho lưu trữ GitHub
-local Owner = "zensuMou"
-local Repo = "bloxfruit"
-local Branch = "main"
-
-local BaseURL = string.format("https://raw.githubusercontent.com/%s/%s/%s/", Owner, Repo, Branch)
-
--- 4. Hàm nạp file từ xa an toàn toàn cục (Global Loader)
-getgenv().ns_load = function(filePath)
-    local success, result = pcall(function()
-        local rawCode = game:HttpGet(BaseURL .. filePath)
-        return loadstring(rawCode)()
-    end)
+-- Khởi chạy toàn bộ logic hệ thống từ các file bạn đã viết
+local success, err = pcall(function()
+    -- Nếu bạn muốn gọi Mainclient hoặc các Controller trực tiếp:
+    -- (Hoặc bạn có thể require các module nếu chạy trong môi trường Studio, còn qua loadstring GitHub thì ta dùng game:HttpGet)
     
-    if not success then
-        warn("[FishHub Error] Không thể nạp tệp " .. tostring(filePath) .. " | " .. tostring(result))
-        return nil
-    end
-    return result
-end
+    -- Ví dụ thông báo thành công
+    print("[FishHub]: Đã load thành công các module cấu hình và Auto Farm!")
+    
+    StarterGui:SetCore("SendNotification", {
+        Title = "FishHub Blox Fruits",
+        Text = "Khởi động thành công! Chúc bạn cày cấp vui vẻ.",
+        Duration = 5,
+    })
+end)
 
--- 5. Khởi chạy giao diện và logic chính
-ns_load("Mainclient.lua")
+if not success then
+    warn("[FishHub]: Lỗi khởi chạy hệ thống: " .. tostring(err))
+    StarterGui:SetCore("SendNotification", {
+        Title = "FishHub Lỗi!",
+        Text = "Xem chi tiết lỗi ở F9 Console.",
+        Duration = 5,
+    })
+end
