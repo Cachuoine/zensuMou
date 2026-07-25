@@ -62,125 +62,126 @@ local EnemyConfig = {
     -- ==================== SEA 2 ====================
     [2] = {
         -- [ Kingdom of Rose & Đài Phun Nước / Factory ] --
-        ["Raider"] = { Name = "Raider", Position = Vector3.new(-904.3, 37.8, 2501.4) },[cite: 2]
-        ["Mercenary"] = { Name = "Mercenary", Position = Vector3.new(-924.7, 71.9, 1788.1) },[cite: 2]
-        ["Swan Pirate"] = { Name = "Swan Pirate", Position = Vector3.new(827.8, 71.8, 1326.9) },[cite: 2]
-        ["Factory Staff"] = { Name = "Factory Staff", Position = Vector3.new(386.1, 71.8, 91.8) },[cite: 2]
-        ["Diamond"] = { Name = "Diamond", Position = Vector3.new(-1499.0, 13.0, 762.0) },[cite: 2]
-        ["Jeremy"] = { Name = "Jeremy", Position = Vector3.new(2250.0, 42.0, 700.0) },[cite: 2]
-        ["Fajita"] = { Name = "Fajita", Position = Vector3.new(-2383.0, 72.0, -3194.0) },[cite: 2]
-        ["Don Swan"] = { Name = "Don Swan", Position = Vector3.new(2285.0, 15.0, 895.0) },[cite: 2]
+        ["Raider"] = { Name = "Raider", Position = Vector3.new(-904.3, 37.8, 2501.4) },
+        ["Mercenary"] = { Name = "Mercenary", Position = Vector3.new(-924.7, 71.9, 1788.1) },
+        ["Swan Pirate"] = { Name = "Swan Pirate", Position = Vector3.new(827.8, 71.8, 1326.9) },
+        ["Factory Staff"] = { Name = "Factory Staff", Position = Vector3.new(386.1, 71.8, 91.8) },
+        ["Diamond"] = { Name = "Diamond", Position = Vector3.new(-1499.0, 13.0, 762.0) },
+        ["Jeremy"] = { Name = "Jeremy", Position = Vector3.new(2250.0, 42.0, 700.0) },
+        ["Fajita"] = { Name = "Fajita", Position = Vector3.new(-2383.0, 72.0, -3194.0) },
+        ["Don Swan"] = { Name = "Don Swan", Position = Vector3.new(2285.0, 15.0, 895.0) },
 
         -- [ Căn Cứ Hải Quân Sea 2 ] --
-        ["Marine Captain"] = { Name = "Marine Captain", Position = Vector3.new(-1805.9, 70.3, -3326.9) },[cite: 2]
-        ["Marine Lieutenant"] = { Name = "Marine Lieutenant", Position = Vector3.new(-2932.5, 71.9, -2604.1) },[cite: 2]
+        ["Marine Captain"] = { Name = "Marine Captain", Position = Vector3.new(-1805.9, 70.3, -3326.9) },
+        ["Marine Lieutenant"] = { Name = "Marine Lieutenant", Position = Vector3.new(-2932.5, 71.9, -2604.1) },
 
         -- [ Đảo Thây Ma (Zombie & Vampire) ] --
-        ["Zombie"] = { Name = "Zombie", Position = Vector3.new(-5512.2, 47.4, -848.0) },[cite: 2]
-        ["Vampire"] = { Name = "Vampire", Position = Vector3.new(-6132.4, 5.3, -1466.2) },[cite: 2]
+        ["Zombie"] = { Name = "Zombie", Position = Vector3.new(-5512.2, 47.4, -848.0) },
+        ["Vampire"] = { Name = "Vampire", Position = Vector3.new(-6132.4, 5.3, -1466.2) },
 
         -- [ Đảo Tuyết (Ice Castle) ] --
-        ["Snow Trooper"] = { Name = "Snow Trooper", Position = Vector3.new(484.3, 400.3, -5472.4) },[cite: 2]
-        ["Winter Warrior"] = { Name = "Winter Warrior", Position = Vector3.new(1226.3, 428.3, -5216.0) },[cite: 2]
-        ["Snow Lurker"] = { Name = "Snow Lurker", Position = Vector3.new(5484.4, 27.7, -6733.7) },[cite: 2]
-        ["Arctic Warrior"] = { Name = "Arctic Warrior", Position = Vector3.new(6271.3, 26.9, -6151.5) },[cite: 2]
-        ["Awakened Ice Admiral"] = { Name = "Awakened Ice Admiral", Position = Vector3.new(6551.8, 320.8, -6989.9) },[cite: 2]
+        ["Snow Trooper"] = { Name = "Snow Trooper", Position = Vector3.new(484.3, 400.3, -5472.4) },
+        ["Winter Warrior"] = { Name = "Winter Warrior", Position = Vector3.new(1226.3, 428.3, -5216.0) },
+        ["Snow Lurker"] = { Name = "Snow Lurker", Position = Vector3.new(5484.4, 27.7, -6733.7) },
+        ["Arctic Warrior"] = { Name = "Arctic Warrior", Position = Vector3.new(6271.3, 26.9, -6151.5) },
+        ["Awakened Ice Admiral"] = { Name = "Awakened Ice Admiral", Position = Vector3.new(6551.8, 320.8, -6989.9) },
 
         -- [ Núi Lửa & Băng (Hot and Cold) ] --
-        ["Lava Pirate"] = { Name = "Lava Pirate", Position = Vector3.new(-5082.4, 28.0, -4796.3) },[cite: 2]
-        ["Magma Ninja"] = { Name = "Magma Ninja", Position = Vector3.new(-5790.1, 28.0, -5393.2) },[cite: 2]
-        ["Horned Warrior"] = { Name = "Horned Warrior", Position = Vector3.new(-6331.8, 28.1, -5778.9) },[cite: 2]
-        ["Lab Subordinate"] = { Name = "Lab Subordinate", Position = Vector3.new(-5766.4, 78.8, -4259.4) },[cite: 2]
-        ["Smoke Admiral"] = { Name = "Smoke Admiral", Position = Vector3.new(-4857.4, 233.2, -5583.2) },[cite: 2]
+        ["Lava Pirate"] = { Name = "Lava Pirate", Position = Vector3.new(-5082.4, 28.0, -4796.3) },
+        ["Magma Ninja"] = { Name = "Magma Ninja", Position = Vector3.new(-5790.1, 28.0, -5393.2) },
+        ["Horned Warrior"] = { Name = "Horned Warrior", Position = Vector3.new(-6331.8, 28.1, -5778.9) },
+        ["Lab Subordinate"] = { Name = "Lab Subordinate", Position = Vector3.new(-5766.4, 78.8, -4259.4) },
+        ["Smoke Admiral"] = { Name = "Smoke Admiral", Position = Vector3.new(-4857.4, 233.2, -5583.2) },
 
         -- [ Tàu Ma (Cursed Ship) ] --
-        ["Ship Deckhand"] = { Name = "Ship Deckhand", Position = Vector3.new(1176.3, 124.6, 33119.1) },[cite: 2]
-        ["Ship Engineer"] = { Name = "Ship Engineer", Position = Vector3.new(814.6, 38.5, 33058.9) },[cite: 2]
-        ["Ship Steward"] = { Name = "Ship Steward", Position = Vector3.new(969.7, 122.7, 33393.3) },[cite: 2]
-        ["Ship Officer"] = { Name = "Ship Officer", Position = Vector3.new(722.7, 179.9, 33123.0) },[cite: 2]
-        ["Cursed Captain"] = { Name = "Cursed Captain", Position = Vector3.new(922.3, 125.1, 32890.5) },[cite: 2]
+        ["Ship Deckhand"] = { Name = "Ship Deckhand", Position = Vector3.new(1176.3, 124.6, 33119.1) },
+        ["Ship Engineer"] = { Name = "Ship Engineer", Position = Vector3.new(814.6, 38.5, 33058.9) },
+        ["Ship Steward"] = { Name = "Ship Steward", Position = Vector3.new(969.7, 122.7, 33393.3) },
+        ["Ship Officer"] = { Name = "Ship Officer", Position = Vector3.new(722.7, 179.9, 33123.0) },
+        ["Cursed Captain"] = { Name = "Cursed Captain", Position = Vector3.new(922.3, 125.1, 32890.5) },
 
         -- [ Đảo Quên (Forgotten Island) ] --
-        ["Water Fighter"] = { Name = "Water Fighter", Position = Vector3.new(-3331.7, 237.7, -10553.4) },[cite: 2]
-        ["Sea Soldier"] = { Name = "Sea Soldier", Position = Vector3.new(-3499.3, 16.1, -9712.0) },[cite: 2]
-        ["Tide Keeper"] = { Name = "Tide Keeper", Position = Vector3.new(-3048.5, 237.6, -10235.8) },[cite: 2]
+        ["Water Fighter"] = { Name = "Water Fighter", Position = Vector3.new(-3331.7, 237.7, -10553.4) },
+        ["Sea Soldier"] = { Name = "Sea Soldier", Position = Vector3.new(-3499.3, 16.1, -9712.0) },
+        ["Tide Keeper"] = { Name = "Tide Keeper", Position = Vector3.new(-3048.5, 237.6, -10235.8) },
 
         -- [ Boss Thế Giới / Raid Boss Sea 2 ] --
-        ["Darkbeard"] = { Name = "Darkbeard", Position = Vector3.new(3779.3, 23.5, -34990.2) },[cite: 2]
-        ["Order"] = { Name = "Order", Position = Vector3.new(5734.0, 4.0, -6647.0) },[cite: 2]
+        ["Darkbeard"] = { Name = "Darkbeard", Position = Vector3.new(3779.3, 23.5, -34990.2) },
+        ["Order"] = { Name = "Order", Position = Vector3.new(5734.0, 4.0, -6647.0) },
     },
 
     -- ==================== SEA 3 ====================
     [3] = {
         -- [ Port Town ] --
-        ["Pirate Millionaire"] = { Name = "Pirate Millionaire", Position = Vector3.new(-751.6, 55.4, 5637.5) },[cite: 3]
-        ["Pistol Billionaire"] = { Name = "Pistol Billionaire", Position = Vector3.new(-739.5, 83.7, 5833.1) },[cite: 3]
-        ["Stone"] = { Name = "Stone", Position = Vector3.new(-1109.9, 51.6, 6811.7) },[cite: 3]
+        ["Pirate Millionaire"] = { Name = "Pirate Millionaire", Position = Vector3.new(-751.6, 55.4, 5637.5) },
+        ["Pistol Billionaire"] = { Name = "Pistol Billionaire", Position = Vector3.new(-739.5, 83.7, 5833.1) },
+        ["Stone"] = { Name = "Stone", Position = Vector3.new(-1109.9, 51.6, 6811.7) },
 
         -- [ Hydra Island ] --
-        ["Dragon Crew Warrior"] = { Name = "Dragon Crew Warrior", Position = Vector3.new(6918.9, 56.9, -974.6) },[cite: 3]
-        ["Dragon Crew Archer"] = { Name = "Dragon Crew Archer", Position = Vector3.new(6818.6, 483.7, 512.7) },[cite: 3]
-        ["Hydra Enforcer"] = { Name = "Hydra Enforcer", Position = Vector3.new(4462.7, 1003.6, 551.0) },[cite: 3]
-        ["Venomous Assailant"] = { Name = "Venomous Assailant", Position = Vector3.new(4443.0, 1231.6, 335.9) },[cite: 3]
-        ["Island Boy"] = { Name = "Island Boy", Position = Vector3.new(-16661.6, 54.6, -253.0) },[cite: 3]
-        ["Beautiful Pirate"] = { Name = "Beautiful Pirate", Position = Vector3.new(5320.0, 600.0, 500.0) },[cite: 3]
+        ["Dragon Crew Warrior"] = { Name = "Dragon Crew Warrior", Position = Vector3.new(6918.9, 56.9, -974.6) },
+        ["Dragon Crew Archer"] = { Name = "Dragon Crew Archer", Position = Vector3.new(6818.6, 483.7, 512.7) },
+        ["Hydra Enforcer"] = { Name = "Hydra Enforcer", Position = Vector3.new(4462.7, 1003.6, 551.0) },
+        ["Venomous Assailant"] = { Name = "Venomous Assailant", Position = Vector3.new(4443.0, 1231.6, 335.9) },
+        ["Island Boy"] = { Name = "Island Boy", Position = Vector3.new(-16661.6, 54.6, -253.0) },
+        ["Beautiful Pirate"] = { Name = "Beautiful Pirate", Position = Vector3.new(5320.0, 600.0, 500.0) },
 
         -- [ Great Tree & Floating Turtle ] --
-        ["Marine Lieutenant"] = { Name = "Marine Lieutenant", Position = Vector3.new(3465.2, 122.9, -7181.8) },[cite: 3]
-        ["Marine Commodore"] = { Name = "Marine Commodore", Position = Vector3.new(3222.4, 75.6, -7820.6) },[cite: 3]
-        ["Kilo Admiral"] = { Name = "Kilo Admiral", Position = Vector3.new(2998.3, 509.2, -7344.3) },[cite: 3]
-        ["Forest Pirate"] = { Name = "Forest Pirate", Position = Vector3.new(-13279.5, 331.3, -7897.8) },[cite: 3]
-        ["Mythological Pirate"] = { Name = "Mythological Pirate", Position = Vector3.new(-13456.1, 468.5, -7040.0) },[cite: 3]
-        ["Musketeer Pirate"] = { Name = "Musketeer Pirate", Position = Vector3.new(-13270.9, 472.1, -9860.7) },[cite: 3]
-        ["Captain Elephant"] = { Name = "Captain Elephant", Position = Vector3.new(-13365.5, 318.6, -8485.0) },[cite: 3]
+        ["Marine Lieutenant"] = { Name = "Marine Lieutenant", Position = Vector3.new(3465.2, 122.9, -7181.8) },
+        ["Marine Commodore"] = { Name = "Marine Commodore", Position = Vector3.new(3222.4, 75.6, -7820.6) },
+        ["Kilo Admiral"] = { Name = "Kilo Admiral", Position = Vector3.new(2998.3, 509.2, -7344.3) },
+        ["Forest Pirate"] = { Name = "Forest Pirate", Position = Vector3.new(-13279.5, 331.3, -7897.8) },
+        ["Mythological Pirate"] = { Name = "Mythological Pirate", Position = Vector3.new(-13456.1, 468.5, -7040.0) },
+        ["Musketeer Pirate"] = { Name = "Musketeer Pirate", Position = Vector3.new(-13270.9, 472.1, -9860.7) },
+        ["Captain Elephant"] = { Name = "Captain Elephant", Position = Vector3.new(-13365.5, 318.6, -8485.0) },
 
         -- [ Floating Turtle - Fishman & Jungle ] --
-        ["Fishman Raider"] = { Name = "Fishman Raider", Position = Vector3.new(-10853.9, 330.6, -8425.2) },[cite: 3]
-        ["Fishman Captain"] = { Name = "Fishman Captain", Position = Vector3.new(-11072.0, 328.8, -8634.7) },[cite: 3]
-        ["Jungle Pirate"] = { Name = "Jungle Pirate", Position = Vector3.new(-11708.4, 331.8, -10700.1) },[cite: 3]
-        ["Longma"] = { Name = "Longma", Position = Vector3.new(-10156.2, 331.6, -9445.9) },[cite: 3]
-        ["Subterranean"] = { Name = "Subterranean", Position = Vector3.new(-10000.0, 300.0, -9000.0) },[cite: 3]
+        ["Fishman Raider"] = { Name = "Fishman Raider", Position = Vector3.new(-10853.9, 330.6, -8425.2) },
+        ["Fishman Captain"] = { Name = "Fishman Captain", Position = Vector3.new(-11072.0, 328.8, -8634.7) },
+        ["Jungle Pirate"] = { Name = "Jungle Pirate", Position = Vector3.new(-11708.4, 331.8, -10700.1) },
+        ["Longma"] = { Name = "Longma", Position = Vector3.new(-10156.2, 331.6, -9445.9) },
+        ["Subterranean"] = { Name = "Subterranean", Position = Vector3.new(-10000.0, 300.0, -9000.0) },
 
         -- [ Haunted Castle ] --
-        ["Posessed Mummy"] = { Name = "Posessed Mummy", Position = Vector3.new(-9399.6, 11.3, 6118.8) },[cite: 3]
-        ["Reborn Skeleton"] = { Name = "Reborn Skeleton", Position = Vector3.new(-8826.1, 141.8, 6165.9) },[cite: 3]
-        ["Living Zombie"] = { Name = "Living Zombie", Position = Vector3.new(-10184.1, 152.3, 5741.9) },[cite: 3]
-        ["Demonic Soul"] = { Name = "Demonic Soul", Position = Vector3.new(-9427.0, 171.0, 6048.4) },[cite: 3]
-        ["Soul Reaper"] = { Name = "Soul Reaper", Position = Vector3.new(-9505.2, 157.1, 6079.7) },[cite: 3]
-        ["Cake Queen"] = { Name = "Cake Queen", Position = Vector3.new(-678.5, 381.3, -11114.3) },[cite: 3]
+        ["Posessed Mummy"] = { Name = "Posessed Mummy", Position = Vector3.new(-9399.6, 11.3, 6118.8) },
+        ["Reborn Skeleton"] = { Name = "Reborn Skeleton", Position = Vector3.new(-8826.1, 141.8, 6165.9) },
+        ["Living Zombie"] = { Name = "Living Zombie", Position = Vector3.new(-10184.1, 152.3, 5741.9) },
+        ["Demonic Soul"] = { Name = "Demonic Soul", Position = Vector3.new(-9427.0, 171.0, 6048.4) },
+        ["Soul Reaper"] = { Name = "Soul Reaper", Position = Vector3.new(-9505.2, 157.1, 6079.7) },
+        ["Cake Queen"] = { Name = "Cake Queen", Position = Vector3.new(-678.5, 381.3, -11114.3) },
 
         -- [ Ice Cream Land & Peanut Land & Cake Land (Sea of Treats) ] --
-        ["Ice Cream Chef"] = { Name = "Ice Cream Chef", Position = Vector3.new(-1109.3, 64.7, -10931.3) },[cite: 3]
-        ["Ice Cream Commander"] = { Name = "Ice Cream Commander", Position = Vector3.new(-786.8, 62.7, -11235.9) },[cite: 3]
-        ["Peanut Scout"] = { Name = "Peanut Scout", Position = Vector3.new(-2078.1, 10.6, -9997.1) },[cite: 3]
-        ["Peanut President"] = { Name = "Peanut President", Position = Vector3.new(-1874.4, 37.0, -10596.6) },[cite: 3]
-        ["Baking Staff"] = { Name = "Baking Staff", Position = Vector3.new(-1828.8, 36.7, -12699.4) },[cite: 3]
-        ["Head Baker"] = { Name = "Head Baker", Position = Vector3.new(-2151.4, 52.3, -13033.4) },[cite: 3]
-        ["Sweet Thief"] = { Name = "Sweet Thief", Position = Vector3.new(-140.3, 24.7, -12652.3) },[cite: 3]
-        ["Candy Rebel"] = { Name = "Candy Rebel", Position = Vector3.new(220.4, 23.7, -12914.0) },[cite: 3]
-        ["Cookie Crafter"] = { Name = "Cookie Crafter", Position = Vector3.new(-2423.4, 36.7, -12265.8) },[cite: 3]
-        ["Cake Guard"] = { Name = "Cake Guard", Position = Vector3.new(-1418.5, 36.7, -12255.7) },[cite: 3]
-        ["Cocoa Warrior"] = { Name = "Cocoa Warrior", Position = Vector3.new(168.0, 23.6, -12238.9) },[cite: 3]
-        ["Chocolate Bar Battler"] = { Name = "Chocolate Bar Battler", Position = Vector3.new(717.5, 23.6, -12557.7) },[cite: 3]
-        ["Dough King"] = { Name = "Dough King", Position = Vector3.new(-2054.4, 37.5, -12076.6) },[cite: 3]
+        ["Ice Cream Chef"] = { Name = "Ice Cream Chef", Position = Vector3.new(-1109.3, 64.7, -10931.3) },
+        ["Ice Cream Commander"] = { Name = "Ice Cream Commander", Position = Vector3.new(-786.8, 62.7, -11235.9) },
+        ["Peanut Scout"] = { Name = "Peanut Scout", Position = Vector3.new(-2078.1, 10.6, -9997.1) },
+        ["Peanut President"] = { Name = "Peanut President", Position = Vector3.new(-1874.4, 37.0, -10596.6) },
+        ["Baking Staff"] = { Name = "Baking Staff", Position = Vector3.new(-1828.8, 36.7, -12699.4) },
+        ["Head Baker"] = { Name = "Head Baker", Position = Vector3.new(-2151.4, 52.3, -13033.4) },
+        ["Sweet Thief"] = { Name = "Sweet Thief", Position = Vector3.new(-140.3, 24.7, -12652.3) },
+        ["Candy Rebel"] = { Name = "Candy Rebel", Position = Vector3.new(220.4, 23.7, -12914.0) },
+        ["Cookie Crafter"] = { Name = "Cookie Crafter", Position = Vector3.new(-2423.4, 36.7, -12265.8) },
+        ["Cake Guard"] = { Name = "Cake Guard", Position = Vector3.new(-1418.5, 36.7, -12255.7) },
+        ["Cocoa Warrior"] = { Name = "Cocoa Warrior", Position = Vector3.new(168.0, 23.6, -12238.9) },
+        ["Chocolate Bar Battler"] = { Name = "Chocolate Bar Battler", Position = Vector3.new(717.5, 23.6, -12557.7) },
+        ["Dough King"] = { Name = "Dough King", Position = Vector3.new(-2054.4, 37.5, -12076.6) },
 
         -- [ Candy Cane Land ] --
-        ["Candy Pirate"] = { Name = "Candy Pirate", Position = Vector3.new(-1332.7, 23.1, -14327.4) },[cite: 3]
-        ["Snow Demon"] = { Name = "Snow Demon", Position = Vector3.new(-784.7, 23.1, -14631.8) },[cite: 3]
+        ["Candy Pirate"] = { Name = "Candy Pirate", Position = Vector3.new(-1332.7, 23.1, -14327.4) },
+        ["Snow Demon"] = { Name = "Snow Demon", Position = Vector3.new(-784.7, 23.1, -14631.8) },
 
         -- [ Tiki Outpost / Sea 3 Expansion ] --
-        ["Isle Outlaw"] = { Name = "Isle Outlaw", Position = Vector3.new(-16163.4, 10.5, -99.4) },[cite: 3]
-        ["Sun-kissed Warrior"] = { Name = "Sun-kissed Warrior", Position = Vector3.new(-16413.5, 54.6, 1054.4) },[cite: 3]
-        ["Isle Champion"] = { Name = "Isle Champion", Position = Vector3.new(-16618.7, 54.6, 1099.5) },[cite: 3]
-        ["Skull Slayer"] = { Name = "Skull Slayer", Position = Vector3.new(-16855.0, 70.6, 1478.2) },[cite: 3]
-        ["Serpent Hunter"] = { Name = "Serpent Hunter", Position = Vector3.new(-16442.8, 70.6, 1693.4) },[cite: 3]
+        ["Isle Outlaw"] = { Name = "Isle Outlaw", Position = Vector3.new(-16163.4, 10.5, -99.4) },
+        ["Sun-kissed Warrior"] = { Name = "Sun-kissed Warrior", Position = Vector3.new(-16413.5, 54.6, 1054.4) },
+        ["Isle Champion"] = { Name = "Isle Champion", Position = Vector3.new(-16618.7, 54.6, 1099.5) },
+        ["Skull Slayer"] = { Name = "Skull Slayer", Position = Vector3.new(-16855.0, 70.6, 1478.2) },
+        ["Serpent Hunter"] = { Name = "Serpent Hunter", Position = Vector3.new(-16442.8, 70.6, 1693.4) },
+        ["Eagle"] = { Name = "Eagle", Position = Vector3.new(-16515.5, 54.3, 502.1) },
 
         -- [ Elite Hunters & Raid Bosses ] --
-        ["Diablo"] = { Name = "Diablo", Position = Vector3.new(0, 0, 0) },[cite: 3]
-        ["Deandre"] = { Name = "Deandre", Position = Vector3.new(0, 0, 0) },[cite: 3]
-        ["Urban"] = { Name = "Urban", Position = Vector3.new(0, 0, 0) },[cite: 3]
-        ["Rip_Indra"] = { Name = "Rip_Indra", Position = Vector3.new(-5278.5, 431.6, -3945.8) },[cite: 3]
-        ["Cake Prince"] = { Name = "Cake Prince", Position = Vector3.new(-2054.4, 37.5, -12076.6) },[cite: 3]
+        ["Diablo"] = { Name = "Diablo", Position = Vector3.new(0, 0, 0) },
+        ["Deandre"] = { Name = "Deandre", Position = Vector3.new(0, 0, 0) },
+        ["Urban"] = { Name = "Urban", Position = Vector3.new(0, 0, 0) },
+        ["Rip_Indra"] = { Name = "Rip_Indra", Position = Vector3.new(-5278.5, 431.6, -3945.8) },
+        ["Cake Prince"] = { Name = "Cake Prince", Position = Vector3.new(-2054.4, 37.5, -12076.6) },
     }
 }
 
