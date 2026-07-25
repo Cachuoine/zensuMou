@@ -1,47 +1,22 @@
--- [[ FishHub.lua - Safe Loader ]] --
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 if getgenv().FishHubLoaded then
-    warn("[FishHub]: Đã được khởi chạy trước đó!")
+    warn("[FishHub]: Đã chạy trước đó!")
     return
 end
 getgenv().FishHubLoaded = true
 
-print("[FishHub]: Đang tải hệ thống...")
+print("[FishHub]: Đang khởi động Loader...")
 
 local CoreGui = game:GetService("CoreGui")
 
--- Hàm an toàn để tải file từ GitHub và bắt lỗi chi tiết
-local function SafeLoad(url)
-    local success, response = pcall(function()
-        return game:HttpGet(url)
-    end)
-    if not success then
-        warn("[FishHub Error]: Không thể kết nối tới URL: " .. url)
-        return nil
-    end
-    
-    local func, syntaxError = loadstring(response)
-    if not func then
-        warn("[FishHub Error]: Lỗi cú pháp trong file tại " .. url .. "\nChi tiết: " .. tostring(syntaxError))
-        return nil
-    end
-    
-    local runSuccess, module = pcall(func)
-    if not runSuccess then
-        warn("[FishHub Error]: Lỗi thực thi file tại " .. url .. "\nChi tiết: " .. tostring(module))
-        return nil
-    end
-    
-    return module
-end
+-- Tải AutoFarm Controller từ GitHub
+local success, AutoFarm = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/zensuMou/bloxfruit/main/Controllers/AutoFarm.lua"))()
+end)
 
--- Tải AutoFarm Controller
-local autoFarmUrl = "https://raw.githubusercontent.com/zensuMou/bloxfruit/main/Controllers/AutoFarm.lua"
-local AutoFarm = SafeLoad(autoFarmUrl)
-
-if not AutoFarm then
-    warn("[FishHub]: Không thể khởi tạo do lỗi tải AutoFarm Controller!")
+if not success or not AutoFarm then
+    warn("[FishHub Error]: Không thể tải AutoFarm Controller từ GitHub!")
     return
 end
 
@@ -79,4 +54,4 @@ Btn.MouseButton1Click:Connect(function()
     end
 end)
 
-print("[FishHub]: Khởi chạy thành công!")
+print("[FishHub]: Khởi chạy giao diện thành công!")
