@@ -1,9 +1,8 @@
--- [[ FishHub.lua - Full Script với Vòng Lặp Hoạt Động ]] --
+-- [[ FishHub.lua - Thêm hệ thống Tween Movement ]] --
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
--- Chống chạy trùng lặp Hub
 if getgenv().FishHubLoaded then
     warn("[FishHub]: Hệ thống đã được khởi chạy trước đó rồi!")
     return
@@ -15,6 +14,7 @@ print("[FishHub]: Đang khởi động hệ thống Blox Fruits Hub...")
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
 local vim = game:GetService("VirtualInputManager")
 
 -- Xóa UI cũ nếu có
@@ -69,36 +69,55 @@ local BtnCorner = Instance.new("UICorner")
 BtnCorner.CornerRadius = UDim.new(0, 8)
 BtnCorner.Parent = AutoFarmBtn
 
--- 2. Vòng lặp Auto Farm có in log trạng thái thực tế
+-- 2. Hàm hỗ trợ Tween (Bay đến mục tiêu)
+local currentTween = nil
+local function TweenTo(targetCFrame)
+    local character = LocalPlayer.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = character.HumanoidRootPart
+
+    -- Hủy tween cũ nếu đang chạy dở
+    if currentTween then 
+        currentTween:Cancel() 
+    end
+
+    local distance = (hrp.Position - targetCFrame.Position).Magnitude
+    local speed = 350 -- Tốc độ bay (studs/s)
+    local timeTaken = distance / speed
+
+    local tweenInfo = TweenInfo.new(timeTaken, Enum.EasingStyle.Linear)
+    currentTween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame + Vector3.new(0, 50, 0)}) -- Bay cao hơn đầu quái 50 studs
+    currentTween:Play()
+end
+
+-- 3. Vòng lặp Auto Farm tích hợp kiểm tra di chuyển
 local isFarmActive = false
 
 local function StartAutoFarm()
     task.spawn(function()
-        print("[AutoFarm]: 🚀 Hệ thống cày cấp đã bắt đầu chạy ngầm!")
+        print("[AutoFarm]: 🚀 Bắt đầu vòng lặp cày cấp thông minh!")
         
         while isFarmActive do
             pcall(function()
                 local character = LocalPlayer.Character
                 if character and character:FindFirstChild("HumanoidRootPart") then
-                    local hrp = character.HumanoidRootPart
+                    -- Ví dụ: Test bay đến tọa độ đảo trung tâm hoặc vị trí chỉ định
+                    -- (Sau này chỗ này sẽ lấy tọa độ NPC hoặc quái thực tế theo cấp độ)
+                    local targetPos = CFrame.new(1000, 150, -1000) 
                     
-                    -- In log kiểm tra liên tục để xác nhận vòng lặp đang chạy
-                    print("[AutoFarm]: Đang quét nhân vật tại tọa độ: ", math.floor(hrp.Position.X), math.floor(hrp.Position.Y), math.floor(hrp.Position.Z))
-                    
-                    -- Giả lập hành động tấn công nhẹ
-                    vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-                    task.wait(0.1)
-                    vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+                    print("[AutoFarm]: Đang bay đến mục tiêu...")
+                    TweenTo(targetPos)
                 end
             end)
-            task.wait(1.5) -- Quét mỗi 1.5 giây
+            task.wait(3) -- Chu kỳ kiểm tra lại
         end
         
-        print("[AutoFarm]: 🛑 Hệ thống cày cấp đã dừng lại.")
+        if currentTween then currentTween:Cancel() end
+        print("[AutoFarm]: 🛑 Đã dừng cày cấp.")
     end)
 end
 
--- 3. Xử lý sự kiện bấm nút
+-- 4. Xử lý sự kiện bấm nút
 AutoFarmBtn.MouseButton1Click:Connect(function()
     isFarmActive = not isFarmActive
     if isFarmActive then
@@ -111,4 +130,4 @@ AutoFarmBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-print("[FishHub]: Khởi chạy giao diện và nạp thành công từ GitHub!")
+print("[FishHub]: Khởi chạy hệ thống hoàn tất!")
