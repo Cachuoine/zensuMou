@@ -1,27 +1,51 @@
--- [[ FishHub.lua - Main Loader Entry Point ]] --
+-- [[ FishHub.lua - Safe Loader ]] --
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 if getgenv().FishHubLoaded then
-    warn("FishHub is already loaded!")
+    warn("[FishHub]: Đã được khởi chạy trước đó!")
     return
 end
 getgenv().FishHubLoaded = true
 
-print("Initializing FishHub Loader...")
+print("[FishHub]: Đang tải hệ thống...")
 
 local CoreGui = game:GetService("CoreGui")
 
--- Tải Controller AutoFarm từ kho GitHub của bạn
-local success, AutoFarm = pcall(function()
-    return loadstring(game:HttpGet("https://raw.githubusercontent.com/zensuMou/bloxfruit/main/Controllers/AutoFarm.lua"))()
-end)
+-- Hàm an toàn để tải file từ GitHub và bắt lỗi chi tiết
+local function SafeLoad(url)
+    local success, response = pcall(function()
+        return game:HttpGet(url)
+    end)
+    if not success then
+        warn("[FishHub Error]: Không thể kết nối tới URL: " .. url)
+        return nil
+    end
+    
+    local func, syntaxError = loadstring(response)
+    if not func then
+        warn("[FishHub Error]: Lỗi cú pháp trong file tại " .. url .. "\nChi tiết: " .. tostring(syntaxError))
+        return nil
+    end
+    
+    local runSuccess, module = pcall(func)
+    if not runSuccess then
+        warn("[FishHub Error]: Lỗi thực thi file tại " .. url .. "\nChi tiết: " .. tostring(module))
+        return nil
+    end
+    
+    return module
+end
 
-if not success or not AutoFarm then
-    warn("[FishHub]: Không thể tải AutoFarm Controller! Kiểm tra lại đường dẫn GitHub.")
+-- Tải AutoFarm Controller
+local autoFarmUrl = "https://raw.githubusercontent.com/zensuMou/bloxfruit/main/Controllers/AutoFarm.lua"
+local AutoFarm = SafeLoad(autoFarmUrl)
+
+if not AutoFarm then
+    warn("[FishHub]: Không thể khởi tạo do lỗi tải AutoFarm Controller!")
     return
 end
 
--- Xóa UI cũ nếu có tránh bị trùng lặp
+-- Tạo giao diện UI
 if CoreGui:FindFirstChild("FishHubUI") then 
     CoreGui.FishHubUI:Destroy() 
 end
@@ -47,12 +71,12 @@ Btn.MouseButton1Click:Connect(function()
     if active then
         Btn.BackgroundColor3 = Color3.fromRGB(45, 180, 80)
         Btn.Text = "🐟 FishHub: ON"
-        AutoFarm.Start()
+        if AutoFarm.Start then AutoFarm.Start() end
     else
         Btn.BackgroundColor3 = Color3.fromRGB(225, 60, 60)
         Btn.Text = "🐟 FishHub: OFF"
-        AutoFarm.Stop()
+        if AutoFarm.Stop then AutoFarm.Stop() end
     end
 end)
 
-print("FishHub Loaded Successfully!")
+print("[FishHub]: Khởi chạy thành công!")
