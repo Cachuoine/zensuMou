@@ -1,4 +1,4 @@
--- [[ FishHub Loader - Final Corrected ]] --
+-- [[ FishHub Loader - Correct Path ]] --
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 if getgenv().FishHubLoaded then
@@ -11,8 +11,8 @@ print("[FishHub]: Đang tải hệ thống từ GitHub...")
 
 local CoreGui = game:GetService("CoreGui")
 
--- Đúng chuẩn: Cachuoine/zensuMou
-local autoFarmUrl = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/Controllers/AutoFarm.lua"
+-- Đường dẫn chuẩn xác có kèm thư mục bloxfruit
+local autoFarmUrl = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit/Controllers/AutoFarm.lua"
 
 local success, response = pcall(function()
     return game:HttpGet(autoFarmUrl)
