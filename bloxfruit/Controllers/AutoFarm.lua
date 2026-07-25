@@ -1,17 +1,12 @@
--- [[ Controllers/AutoFarm.lua ]] --
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Workspace = game:GetService("Workspace")
 local vim = game:GetService("VirtualInputManager")
 
-local tweenUrl = "https://raw.githubusercontent.com/zensuMou/bloxfruit/main/Modules/TweenUtil.lua"
+-- Gọi module TweenUtil từ GitHub của bạn (Nhớ kiểm tra lại tên user/repo nếu cần)
 local success, TweenUtil = pcall(function()
-    return loadstring(game:HttpGet(tweenUrl))()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/zensuMou/bloxfruit/main/Modules/TweenUtil.lua"))()
 end)
-
-if not success or not TweenUtil then
-    warn("[AutoFarm]: Không thể tải TweenUtil module!")
-end
 
 local AutoFarmController = {}
 local isRunning = false
@@ -20,7 +15,6 @@ local currentTarget = nil
 local function GetClosestEnemy()
     local enemiesFolder = Workspace:FindFirstChild("Enemies")
     if not enemiesFolder then return nil end
-
     local character = LocalPlayer.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") then return nil end
     local hrp = character.HumanoidRootPart
@@ -45,12 +39,11 @@ function AutoFarmController.Start()
     isRunning = true
     
     task.spawn(function()
-        print("[AutoFarm Controller]: Bắt đầu chạy ngầm...")
+        print("[AutoFarm Controller]: Đã kích hoạt!")
         while isRunning do
             pcall(function()
                 local character = LocalPlayer.Character
                 if character and character:FindFirstChild("HumanoidRootPart") then
-                    
                     if not currentTarget or not currentTarget:FindFirstChild("HumanoidRootPart") or not currentTarget:FindFirstChild("Humanoid") or currentTarget.Humanoid.Health <= 0 then
                         currentTarget = GetClosestEnemy()
                     end
@@ -59,7 +52,6 @@ function AutoFarmController.Start()
                         if TweenUtil and TweenUtil.TweenTo then
                             TweenUtil.TweenTo(currentTarget.HumanoidRootPart.CFrame)
                         end
-                        
                         local distance = (character.HumanoidRootPart.Position - currentTarget.HumanoidRootPart.Position).Magnitude
                         if distance < 35 then
                             vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
