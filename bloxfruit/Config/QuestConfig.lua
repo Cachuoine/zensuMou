@@ -1,4 +1,4 @@
--- [[ Blox Fruits: Master Quest Configuration (Sea 1, 2, 3) - Updated to Level 2600 ]] --
+-- [[ Blox Fruits: Master Quest Configuration (Sea 1, 2, 3) - Updated to Level 2800 ]] --
 local QuestConfig = {
     -- ==================== SEA 1 ====================
     [1] = {
@@ -72,7 +72,16 @@ local QuestConfig = {
         { MinLevel = 2375, MaxLevel = 2424, MobName = "Chocolate Bar Battler", QuestName = "CakeQuest2", NPCSpawn = Vector3.new(215.3, 23.6, -12599.1) },
         { MinLevel = 2425, MaxLevel = 2449, MobName = "Sweet Thug", QuestName = "CakeQuest3", NPCSpawn = Vector3.new(215.3, 23.6, -12599.1) },
         { MinLevel = 2450, MaxLevel = 2549, MobName = "Head Baker", QuestName = "CakeQuest4", NPCSpawn = Vector3.new(215.3, 23.6, -12599.1) },
-        { MinLevel = 2550, MaxLevel = 2600, MobName = "Isle Outlaw", QuestName = "TikiQuest1", NPCSpawn = Vector3.new(-16515.5, 54.3, 502.1) }
+        
+        -- [ Tiki Outpost Quests (3 Givers) ] --
+        { MinLevel = 2550, MaxLevel = 2574, MobName = "Isle Outlaw", QuestName = "TikiQuest1", NPCSpawn = Vector3.new(-16163.4, 10.5, -99.4) },
+        { MinLevel = 2575, MaxLevel = 2624, MobName = "Sun-kissed Warrior", QuestName = "TikiQuest2", NPCSpawn = Vector3.new(-16413.5, 54.6, 1054.4) },
+        { MinLevel = 2625, MaxLevel = 2674, MobName = "Isle Champion", QuestName = "TikiQuest3", NPCSpawn = Vector3.new(-16618.7, 54.6, 1099.5) },
+
+        -- [ Submerged Island Quests (3 Givers) ] --
+        { MinLevel = 2675, MaxLevel = 2724, MobName = "Skull Slayer", QuestName = "SubmergedQuest1", NPCSpawn = Vector3.new(-16855.0, 70.6, 1478.2) },
+        { MinLevel = 2725, MaxLevel = 2774, MobName = "Serpent Hunter", QuestName = "SubmergedQuest2", NPCSpawn = Vector3.new(-16442.8, 70.6, 1693.4) },
+        { MinLevel = 2775, MaxLevel = 2800, MobName = "Trial of Water", QuestName = "SubmergedQuest3", NPCSpawn = Vector3.new(-16450.0, 54.0, 500.0) }
     }
 }
 
