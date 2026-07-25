@@ -1,9 +1,9 @@
+-- [[ Controllers/AutoFarm.lua ]] --
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Workspace = game:GetService("Workspace")
 local vim = game:GetService("VirtualInputManager")
 
--- Gọi module TweenUtil từ GitHub của bạn (Nhớ kiểm tra lại tên user/repo nếu cần)
 local success, TweenUtil = pcall(function()
     return loadstring(game:HttpGet("https://raw.githubusercontent.com/zensuMou/bloxfruit/main/Modules/TweenUtil.lua"))()
 end)
@@ -79,4 +79,5 @@ function AutoFarmController.Stop()
     if TweenUtil and TweenUtil.Cancel then TweenUtil.Cancel() end
 end
 
+-- QUAN TRỌNG: Phải có dòng này ở cuối cùng để file trả về bảng điều khiển
 return AutoFarmController
