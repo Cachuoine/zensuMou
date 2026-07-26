@@ -1,4 +1,4 @@
--- [[ FishHub Loader - Correct Path ]] --
+-- [[ FishHub - Main Loader ]] --
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 if getgenv().FishHubLoaded then
@@ -7,11 +7,11 @@ if getgenv().FishHubLoaded then
 end
 getgenv().FishHubLoaded = true
 
-print("[FishHub]: Đang tải hệ thống từ GitHub...")
+print("[FishHub]: Đang khởi động hệ thống...")
 
 local CoreGui = game:GetService("CoreGui")
 
--- Đường dẫn chuẩn xác có kèm thư mục bloxfruit
+-- Đường dẫn chuẩn tới AutoFarm Controller bên trong thư mục bloxfruit
 local autoFarmUrl = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit/Controllers/AutoFarm.lua"
 
 local success, response = pcall(function()
@@ -19,23 +19,23 @@ local success, response = pcall(function()
 end)
 
 if not success or not response then
-    warn("[FishHub Error]: Không thể tải AutoFarm Controller!")
+    warn("[FishHub Error]: Không thể tải AutoFarm Controller từ GitHub!")
     return
 end
 
 local func, syntaxError = loadstring(response)
 if not func then
-    warn("[FishHub Error]: Lỗi cú pháp: " .. tostring(syntaxError))
+    warn("[FishHub Error]: Lỗi cú pháp AutoFarm: " .. tostring(syntaxError))
     return
 end
 
 local runSuccess, AutoFarm = pcall(func)
 if not runSuccess or not AutoFarm then
-    warn("[FishHub Error]: Lỗi thực thi: " .. tostring(AutoFarm))
+    warn("[FishHub Error]: Lỗi thực thi AutoFarm: " .. tostring(AutoFarm))
     return
 end
 
--- Tạo giao diện UI
+-- Tạo giao diện UI bật/tắt AutoFarm
 if CoreGui:FindFirstChild("FishHubUI") then 
     CoreGui.FishHubUI:Destroy() 
 end
@@ -69,4 +69,4 @@ Btn.MouseButton1Click:Connect(function()
     end
 end)
 
-print("[FishHub]: Khởi chạy thành công!")
+print("[FishHub]: Khởi chạy giao diện thành công!")
