@@ -1,72 +1,90 @@
--- [[ FishHub - Main Loader ]] --
+-- [[ FishHub - Master Script Hub Loader ]] --
 if not game:IsLoaded() then game.Loaded:Wait() end
 
-if getgenv().FishHubLoaded then
-    warn("[FishHub]: Đã được khởi chạy trước đó!")
+if getgenv().FishHubRunning then
+    warn("[FishHub]: Script Hub đã được chạy trước đó!")
     return
 end
-getgenv().FishHubLoaded = true
-
-print("[FishHub]: Đang khởi động hệ thống...")
+getgenv().FishHubRunning = true
 
 local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
--- Đường dẫn chuẩn tới AutoFarm Controller bên trong thư mục bloxfruit
+-- 1. Tải Controller AutoFarm từ GitHub
 local autoFarmUrl = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit/Controllers/AutoFarm.lua"
-
-local success, response = pcall(function()
-    return game:HttpGet(autoFarmUrl)
+local success, AutoFarm = pcall(function()
+    return loadstring(game:HttpGet(autoFarmUrl))()
 end)
 
-if not success or not response then
-    warn("[FishHub Error]: Không thể tải AutoFarm Controller từ GitHub!")
-    return
+if not success or not AutoFarm then
+    warn("[FishHub Error]: Không thể tải AutoFarm Controller!")
 end
 
-local func, syntaxError = loadstring(response)
-if not func then
-    warn("[FishHub Error]: Lỗi cú pháp AutoFarm: " .. tostring(syntaxError))
-    return
+-- 2. Dựng Giao Diện UI Script Hub chuẩn (Có Menu, Tab, Nút bấm mượt mà)
+if CoreGui:FindFirstChild("FishHubUI") then
+    CoreGui.FishHubUI:Destroy()
 end
 
-local runSuccess, AutoFarm = pcall(func)
-if not runSuccess or not AutoFarm then
-    warn("[FishHub Error]: Lỗi thực thi AutoFarm: " .. tostring(AutoFarm))
-    return
-end
-
--- Tạo giao diện UI bật/tắt AutoFarm
-if CoreGui:FindFirstChild("FishHubUI") then 
-    CoreGui.FishHubUI:Destroy() 
-end
-
-local ScreenGui = Instance.new("ScreenGui", CoreGui)
+local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "FishHubUI"
+ScreenGui.Parent = CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-local Btn = Instance.new("TextButton", ScreenGui)
-Btn.Size = UDim2.new(0, 220, 0, 50)
-Btn.Position = UDim2.new(0.5, -110, 0.2, 0)
-Btn.BackgroundColor3 = Color3.fromRGB(25, 27, 38)
-Btn.Text = "🐟 FishHub: OFF"
-Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-Btn.Font = Enum.Font.SourceSansBold
-Btn.TextSize = 16
+-- Main Frame (Khung chính của Hub)
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 450, 0, 300)
+MainFrame.Position = UDim2.new(0.5, -225, 0.5, -150)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 22, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true -- Cho phép kéo thả khung Hub trên màn hình
+MainFrame.Parent = ScreenGui
 
-local Corner = Instance.new("UICorner", Btn)
-Corner.CornerRadius = UDim.new(0, 8)
+local MainCorner = Instance.new("UICorner", MainFrame)
+MainCorner.CornerRadius = UDim.new(0, 10)
 
-local active = false
-Btn.MouseButton1Click:Connect(function()
-    active = not active
-    if active then
-        Btn.BackgroundColor3 = Color3.fromRGB(45, 180, 80)
-        Btn.Text = "🐟 FishHub: ON"
-        if AutoFarm.Start then AutoFarm.Start() end
+-- Tiêu đề Hub
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.BackgroundColor3 = Color3.fromRGB(30, 34, 45)
+Title.Text = "  🐟 FishHub | Blox Fruits Master"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 18
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner", Title)
+TitleCorner.CornerRadius = UDim.new(0, 10)
+
+-- Nút bấm bật/tắt Auto Farm bên trong Hub
+local ToggleFarmBtn = Instance.new("TextButton")
+ToggleFarmBtn.Size = UDim2.new(0, 200, 0, 45)
+ToggleFarmBtn.Position = UDim2.new(0.05, 0, 0.25, 0)
+ToggleFarmBtn.BackgroundColor3 = Color3.fromRGB(225, 60, 60)
+ToggleFarmBtn.Text = "Auto Farm: OFF"
+ToggleFarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleFarmBtn.Font = Enum.Font.SourceSansBold
+ToggleFarmBtn.TextSize = 16
+ToggleFarmBtn.Parent = MainFrame
+
+local BtnCorner = Instance.new("UICorner", ToggleFarmBtn)
+BtnCorner.CornerRadius = UDim.new(0, 8)
+
+local farmActive = false
+ToggleFarmBtn.MouseButton1Click:Connect(function()
+    farmActive = not farmActive
+    if farmActive then
+        ToggleFarmBtn.BackgroundColor3 = Color3.fromRGB(45, 180, 80)
+        ToggleFarmBtn.Text = "Auto Farm: ON"
+        if AutoFarm and AutoFarm.Start then AutoFarm.Start() end
     else
-        Btn.BackgroundColor3 = Color3.fromRGB(225, 60, 60)
-        Btn.Text = "🐟 FishHub: OFF"
-        if AutoFarm.Stop then AutoFarm.Stop() end
+        ToggleFarmBtn.BackgroundColor3 = Color3.fromRGB(225, 60, 60)
+        ToggleFarmBtn.Text = "Auto Farm: OFF"
+        if AutoFarm and AutoFarm.Stop then AutoFarm.Stop() end
     end
 end)
 
-print("[FishHub]: Khởi chạy giao diện thành công!")
+-- Nút thu nhỏ/ẩn hiện Hub (Phím tắt hoặc nút bấm)
+print("[FishHub]: Khởi chạy Script Hub thành công!")
