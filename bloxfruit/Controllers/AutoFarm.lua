@@ -18,7 +18,10 @@ end
 
 local function GetClosestEnemy()
     local enemiesFolder = Workspace:FindFirstChild("Enemies")
-    if not enemiesFolder then return nil end
+    if not enemiesFolder then
+        print("[AutoFarm Debug]: Không tìm thấy thư mục 'Enemies' trong Workspace!")
+        return nil
+    end
     
     local character = LocalPlayer.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") then return nil end
@@ -26,8 +29,10 @@ local function GetClosestEnemy()
     
     local closestEnemy = nil
     local shortestDistance = math.huge
+    local count = 0
     
     for _, enemy in ipairs(enemiesFolder:GetChildren()) do
+        count = count + 1
         local enemyHrp = enemy:FindFirstChild("HumanoidRootPart")
         local humanoid = enemy:FindFirstChildOfClass("Humanoid")
         if enemyHrp and humanoid and humanoid.Health > 0 then
@@ -37,6 +42,10 @@ local function GetClosestEnemy()
                 closestEnemy = enemyHrp
             end
         end
+    end
+    
+    if not closestEnemy and count > 0 then
+        print("[AutoFarm Debug]: Thư mục Enemies có " .. count .. " đối tượng nhưng không có quái nào sống/đủ điều kiện!")
     end
     
     return closestEnemy
@@ -49,13 +58,14 @@ function AutoFarmController.Start()
     
     task.spawn(function()
         while isRunning do
-            task.wait(0.1)
+            task.wait(0.2)
             local targetHrp = GetClosestEnemy()
             if targetHrp and TweenUtil and TweenUtil.TweenTo then
-                -- Bay lên đỉnh đầu hoặc sát bên cạnh quái (cách 5 đơn vị trục Y)
+                print("[AutoFarm]: Tìm thấy quái, đang bay tới vị trí...")
                 local targetCFrame = targetHrp.CFrame + Vector3.new(0, 5, 0)
                 local tween = TweenUtil.TweenTo(targetCFrame, 350)
                 if tween then
+                    -- Đợi cho đến khi tween hoàn thành hoặc mục tiêu thay đổi
                     task.wait(tween.TweenInfo.Time)
                 end
             end
