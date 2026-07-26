@@ -2,40 +2,73 @@
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
-local vim = game:GetService("VirtualInputManager")
 
 local AutoFarmController = {}
 local isRunning = false
 
--- Tải TweenUtil an toàn từ GitHub
-local success, TweenUtil = pcall(function()
-    local url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit/Modules/TweenUtil.lua"
-    return loadstring(game:HttpGet(url))()
+-- 1. Tải TweenUtil an toàn
+local successTween, TweenUtil = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit/Modules/TweenUtil.lua"))()
 end)
 
-if not success or not TweenUtil then
-    warn("[AutoFarm Error]: Không thể tải TweenUtil.lua!")
+-- 2. Tải EnemyConfig an toàn (để lọc quái theo level chuẩn game)
+local successConfig, EnemyConfig = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit/Config/EnemyConfig.lua"))()
+end)
+
+-- Hàm tìm tên quái phù hợp với level hiện tại của nhân vật dựa vào Config
+local function GetTargetEnemyName()
+    local myLevel = 1
+    local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    -- Lấy level từ Data hoặc Leaderstats nếu có, mặc định đọc level từ stat game
+    local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
+    if leaderstats then
+        local lvlStat = leaderstats:FindFirstChild("Level") or leaderstats:FindFirstChild("LVL")
+        if lvlStat then myLevel = lvlStat.Value end
+    end
+
+    if successConfig and type(EnemyConfig) == "table" then
+        -- Duyệt qua config để tìm con quái có mức level phù hợp nhất với nhân vật
+        local bestEnemyName = nil
+        local highestReq = -1
+        for enemyName, data in pairs(EnemyConfig) do
+            local reqLvl = data.Level or data.MinLevel or 1
+            if myLevel >= reqLvl and reqLvl > highestReq then
+                highestReq = reqLvl
+                bestEnemyName = enemyName
+            end
+        end
+        if bestEnemyName then return bestEnemyName end
+    end
+    
+    return nil -- Trả về nil nếu không tìm thấy cấu hình phù hợp
 end
 
--- Hàm tự động trang bị vũ khí trong balo
-local function EquipWeapon()
+-- Hàm tự động trang bị vũ khí và tấn công mượt mà (Không gây đơ máy)
+local function AttackTarget()
     local character = LocalPlayer.Character
     if not character then return end
     
-    -- Kiểm tra xem đã cầm tool gì chưa, nếu chưa thì tìm trong Backpack
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if humanoid and not character:FindFirstChildOfClass("Tool") then
-        for _, tool in ipairs(LocalPlayer.Backpack:GetChildren()) do
-            if tool:IsA("Tool") then
-                humanoid:EquipTool(tool)
+    local tool = character:FindFirstChildOfClass("Tool")
+    if not tool then
+        -- Nếu chưa cầm vũ khí, tìm trong Backpack và equip
+        for _, t in ipairs(LocalPlayer.Backpack:GetChildren()) do
+            if t:IsA("Tool") then
+                humanoid = character:FindFirstChildOfClass("Humanoid")
+                if humanoid then humanoid:EquipTool(t) end
                 break
             end
         end
+    else
+        -- Kích hoạt vũ khí gốc (Không lag, không đơ màn hình)
+        pcall(function()
+            tool:Activate()
+        end)
     end
 end
 
--- Hàm tìm quái thông minh hơn
-local function GetClosestEnemy()
+-- Hàm tìm đúng con quái theo yêu cầu
+local function GetBestEnemy()
     local enemiesFolder = Workspace:FindFirstChild("Enemies")
     if not enemiesFolder then return nil end
     
@@ -43,6 +76,7 @@ local function GetClosestEnemy()
     if not character or not character:FindFirstChild("HumanoidRootPart") then return nil end
     local hrp = character.HumanoidRootPart
     
+    local targetName = GetTargetEnemyName()
     local closestEnemy = nil
     local shortestDistance = math.huge
     
@@ -51,12 +85,33 @@ local function GetClosestEnemy()
         local humanoid = enemy:FindFirstChildOfClass("Humanoid")
         
         if enemyHrp and humanoid and humanoid.Health > 0 then
-            -- [TÙY CHỌN]: Nếu bạn muốn lọc đúng tên quái cấp cao, có thể check tên ở đây.
-            -- Hiện tại sẽ ưu tiên lọc các con quái ở gần trong tầm nhìn.
-            local dist = (hrp.Position - enemyHrp.Position).Magnitude
-            if dist < shortestDistance then
-                shortestDistance = dist
-                closestEnemy = enemyHrp
+            -- Nếu có tên quái từ Config, ưu tiên tìm đúng tên đó. Nếu không có thì lấy con gần nhất.
+            local matchName = true
+            if targetName and enemy.Name ~= targetName then
+                matchName = false
+            end
+            
+            if matchName then
+                local dist = (hrp.Position - enemyHrp.Position).Magnitude
+                if dist < shortestDistance then
+                    shortestDistance = dist
+                    closestEnemy = enemyHrp
+                end
+            end
+        end
+    end
+    
+    -- Fallback: Nếu không tìm thấy đúng tên trong config, lấy tạm con gần nhất để không bị đứng hình
+    if not closestEnemy then
+        for _, enemy in ipairs(enemiesFolder:GetChildren()) do
+            local enemyHrp = enemy:FindFirstChild("HumanoidRootPart")
+            local humanoid = enemy:FindFirstChildOfClass("Humanoid")
+            if enemyHrp and humanoid and humanoid.Health > 0 then
+                local dist = (hrp.Position - enemyHrp.Position).Magnitude
+                if dist < shortestDistance then
+                    shortestDistance = dist
+                    closestEnemy = enemyHrp
+                end
             end
         end
     end
@@ -67,33 +122,21 @@ end
 function AutoFarmController.Start()
     if isRunning then return end
     isRunning = true
-    print("[AutoFarm Controller]: Đã BẮT ĐẦU Auto Farm chuẩn.")
+    print("[AutoFarm]: Đã bật chế độ Auto Farm thông minh (Đã tối ưu chống lag).")
     
     task.spawn(function()
         while isRunning do
             task.wait(0.1)
-            EquipWeapon()
+            AttackTarget()
             
-            local targetHrp = GetClosestEnemy()
+            local targetHrp = GetBestEnemy()
             if targetHrp and TweenUtil and TweenUtil.TweenTo then
                 local character = LocalPlayer.Character
                 if character and character:FindFirstChild("HumanoidRootPart") then
-                    -- Bay lên cao hơn hẳn (25 đơn vị trục Y) để né đòn của quái
-                    local targetCFrame = targetHrp.CFrame + Vector3.new(0, 25, 0)
+                    -- Bay lơ lửng ngay trên đầu quái (cách 20 đơn vị để né đòn hoàn toàn)
+                    local targetCFrame = targetHrp.CFrame + Vector3.new(0, 20, 0)
                     local tween = TweenUtil.TweenTo(targetCFrame, 350)
-                    
                     if tween then
-                        -- Trong lúc bay đến, thực hiện gửi sự kiện click đánh liên tục xuống dưới
-                        task.spawn(function()
-                            for i = 1, 8 do
-                                if not isRunning then break end
-                                vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-                                task.wait(0.05)
-                                vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
-                                task.wait(0.1)
-                            end
-                        end)
-                        
                         task.wait(tween.TweenInfo.Time)
                     end
                 end
@@ -104,7 +147,7 @@ end
 
 function AutoFarmController.Stop()
     isRunning = false
-    print("[AutoFarm Controller]: Đã DỪNG.")
+    print("[AutoFarm]: Đã dừng Auto Farm.")
 end
 
 return AutoFarmController
