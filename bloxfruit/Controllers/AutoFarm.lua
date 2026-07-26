@@ -6,77 +6,44 @@ local LocalPlayer = Players.LocalPlayer
 local AutoFarmController = {}
 local isRunning = false
 
--- 1. Tải TweenUtil an toàn
-local successTween, TweenUtil = pcall(function()
-    return loadstring(game:HttpGet("https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit/Modules/TweenUtil.lua"))()
+-- Tải TweenUtil an toàn
+local success, TweenUtil = pcall(function()
+    local url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit/Modules/TweenUtil.lua"
+    return loadstring(game:HttpGet(url))()
 end)
 
--- 2. Tải EnemyConfig an toàn
-local successConfig, EnemyConfig = pcall(function()
-    return loadstring(game:HttpGet("https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit/Config/EnemyConfig.lua"))()
-end)
-
--- Hàm lấy Level hiện tại của người chơi liên tục
-local function GetPlayerLevel()
-    local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
-    if leaderstats then
-        local lvl = leaderstats:FindFirstChild("Level") or leaderstats:FindFirstChild("LVL")
-        if lvl then return lvl.Value end
-    end
-    -- Fallback đọc từ nhân vật hoặc mặc định nếu không tìm thấy
-    return 1
-end
-
--- Hàm tìm thông tin quái phù hợp nhất với level hiện tại từ Config
-local function GetTargetConfig()
-    local myLevel = GetPlayerLevel()
-    if successConfig and type(EnemyConfig) == "table" then
-        local bestTargetName = nil
-        local bestData = nil
-        local highestReq = -1
-        
-        for enemyName, data in pairs(EnemyConfig) do
-            -- Kiểm tra các mốc level trong config (ví dụ: Level, MinLevel, RequiredLevel)
-            local reqLvl = data.Level or data.MinLevel or data.RequiredLevel or 1
-            if myLevel >= reqLvl and reqLvl > highestReq then
-                highestReq = reqLvl
-                bestTargetName = enemyName
-                bestData = data
-            end
-        end
-        return bestTargetName, bestData
-    end
-    return nil, nil
-end
-
--- Hàm trang bị vũ khí
-local function EquipWeapon()
+-- Hàm trang bị và tấn công vũ khí mượt mà
+local function AttackAction()
     local character = LocalPlayer.Character
     if not character then return end
-    if not character:FindFirstChildOfClass("Tool") then
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-        for _, tool in ipairs(LocalPlayer.Backpack:GetChildren()) do
-            if tool:IsA("Tool") then
-                if humanoid then humanoid:EquipTool(tool) end
+    
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local tool = character:FindFirstChildOfClass("Tool")
+    
+    if not tool then
+        -- Nếu chưa cầm vũ khí, lôi từ balo ra
+        for _, t in ipairs(LocalPlayer.Backpack:GetChildren()) do
+            if t:IsA("Tool") and humanoid then
+                humanoid:EquipTool(t)
                 break
             end
         end
     else
-        local tool = character:FindFirstChildOfClass("Tool")
-        pcall(function() tool:Activate() end)
+        -- Kích hoạt đòn đánh của vũ khí
+        pcall(function()
+            tool:Activate()
+        end)
     end
 end
 
--- Hàm quét quái CHÍNH XÁC theo cấp độ (Không quét bừa quái gần)
-local function GetBestEnemyByLevel()
+-- Hàm tìm quái sống gần nhất
+local function GetClosestEnemy()
     local enemiesFolder = Workspace:FindFirstChild("Enemies")
     if not enemiesFolder then return nil end
     
     local character = LocalPlayer.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") then return nil end
     local hrp = character.HumanoidRootPart
-    
-    local targetName, targetData = GetTargetConfig()
     
     local closestEnemy = nil
     local shortestDistance = math.huge
@@ -86,23 +53,10 @@ local function GetBestEnemyByLevel()
         local humanoid = enemy:FindFirstChildOfClass("Humanoid")
         
         if enemyHrp and humanoid and humanoid.Health > 0 then
-            local isValid = false
-            
-            -- Nếu tìm thấy tên quái từ Config, check xem tên trong Workspace có chứa từ khóa đó không
-            if targetName and (string.find(enemy.Name, targetName) or (targetData and targetData.FullName and string.find(enemy.Name, targetData.FullName))) then
-                isValid = true
-            elseif not targetName then
-                -- Nếu chưa load được config, mặc định lấy quái ở xa/gần tùy ý nhưng phải có tính toán khoảng cách hợp lý
-                isValid = true 
-            end
-            
-            if isValid then
-                local dist = (hrp.Position - enemyHrp.Position).Magnitude
-                -- Cho phép quét khoảng cách xa (không giới hạn chặt, miễn là đúng loại quái cấp cao)
-                if dist < shortestDistance then
-                    shortestDistance = dist
-                    closestEnemy = enemyHrp
-                end
+            local dist = (hrp.Position - enemyHrp.Position).Magnitude
+            if dist < shortestDistance then
+                shortestDistance = dist
+                closestEnemy = enemyHrp
             end
         end
     end
@@ -113,27 +67,31 @@ end
 function AutoFarmController.Start()
     if isRunning then return end
     isRunning = true
-    print("[AutoFarm]: Đã kích hoạt chế độ quét quái theo Level chuẩn xác.")
+    print("[AutoFarm]: Đã BẮT ĐẦU farm thực tế.")
     
     task.spawn(function()
         while isRunning do
             task.wait(0.1)
-            EquipWeapon()
+            AttackAction()
             
-            local targetHrp = GetBestEnemyByLevel()
+            local targetHrp = GetClosestEnemy()
             if targetHrp and TweenUtil and TweenUtil.TweenTo then
                 local character = LocalPlayer.Character
                 if character and character:FindFirstChild("HumanoidRootPart") then
-                    -- Bay lên đỉnh đầu quái (cách 20 đơn vị để farm an toàn)
-                    local targetCFrame = targetHrp.CFrame + Vector3.new(0, 20, 0)
+                    local hrp = character.HumanoidRootPart
+                    
+                    -- Luôn xoay mặt về phía quái để đánh trúng đích
+                    pcall(function()
+                        hrp.CFrame = CFrame.new(hrp.Position, Vector3.new(targetHrp.Position.X, hrp.Position.Y, targetHrp.Position.Z))
+                    end)
+                    
+                    -- Bay lơ lửng ngay phía trên đầu quái (cách 15 đơn vị để quái không đánh trúng ta)
+                    local targetCFrame = targetHrp.CFrame + Vector3.new(0, 15, 0)
                     local tween = TweenUtil.TweenTo(targetCFrame, 350)
                     if tween then
                         task.wait(tween.TweenInfo.Time)
                     end
                 end
-            else
-                -- Nếu không tìm thấy đúng quái theo level, tạm nghỉ một nhịp để tránh lag loop
-                task.wait(1)
             end
         end
     end)
@@ -141,7 +99,7 @@ end
 
 function AutoFarmController.Stop()
     isRunning = false
-    print("[AutoFarm]: Đã dừng Auto Farm.")
+    print("[AutoFarm]: Đã DỪNG farm.")
 end
 
 return AutoFarmController
