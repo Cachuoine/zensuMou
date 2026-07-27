@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FishHub - Key System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #0f0f13;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #181820;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid #2a2a38;
+        }
+        h2 {
+            margin-bottom: 10px;
+            font-size: 24px;
+            color: #7289da;
+        }
+        p {
+            color: #99aab5;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+        .btn {
+            background: #5865f2;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+            width: 100%;
+            transition: 0.2s;
+            margin-bottom: 15px;
+        }
+        .btn:hover {
+            background: #4752c4;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #111115;
+            border: 1px solid #2a2a38;
+            color: #fff;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            outline: none;
+        }
+        input:focus {
+            border-color: #5865f2;
+        }
+        .copy-btn {
+            background: #2f3136;
+            color: white;
+            border: 1px solid #2a2a38;
+            padding: 0 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .copy-btn:hover {
+            background: #393c43;
+        }
+        .status {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #faa61a;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>FishHub Verification</h2>
+        <p>Nhấn vào nút bên dưới để tạo key hệ thống có thời hạn sử dụng 24 giờ.</p>
+        
+        <button class="btn" onclick="generateKey()">Lấy Key Ngay</button>
+        
+        <div class="input-group">
+            <input type="text" id="keyOutput" readonly placeholder="Key của bạn sẽ hiện ở đây">
+            <button class="copy-btn" onclick="copyKey()">Sao chép</button>
+        </div>
+        
+        <div class="status" id="statusText">Trạng thái: Sẵn sàng</div>
+    </div>
+
+    <script>
+        // THAY ĐƯỜNG DẪN FIREBASE REALTIME DATABASE CỦA BẠN VÀO ĐÂY
+        // Ví dụ: https://fishhub-data-default-rtdb.firebaseio.com/
+        const FIREBASE_URL = "https://YOUR_DATABASE_NAME.firebaseio.com/";
+
+        async function generateKey() {
+            const statusText = document.getElementById("statusText");
+            statusText.innerText = "Trạng thái: Đang tạo key...";
+
+            // Tạo mã key ngẫu nhiên dạng FISH-XXXXX
+            const randomString = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const key = "FISH-" + randomString;
+            
+            // Tính thời gian hết hạn (24 giờ tính từ hiện tại, đổi ra mili-giây)
+            const expireAt = Date.now() + (24 * 60 * 60 * 1000);
+
+            const data = {
+                expireAt: expireAt,
+                active: true
+            };
+
+            try {
+                // Gửi request PUT lên Firebase Realtime Database
+                let response = await fetch(FIREBASE_URL + "keys/" + key + ".json", {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    document.getElementById("keyOutput").value = key;
+                    statusText.innerText = "Trạng thái: Tạo key thành công!";
+                    statusText.style.color = "#3ba55d";
+                } else {
+                    statusText.innerText = "Trạng thái: Lỗi khi lưu vào cơ sở dữ liệu!";
+                    statusText.style.color = "#ed4245";
+                }
+            } catch (error) {
+                console.error(error);
+                statusText.innerText = "Trạng thái: Không thể kết nối tới máy chủ!";
+                statusText.style.color = "#ed4245";
+            }
+        }
+
+        function copyKey() {
+            const inputField = document.getElementById("keyOutput");
+            if (inputField.value === "") {
+                alert("Chưa có key để sao chép!");
+                return;
+            }
+            inputField.select();
+            inputField.setSelectionRange(0, 99999); // Dành cho thiết bị di động
+            navigator.clipboard.writeText(inputField.value);
+            alert("Đã sao chép key vào bộ nhớ tạm: " + inputField.value);
+        }
+    </script>
+</body>
+</html>
