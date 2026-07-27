@@ -1,171 +1,1239 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FishHub - Key System</title>
+    <title>FishHub - Universal Hub & Key System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#030712',
+                            card: '#0f172a',
+                            blue: '#0284c7',
+                            skyblue: '#38bdf8',
+                            purple: '#8b5cf6',
+                            violet: '#a855f7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+        
+        /* Custom Sleek Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #8b5cf6, #0284c7);
+            border-radius: 4px;
+            border: 2px solid rgba(3, 7, 18, 0.8);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+            transition: all 0.3s ease;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #a855f7, #38bdf8);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+        }
         * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            scrollbar-width: thin;
+            scrollbar-color: #8b5cf6 #030712;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
         body {
-            background-color: #0f0f13;
-            color: #ffffff;
+            background: linear-gradient(-45deg, #030712, #0f172a, #1e1b4b, #311042);
+            background-size: 400% 400%;
+            animation: gradientBG 18s ease infinite;
+            color: #f8fafc;
+            font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            margin: 0;
+        }
+        
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .galaxy-glow:hover {
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(168, 85, 247, 0.9);
+            box-shadow: 0 0 45px rgba(139, 92, 246, 0.4), 0 0 25px rgba(56, 189, 248, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.15);
+        }
+
+        .icon-hover {
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s ease, filter 0.3s ease;
+        }
+        .group:hover .icon-hover, button:hover .icon-hover, a:hover .icon-hover {
+            transform: scale(1.3) rotate(12deg);
+            color: #38bdf8;
+            filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.8));
+        }
+
+        .glowing-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.25;
+            pointer-events: none;
+            animation: floatCircle 8s ease-in-out infinite alternate;
+        }
+        @keyframes floatCircle {
+            0% { transform: translateY(0px) scale(1); }
+            100% { transform: translateY(-40px) scale(1.2); }
+        }
+
+        .pulse-green {
+            width: 9px;
+            height: 9px;
+            background-color: #22c55e;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 rgba(34, 197, 94, 0.4);
+            animation: pulse-green-anim 2s infinite;
+        }
+        @keyframes pulse-green-anim {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        .pulse-dot-green {
+            width: 8px;
+            height: 8px;
+            background-color: #22c55e;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-green-anim 2s infinite;
+        }
+        .pulse-dot-red {
+            width: 8px;
+            height: 8px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-red-anim 2s infinite;
+        }
+        .pulse-dot-purple {
+            width: 8px;
+            height: 8px;
+            background-color: #a855f7;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-purple-anim 2s infinite;
+        }
+        @keyframes pulse-red-anim {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        @keyframes pulse-purple-anim {
+            0% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(168, 85, 247, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); }
+        }
+
+        .wave-container {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.15), rgba(2, 132, 199, 0.15), rgba(255, 255, 255, 0.02));
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-btn {
             display: flex;
-            justify-content: center;
             align-items: center;
-            height: 100vh;
-        }
-        .container {
-            background: #181820;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            border: 1px solid #2a2a38;
-        }
-        h2 {
-            margin-bottom: 10px;
-            font-size: 24px;
-            color: #7289da;
-        }
-        p {
-            color: #99aab5;
-            font-size: 14px;
-            margin-bottom: 25px;
-        }
-        .btn {
-            background: #5865f2;
-            color: white;
+            gap: 8px;
+            background: transparent;
             border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 15px;
-            width: 100%;
-            transition: 0.2s;
-            margin-bottom: 15px;
-        }
-        .btn:hover {
-            background: #4752c4;
-        }
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        input {
-            width: 100%;
-            padding: 12px;
-            background: #111115;
-            border: 1px solid #2a2a38;
-            color: #fff;
-            border-radius: 8px;
-            text-align: center;
+            color: #93c5fd;
+            padding: 8px 16px;
             font-size: 14px;
-            outline: none;
-        }
-        input:focus {
-            border-color: #5865f2;
-        }
-        .copy-btn {
-            background: #2f3136;
-            color: white;
-            border: 1px solid #2a2a38;
-            padding: 0 15px;
-            border-radius: 8px;
+            font-weight: 600;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
+            transition: all 0.2s ease;
+            white-space: nowrap;
         }
-        .copy-btn:hover {
-            background: #393c43;
+        .nav-btn:hover {
+            background: rgba(0, 242, 254, 0.15);
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
         }
-        .status {
-            margin-top: 15px;
-            font-size: 13px;
-            color: #faa61a;
+        .nav-btn.active {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.35) 0%, rgba(168, 85, 247, 0.35) 100%);
+            color: #ffffff;
+            border: 1px solid rgba(0, 242, 254, 0.7);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+        }
+
+        .code-box {
+            background: rgba(3, 7, 18, 0.95);
+            border: 1px solid rgba(0, 242, 254, 0.4);
+            padding: 18px;
+            border-radius: 14px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13.5px;
+            word-break: break-all;
+            color: #a5f3fc;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col relative pb-24 md:pb-12">
 
-    <div class="container">
-        <h2>FishHub Verification</h2>
-        <p>Nhấn vào nút bên dưới để tạo key hệ thống có thời hạn sử dụng 24 giờ.</p>
-        
-        <button class="btn" onclick="generateKey()">Lấy Key Ngay</button>
-        
-        <div class="input-group">
-            <input type="text" id="keyOutput" readonly placeholder="Key của bạn sẽ hiện ở đây">
-            <button class="copy-btn" onclick="copyKey()">Sao chép</button>
+    <!-- CANVAS BACKGROUND ANIMATION WITH MAGICAL MOUSE TRAIL -->
+    <canvas id="bgCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+    <div class="glowing-circle bg-purple-600 w-96 h-96 top-10 left-10"></div>
+    <div class="glowing-circle bg-sky-400 w-96 h-96 top-1/2 right-10"></div>
+    <div class="glowing-circle bg-blue-600 w-80 h-80 bottom-10 left-1/3"></div>
+
+    <!-- HEADER NAVIGATION -->
+    <header class="w-full py-4 px-6 glass-panel sticky top-0 z-50 flex justify-between items-center border-b border-purple-900/20 shadow-xl">
+        <div class="flex items-center space-x-3 group cursor-pointer" onclick="switchTab('home', document.getElementById('navHomeBtn'))">
+            <span class="text-2xl icon-hover">⚓</span>
+            <span class="text-xl font-bold bg-gradient-to-r from-sky-400 via-purple-300 to-white bg-clip-text text-transparent">FishHub</span>
+            <div class="flex items-center space-x-1.5 ml-2">
+                <span class="pulse-green"></span>
+                <span class="text-xs text-green-400 font-medium" data-lang="online_status">ONLINE</span>
+            </div>
         </div>
-        
-        <div class="status" id="statusText">Trạng thái: Sẵn sàng</div>
+
+        <!-- Desktop Navigation Tabs -->
+        <div class="hidden md:flex items-center space-x-1 bg-slate-900/40 backdrop-blur-md p-1 rounded-xl border border-purple-500/25 shadow-inner">
+            <button type="button" onclick="switchTab('home', this)" id="navHomeBtn" class="nav-btn active">
+                <i class="fa-solid fa-house icon-hover"></i> <span data-lang="nav_home">Home</span>
+            </button>
+            <button type="button" onclick="switchTab('myscript', this)" id="navMyScriptBtn" class="nav-btn">
+                <i class="fa-solid fa-code icon-hover"></i> <span data-lang="nav_script">My Script</span>
+            </button>
+            <button type="button" onclick="switchTab('getkey', this)" id="navGetKeyBtn" class="nav-btn">
+                <i class="fa-solid fa-key icon-hover"></i> <span data-lang="nav_getkey">Get Key</span>
+            </button>
+            <button type="button" onclick="switchTab('executor', this)" id="navExecutorBtn" class="nav-btn">
+                <i class="fa-solid fa-terminal icon-hover"></i> <span data-lang="nav_executor">Executor</span>
+            </button>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <!-- Language Switcher Button (EN / VI) -->
+            <button type="button" id="langToggleBtn" onclick="toggleLanguage()" class="px-3 py-2 rounded-xl bg-slate-800/85 hover:bg-slate-700 text-xs font-bold text-sky-300 border border-purple-500/35 transition-all flex items-center space-x-1.5 shadow-md">
+                <i class="fa-solid fa-globe icon-hover"></i>
+                <span id="currentLangText">EN</span>
+            </button>
+
+            <a href="https://discord.gg/2tTJxRk2ct" target="_blank" class="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-sm font-semibold transition-all flex items-center space-x-2 text-white group galaxy-glow shadow-lg">
+                <i class="fa-brands fa-discord icon-hover"></i>
+                <span class="hidden sm:inline">Discord</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <div class="fixed bottom-0 left-0 right-0 z-50 md:hidden glass-panel py-2 px-3 flex justify-around items-center border-t border-purple-900/30 bg-slate-950/80 backdrop-blur-xl shadow-2xl">
+        <button type="button" onclick="switchTab('home', this)" class="flex flex-col items-center space-y-1 text-purple-400 font-semibold text-[11px] p-2 transition-all active:scale-95 group">
+            <i class="fa-solid fa-house text-lg icon-hover"></i>
+            <span data-lang="nav_home">Home</span>
+        </button>
+        <button type="button" onclick="switchTab('myscript', this)" class="flex flex-col items-center space-y-1 text-slate-400 font-semibold text-[11px] p-2 transition-all active:scale-95 group">
+            <i class="fa-solid fa-code text-lg icon-hover"></i>
+            <span data-lang="nav_script">Script</span>
+        </button>
+        <button type="button" onclick="switchTab('getkey', this)" class="flex flex-col items-center space-y-1 text-slate-400 font-semibold text-[11px] p-2 transition-all active:scale-95 group">
+            <i class="fa-solid fa-key text-lg icon-hover"></i>
+            <span data-lang="nav_getkey">Get Key</span>
+        </button>
+        <button type="button" onclick="switchTab('executor', this)" class="flex flex-col items-center space-y-1 text-slate-400 font-semibold text-[11px] p-2 transition-all active:scale-95 group">
+            <i class="fa-solid fa-terminal text-lg icon-hover"></i>
+            <span data-lang="nav_executor">Executor</span>
+        </button>
     </div>
 
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow container mx-auto px-4 py-6 max-w-5xl space-y-8 z-10">
+
+        <!-- TAB 1: HOME -->
+        <div id="home" class="tab-content active space-y-6">
+            <!-- Welcome Banner -->
+            <div class="glass-panel galaxy-glow rounded-3xl p-6 sm:p-10 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+                <div class="absolute -right-16 -top-16 w-64 h-64 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="space-y-4 text-center md:text-left z-10">
+                    <span class="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold border border-purple-500/30" data-lang="home_badge">🚀 UNIVERSAL SCRIPT PLATFORM</span>
+                    <h1 class="text-3xl sm:text-5xl font-extrabold bg-gradient-to-r from-white via-sky-300 to-purple-400 bg-clip-text text-transparent">FishHub Core</h1>
+                    <p class="text-slate-300 text-sm sm:text-base max-w-xl" data-lang="home_desc">Experience the best performance, high-end security, and smooth user interface designed for ultimate Roblox gaming.</p>
+                </div>
+                <div class="z-10 flex flex-col sm:flex-row gap-3">
+                    <button type="button" onclick="switchTab('getkey', document.getElementById('navGetKeyBtn'))" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-sky-600 hover:from-purple-500 hover:to-sky-500 font-bold text-white text-sm shadow-lg transition-all galaxy-glow flex items-center justify-center space-x-2 group">
+                        <i class="fa-solid fa-key icon-hover"></i>
+                        <span data-lang="home_btn_getkey">Get Key Now</span>
+                    </button>
+                    <button type="button" onclick="switchTab('myscript', document.getElementById('navMyScriptBtn'))" class="px-6 py-3.5 rounded-xl bg-slate-900/60 hover:bg-slate-800 text-sky-300 border border-purple-500/30 font-bold text-sm transition-all flex items-center justify-center space-x-2 group">
+                        <i class="fa-solid fa-code icon-hover"></i>
+                        <span data-lang="home_btn_script">View Script</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- THÔNG TIN TÁC GIẢ DAOHUYLAM -->
+            <div class="glass-panel galaxy-glow rounded-2xl p-6 sm:p-8 shadow-xl space-y-5">
+                <div class="flex items-center space-x-4 pb-4 border-b border-purple-900/40">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-r from-purple-600 via-sky-600 to-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                        DHL
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-white text-lg flex items-center space-x-2">
+                            <span>DaoHuyLam</span>
+                            <span class="text-[10px] bg-purple-600 text-white px-2 py-0.5 rounded-md font-semibold" data-lang="solo_dev_badge">Solo Developer</span>
+                        </h3>
+                        <p class="text-xs text-sky-300 font-semibold mt-0.5" data-lang="dev_role">Lead Developer, Maintainer & Founder of FishHub</p>
+                    </div>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed" data-lang="dev_desc">
+                    FishHub is developed entirely as a solo project by DaoHuyLam. Because it is managed by a single person, major feature updates, bug fixes, and new game additions may take some time to roll out. Your patience and support are greatly appreciated!
+                </p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="glass-panel p-5 rounded-2xl text-center space-y-1 galaxy-glow group">
+                    <i class="fa-solid fa-user-shield text-green-400 text-xl mb-1 icon-hover"></i>
+                    <h4 class="font-bold text-green-400 text-xl">100%</h4>
+                    <p class="text-xs text-slate-400" data-lang="stat_solo">Solo Project</p>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl text-center space-y-1 galaxy-glow group">
+                    <i class="fa-solid fa-key text-sky-400 text-xl mb-1 icon-hover"></i>
+                    <h4 class="font-bold text-sky-400 text-xl" data-lang="stat_free_val">Free</h4>
+                    <p class="text-xs text-slate-400" data-lang="stat_free">Access Script</p>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl text-center space-y-1 galaxy-glow group">
+                    <i class="fa-solid fa-lock text-green-400 text-xl mb-1 icon-hover"></i>
+                    <h4 class="font-bold text-green-400 text-xl" data-lang="stat_secure_val">Secure</h4>
+                    <p class="text-xs text-slate-400" data-lang="stat_secure">Environment Check</p>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl text-center space-y-1 galaxy-glow group">
+                    <i class="fa-solid fa-users text-purple-400 text-xl mb-1 icon-hover"></i>
+                    <h4 class="font-bold text-purple-400 text-xl" data-lang="stat_active_val">Active</h4>
+                    <p class="text-xs text-slate-400" data-lang="stat_active">Community</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: MY SCRIPT -->
+        <div id="myscript" class="tab-content space-y-8">
+            <!-- Script Collection Box -->
+            <div class="glass-panel galaxy-glow rounded-2xl p-6 sm:p-8 shadow-xl space-y-4">
+                <h3 class="text-xl font-bold text-white" data-lang="script_collection_title">FishHub Script Collection</h3>
+                <p class="text-slate-300 text-sm" data-lang="script_collection_desc">Sao chép và chạy bộ sưu tập script của bạn tại đây:</p>
+                
+                <!-- Hình ảnh được thêm vào phần My Script -->
+                <div class="rounded-xl overflow-hidden border border-purple-500/30 shadow-lg my-3">
+                    <img src="https://cdn.discordapp.com/attachments/1502521266257526904/1530168834667839609/content.png?ex=6a649847&is=6a6346c7&hm=d296728ed779dc7cede2214e4707d6aae77d98759032f17fc07dd9ac72c60d25&" alt="FishHub Content Preview" class="w-full h-auto object-cover">
+                </div>
+
+                <div class="code-box" id="scriptCode">loadstring(game:HttpGet("https://raw.githubusercontent.com/Cachuoine/DaoHuyLam/refs/heads/main/FishHubCollection.lua"))()</div>
+                <button type="button" id="btnCopyScript" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-sky-600 hover:from-purple-500 hover:to-sky-500 font-bold text-white text-sm shadow-lg transition-all galaxy-glow group">
+                    <i class="fa-solid fa-copy mr-2 icon-hover"></i> <span data-lang="copy_script_btn">COPY SCRIPT</span>
+                </button>
+            </div>
+
+            <!-- SUPPORTED ROBLOX GAMES SECTION -->
+            <div class="glass-panel galaxy-glow rounded-2xl p-6 sm:p-8 shadow-xl space-y-6">
+                <div class="flex items-center space-x-4 pb-4 border-b border-purple-900/40">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 text-xl group">
+                        <i class="fa-solid fa-gamepad icon-hover"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Supported Roblox Games</h3>
+                        <p class="text-xs text-slate-300">Explore supported games categorized below.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- RPG & Anime -->
+                    <div class="glass-panel p-5 rounded-xl border border-purple-500/20 space-y-4">
+                        <h4 class="text-sm font-bold text-amber-400 flex items-center space-x-2 group">
+                            <i class="fa-solid fa-fire icon-hover"></i>
+                            <span>RPG & Anime</span>
+                        </h4>
+                        <div class="space-y-2.5">
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="pulse-dot-green"></span>
+                                    <span class="text-xs font-medium text-white">Blox Fruits</span>
+                                </div>
+                                <span class="text-[11px] text-green-400 font-semibold">Working</span>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="pulse-dot-green"></span>
+                                    <span class="text-xs font-medium text-white">Evomon</span>
+                                </div>
+                                <span class="text-[11px] text-green-400 font-semibold">Working</span>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="pulse-dot-purple"></span>
+                                    <span class="text-xs font-medium text-white">Haze</span>
+                                </div>
+                                <span class="px-3 py-1 rounded-full bg-purple-950/60 border border-purple-500/30 text-[10px] text-purple-300 font-semibold">Coming Soon</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Farming Games -->
+                    <div class="glass-panel p-5 rounded-xl border border-purple-500/20 space-y-4">
+                        <h4 class="text-sm font-bold text-emerald-400 flex items-center space-x-2 group">
+                            <i class="fa-solid fa-seedling icon-hover"></i>
+                            <span>Farming Games</span>
+                        </h4>
+                        <div class="space-y-2.5">
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="pulse-dot-purple"></span>
+                                    <span class="text-xs font-medium text-white">Grow a Garden 2</span>
+                                </div>
+                                <span class="px-3 py-1 rounded-full bg-purple-950/60 border border-purple-500/30 text-[10px] text-purple-300 font-semibold">Coming Soon</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Survival & Tycoon -->
+                    <div class="glass-panel p-5 rounded-xl border border-purple-500/20 space-y-4">
+                        <h4 class="text-sm font-bold text-teal-400 flex items-center space-x-2 group">
+                            <i class="fa-solid fa-cube icon-hover"></i>
+                            <span>Survival & Tycoon</span>
+                        </h4>
+                        <div class="space-y-2.5">
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="pulse-dot-purple"></span>
+                                    <span class="text-xs font-medium text-white">99 night in the forest</span>
+                                </div>
+                                <span class="px-3 py-1 rounded-full bg-purple-950/60 border border-purple-500/30 text-[10px] text-purple-300 font-semibold">Coming Soon</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fishing Games -->
+                    <div class="glass-panel p-5 rounded-xl border border-purple-500/20 space-y-4">
+                        <h4 class="text-sm font-bold text-sky-400 flex items-center space-x-2 group">
+                            <i class="fa-solid fa-fish icon-hover"></i>
+                            <span>Fishing Games</span>
+                        </h4>
+                        <div class="space-y-2.5">
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="pulse-dot-purple"></span>
+                                    <span class="text-xs font-medium text-white">Fish</span>
+                                </div>
+                                <span class="px-3 py-1 rounded-full bg-purple-950/60 border border-purple-500/30 text-[10px] text-purple-300 font-semibold">Coming Soon</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shooting Games -->
+                    <div class="glass-panel p-5 rounded-xl border border-purple-500/20 space-y-4">
+                        <h4 class="text-sm font-bold text-rose-400 flex items-center space-x-2 group">
+                            <i class="fa-solid fa-crosshairs icon-hover"></i>
+                            <span>Shooting Games</span>
+                        </h4>
+                        <div class="space-y-2.5">
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="pulse-dot-purple"></span>
+                                    <span class="text-xs font-medium text-white">Rivals</span>
+                                </div>
+                                <span class="px-3 py-1 rounded-full bg-purple-950/60 border border-purple-500/30 text-[10px] text-purple-300 font-semibold">Coming Soon</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECOMMENDED EXECUTORS SECTION -->
+            <div class="glass-panel galaxy-glow rounded-2xl p-6 sm:p-8 shadow-xl space-y-6">
+                <div class="flex items-center space-x-4 pb-4 border-b border-purple-900/40">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 text-xl group">
+                        <i class="fa-solid fa-terminal icon-hover"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Recommended Executors</h3>
+                        <p class="text-xs text-slate-300">Tested and verified executors across platforms.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Windows Paid -->
+                    <div class="glass-panel p-5 rounded-xl border border-purple-500/20 space-y-4">
+                        <h4 class="text-sm font-bold text-amber-400 flex items-center space-x-2 group">
+                            <i class="fa-solid fa-crown icon-hover"></i>
+                            <span>Windows Paid</span>
+                        </h4>
+                        <div class="space-y-2.5">
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Wave</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Potassium</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Volt</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Cosmic</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Sirhurt</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Seliware</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Synapse Z</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Windows Free -->
+                    <div class="glass-panel p-5 rounded-xl border border-purple-500/20 space-y-4">
+                        <h4 class="text-sm font-bold text-sky-400 flex items-center space-x-2 group">
+                            <i class="fa-solid fa-gift icon-hover"></i>
+                            <span>Windows Free</span>
+                        </h4>
+                        <div class="space-y-2.5">
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Vortex</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Velocity</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Medium</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Real</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Ronix</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Xeno</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-red"></span><span class="text-[11px] text-red-400 font-semibold">Not Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Solara</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-red"></span><span class="text-[11px] text-red-400 font-semibold">Not Working</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- macOS Executors -->
+                    <div class="glass-panel p-5 rounded-xl border border-purple-500/20 space-y-4">
+                        <h4 class="text-sm font-bold text-purple-400 flex items-center space-x-2 group">
+                            <i class="fa-brands fa-apple icon-hover"></i>
+                            <span>macOS Executors</span>
+                        </h4>
+                        <div class="space-y-2.5">
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Macsploit</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Opiumware</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Ronix</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Executors -->
+                    <div class="glass-panel p-5 rounded-xl border border-purple-500/20 space-y-4">
+                        <h4 class="text-sm font-bold text-emerald-400 flex items-center space-x-2 group">
+                            <i class="fa-solid fa-mobile-screen icon-hover"></i>
+                            <span>Mobile Executors</span>
+                        </h4>
+                        <div class="space-y-2.5">
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Delta (Mobile)</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Codex (Mobile)</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Arceus X</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Ronix</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-3 rounded-lg border border-purple-500/15 flex items-center justify-between">
+                                <span class="text-xs font-medium text-white">Vega X</span>
+                                <div class="flex items-center space-x-1.5"><span class="pulse-dot-green"></span><span class="text-[11px] text-green-400 font-semibold">Working</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: GET KEY (FIREBASE KEY SYSTEM 100% INTACT + PERSISTENT KEY STORAGE) -->
+        <div id="getkey" class="tab-content space-y-6">
+            <div class="wave-container p-6 text-center shadow-xl">
+                <div class="relative z-10 space-y-2">
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white" data-lang="key_system_title">FishHub Key System</h2>
+                    <p class="text-xs sm:text-sm text-sky-100" data-lang="key_system_desc">Complete checkpoint verification steps below to generate your 24h key.</p>
+                </div>
+            </div>
+
+            <div class="glass-panel galaxy-glow rounded-2xl p-6 sm:p-8 shadow-xl space-y-6">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 rounded-xl bg-purple-950/40 text-purple-400 border border-purple-500/30 text-xl group"><i class="fa-solid fa-key icon-hover"></i></div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white" data-lang="checkpoint_title">Key Generation Checkpoint</h3>
+                        <p class="text-xs text-slate-300" data-lang="checkpoint_desc">Follow the steps sequentially to unlock your key.</p>
+                    </div>
+                </div>
+
+                <!-- Step 1 -->
+                <div class="bg-slate-900/40 border border-purple-500/20 p-4 sm:p-5 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <span class="px-2.5 py-1 rounded-md bg-sky-500/20 text-sky-300 text-xs font-bold border border-sky-500/30" data-lang="step_1_badge">STEP 1</span>
+                        <h4 class="text-base font-bold text-white mt-2" data-lang="step_1_title">Complete Verification Checkpoint</h4>
+                        <p class="text-xs text-slate-300 mt-1" id="step1Desc" data-lang="step_1_desc">Click to verify session and proceed to key generation.</p>
+                    </div>
+                    <button type="button" id="btnStep1" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-sky-600 text-white font-bold text-xs shadow-md transition-all" data-lang="btn_go_link">GO TO LINK</button>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-slate-900/40 border border-purple-500/20 p-4 sm:p-5 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <span class="px-2.5 py-1 rounded-md bg-purple-500/20 text-purple-300 text-xs font-bold border border-purple-500/30" data-lang="step_2_badge">STEP 2</span>
+                        <h4 class="text-base font-bold text-white mt-2" data-lang="step_2_title">Generate Access Key</h4>
+                        <p class="text-xs text-slate-300 mt-1" data-lang="step_2_desc">Create your unique 24-hour token saved securely on Firebase.</p>
+                    </div>
+                    <button type="button" id="btnGenerate" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-sky-600 text-white font-bold text-xs shadow-md transition-all opacity-50 cursor-not-allowed" disabled data-lang="btn_generate">GENERATE KEY</button>
+                </div>
+
+                <!-- Anti-spam Cooldown Warning Notification Box -->
+                <div id="cooldownWarning" class="hidden p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-medium flex items-center space-x-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span id="cooldownText">Vui lòng đợi trước khi tạo key tiếp theo để tránh spam!</span>
+                </div>
+
+                <!-- Output Box -->
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-sky-300 flex items-center space-x-2 group"><i class="fa-solid fa-terminal icon-hover"></i> <span data-lang="generated_key_label">Your Generated Key:</span></label>
+                    <div id="keyOutput" class="code-box" data-lang="key_output_waiting">Complete Step 1 checkpoint to unlock generation...</div>
+                </div>
+
+                <div id="keyDetailsCard" class="glass-panel p-5 rounded-xl border border-purple-500/30" style="display: none;">
+                    <h4 class="text-sky-300 font-bold text-base mb-3 flex items-center space-x-2 group">
+                        <i class="fa-solid fa-shield-halved text-sky-400 icon-hover"></i>
+                        <span data-lang="key_details_title">Key Details & Expiry Info</span>
+                    </h4>
+                    <div id="keyDetailsContent" class="text-xs sm:text-sm text-sky-100 space-y-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: EXECUTOR -->
+        <div id="executor" class="tab-content space-y-6">
+            <div class="glass-panel galaxy-glow rounded-2xl p-6 sm:p-8 shadow-xl space-y-4">
+                <h2 class="text-2xl font-bold text-white" data-lang="web_executor_title">Web Executor</h2>
+                <p class="text-slate-300 text-sm" data-lang="web_executor_desc">Môi trường thực thi script trực tuyến tích hợp sẵn.</p>
+                <div class="p-12 text-center bg-slate-900/30 border border-purple-500/20 rounded-xl">
+                    <p class="text-sky-300 text-base font-medium m-0" data-lang="web_executor_coming">🚀 Tính năng Executor đang được phát triển.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2 NÚT TRÒN GITHUB & DISCORD Ở CHUNG TẤT CẢ CÁC TAB -->
+        <div class="pt-4 pb-2 flex flex-col items-center space-y-3 mt-8 border-t border-purple-900/20">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest" data-lang="social_connect_title">Connect & Explore</p>
+            <div class="flex items-center justify-center space-x-5">
+                <a href="https://github.com/Cachuoine" target="_blank" class="w-14 h-14 rounded-full glass-panel flex items-center justify-center text-white text-2xl hover:text-sky-300 hover:border-sky-400 transition-all galaxy-glow shadow-xl group" title="GitHub">
+                    <i class="fa-brands fa-github icon-hover"></i>
+                </a>
+                <a href="https://discord.gg/2tTJxRk2ct" target="_blank" class="w-14 h-14 rounded-full glass-panel flex items-center justify-center text-white text-2xl hover:text-purple-300 hover:border-purple-400 transition-all galaxy-glow shadow-xl group" title="Discord">
+                    <i class="fa-brands fa-discord icon-hover"></i>
+                </a>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full py-6 text-center text-xs text-slate-400 border-t border-purple-900/25 glass-panel z-15 mt-10">
+        <p>&copy; 2026 FishHub Online. Created by DaoHuyLam. All rights reserved.</p>
+    </footer>
+
+    <!-- LANGUAGE DICTIONARY SCRIPT -->
     <script>
-        // THAY ĐƯỜNG DẪN FIREBASE REALTIME DATABASE CỦA BẠN VÀO ĐÂY
-        // Ví dụ: https://fishhub-data-default-rtdb.firebaseio.com/
-        const FIREBASE_URL = "https://YOUR_DATABASE_NAME.firebaseio.com/";
-
-        async function generateKey() {
-            const statusText = document.getElementById("statusText");
-            statusText.innerText = "Trạng thái: Đang tạo key...";
-
-            // Tạo mã key ngẫu nhiên dạng FISH-XXXXX
-            const randomString = Math.random().toString(36).substring(2, 8).toUpperCase();
-            const key = "FISH-" + randomString;
-            
-            // Tính thời gian hết hạn (24 giờ tính từ hiện tại, đổi ra mili-giây)
-            const expireAt = Date.now() + (24 * 60 * 60 * 1000);
-
-            const data = {
-                expireAt: expireAt,
-                active: true
-            };
-
-            try {
-                // Gửi request PUT lên Firebase Realtime Database
-                let response = await fetch(FIREBASE_URL + "keys/" + key + ".json", {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    document.getElementById("keyOutput").value = key;
-                    statusText.innerText = "Trạng thái: Tạo key thành công!";
-                    statusText.style.color = "#3ba55d";
-                } else {
-                    statusText.innerText = "Trạng thái: Lỗi khi lưu vào cơ sở dữ liệu!";
-                    statusText.style.color = "#ed4245";
-                }
-            } catch (error) {
-                console.error(error);
-                statusText.innerText = "Trạng thái: Không thể kết nối tới máy chủ!";
-                statusText.style.color = "#ed4245";
+        const translations = {
+            en: {
+                online_status: "ONLINE",
+                nav_home: "Home",
+                nav_script: "My Script",
+                nav_getkey: "Get Key",
+                nav_executor: "Executor",
+                home_badge: "🚀 UNIVERSAL SCRIPT PLATFORM",
+                home_desc: "Experience the best performance, high-end security, and smooth user interface designed for ultimate Roblox gaming.",
+                home_btn_getkey: "Get Key Now",
+                home_btn_script: "View Script",
+                script_collection_title: "FishHub Script Collection",
+                script_collection_desc: "Copy and run your script collection here:",
+                copy_script_btn: "COPY SCRIPT",
+                key_system_title: "FishHub Key System",
+                key_system_desc: "Complete checkpoint verification steps below to generate your 24h key.",
+                checkpoint_title: "Key Generation Checkpoint",
+                checkpoint_desc: "Follow the steps sequentially to unlock your key.",
+                step_1_badge: "STEP 1",
+                step_1_title: "Complete Verification Checkpoint",
+                step_1_desc: "Click to verify session and proceed to key generation.",
+                btn_go_link: "GO TO LINK",
+                step_2_badge: "STEP 2",
+                step_2_title: "Generate Access Key",
+                step_2_desc: "Create your unique 24-hour token saved securely on Firebase.",
+                btn_generate: "GENERATE KEY",
+                generated_key_label: "Your Generated Key:",
+                key_output_waiting: "Complete Step 1 checkpoint to unlock generation...",
+                key_details_title: "Key Details & Expiry Info",
+                web_executor_title: "Web Executor",
+                web_executor_desc: "Built-in online script execution environment.",
+                web_executor_coming: "🚀 Executor feature is currently under development.",
+                solo_dev_badge: "Solo Developer",
+                dev_role: "Lead Developer, Maintainer & Founder of FishHub",
+                dev_desc: "FishHub is developed entirely as a solo project by DaoHuyLam. Because it is managed by a single person, major feature updates, bug fixes, and new game additions may take some time to roll out. Your patience and support are greatly appreciated!",
+                stat_solo: "Solo Project",
+                stat_free: "Access Script",
+                stat_free_val: "Free",
+                stat_secure: "Environment Check",
+                stat_secure_val: "Secure",
+                stat_active: "Community",
+                stat_active_val: "Active",
+                social_connect_title: "Connect & Explore"
+            },
+            vi: {
+                online_status: "TRỰC TUYẾN",
+                nav_home: "Trang chủ",
+                nav_script: "Script Của Tôi",
+                nav_getkey: "Lấy Key",
+                nav_executor: "Trình Thực Thi",
+                home_badge: "🚀 NỀN TẢNG SCRIPT TOÀN DIỆN",
+                home_desc: "Trải nghiệm hiệu năng tuyệt vời, bảo mật cao cấp và giao diện mượt mà được thiết kế cho game Roblox đỉnh cao.",
+                home_btn_getkey: "Lấy Key Ngay",
+                home_btn_script: "Xem Script",
+                script_collection_title: "Bộ Sưu Tập Script FishHub",
+                script_collection_desc: "Sao chép và chạy bộ sưu tập script của bạn tại đây:",
+                copy_script_btn: "SAO CHÉP SCRIPT",
+                key_system_title: "Hệ Thống Key FishHub",
+                key_system_desc: "Hoàn thành các bước xác thực bên dưới để tạo key 24h của bạn.",
+                checkpoint_title: "Trạm Kiểm Tra Tạo Key",
+                checkpoint_desc: "Thực hiện theo các bước tuần tự để mở khóa key của bạn.",
+                step_1_badge: "BƯỚC 1",
+                step_1_title: "Hoàn Thành Trạm Xác Thực",
+                step_1_desc: "Nhấp để xác thực phiên làm việc và tiến hành tạo key.",
+                btn_go_link: "ĐẾN LIÊN KẾT",
+                step_2_badge: "BƯỚC 2",
+                step_2_title: "Tạo Key Truy Cập",
+                step_2_desc: "Tạo token 24 giờ độc quyền của bạn được lưu trữ an toàn trên Firebase.",
+                btn_generate: "TẠO KEY",
+                generated_key_label: "Key Của Bạn:",
+                key_output_waiting: "Hoàn thành Trạm 1 để mở khóa tính năng tạo key...",
+                key_details_title: "Chi Tiết Key & Thông Tin Hết Hạn",
+                web_executor_title: "Web Executor",
+                web_executor_desc: "Môi trường thực thi script trực tuyến tích hợp sẵn.",
+                web_executor_coming: "🚀 Tính năng Executor đang được phát triển.",
+                solo_dev_badge: "Lập Trình Viên Đơn",
+                dev_role: "Lập trình viên chính, Quản trị viên & Nhà sáng lập FishHub",
+                dev_desc: "FishHub được phát triển hoàn toàn như một dự án cá nhân bởi DaoHuyLam. Do được quản lý bởi một người, các bản cập nhật tính năng lớn, sửa lỗi và thêm trò chơi mới có thể mất một thời gian. Sự kiên nhẫn và ủng hộ của bạn được đánh giá rất cao!",
+                stat_solo: "Dự Án Cá Nhân",
+                stat_free: "Truy Cập Script",
+                stat_free_val: "Miễn Phí",
+                stat_secure: "Kiểm Tra Môi Trường",
+                stat_secure_val: "Bảo Mật",
+                stat_active: "Cộng Đồng",
+                stat_active_val: "Sôi Nổi",
+                social_connect_title: "Kết Nối & Khám Phá"
             }
+        };
+
+        let currentLang = 'en';
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'vi' : 'en';
+            applyLanguage(currentLang);
         }
 
-        function copyKey() {
-            const inputField = document.getElementById("keyOutput");
-            if (inputField.value === "") {
-                alert("Chưa có key để sao chép!");
-                return;
+        function applyLanguage(lang) {
+            document.getElementById('currentLangText').innerText = lang.toUpperCase();
+            document.documentElement.setAttribute('lang', lang);
+
+            const elements = document.querySelectorAll('[data-lang]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-lang');
+                if (translations[lang] && translations[lang][key]) {
+                    el.innerText = translations[lang][key];
+                }
+            });
+        }
+    </script>
+
+    <!-- ENHANCED MAGICAL CANVAS BACKGROUND ANIMATION WITH MOUSE TRAIL & SPARKLES -->
+    <script>
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        let mouse = { x: null, y: null, targetX: null, targetY: null };
+        window.addEventListener('mousemove', (e) => {
+            mouse.targetX = e.clientX;
+            mouse.targetY = e.clientY;
+            
+            for(let i=0; i<2; i++) {
+                sparkles.push({
+                    x: e.clientX + (Math.random() * 20 - 10),
+                    y: e.clientY + (Math.random() * 20 - 10),
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    radius: Math.random() * 2.5 + 1,
+                    alpha: 1,
+                    color: Math.random() > 0.5 ? '#38bdf8' : '#a855f7'
+                });
             }
-            inputField.select();
-            inputField.setSelectionRange(0, 99999); // Dành cho thiết bị di động
-            navigator.clipboard.writeText(inputField.value);
-            alert("Đã sao chép key vào bộ nhớ tạm: " + inputField.value);
+        });
+        window.addEventListener('mouseout', () => {
+            mouse.targetX = null;
+            mouse.targetY = null;
+        });
+
+        const stars = [];
+        const starCount = Math.floor((width * height) / 10000);
+        for (let i = 0; i < starCount; i++) {
+            stars.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                radius: Math.random() * 1.5 + 0.5,
+                alpha: Math.random(),
+                alphaChange: (Math.random() * 0.02 + 0.005) * (Math.random() < 0.5 ? 1 : -1)
+            });
+        }
+
+        const particles = [];
+        const particleCount = Math.floor((width * height) / 15000);
+        for (let i = 0; i < particleCount; i++) {
+            particles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                vx: (Math.random() - 0.5) * 0.6,
+                vy: (Math.random() - 0.5) * 0.6,
+                radius: Math.random() * 2 + 1
+            });
+        }
+
+        const sparkles = [];
+        const meteors = [];
+
+        function createMeteor() {
+            meteors.push({
+                x: Math.random() * width * 1.5,
+                y: -50,
+                length: Math.random() * 100 + 50,
+                speed: Math.random() * 7 + 4,
+                opacity: Math.random() * 0.7 + 0.3
+            });
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, width, height);
+
+            if (mouse.targetX !== null) {
+                if (mouse.x === null) { mouse.x = mouse.targetX; mouse.y = mouse.targetY; }
+                else {
+                    mouse.x += (mouse.targetX - mouse.x) * 0.15;
+                    mouse.y += (mouse.targetY - mouse.y) * 0.15;
+                }
+            } else {
+                mouse.x = null;
+                mouse.y = null;
+            }
+
+            for (let i = 0; i < stars.length; i++) {
+                let s = stars[i];
+                s.alpha += s.alphaChange;
+                if (s.alpha <= 0.1 || s.alpha >= 1) {
+                    s.alphaChange *= -1;
+                }
+                ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha})`;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            if (mouse.x !== null && mouse.y !== null) {
+                let mouseGradient = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 220);
+                mouseGradient.addColorStop(0, 'rgba(168, 85, 247, 0.35)');
+                mouseGradient.addColorStop(0.5, 'rgba(56, 189, 248, 0.15)');
+                mouseGradient.addColorStop(1, 'rgba(3, 7, 18, 0)');
+                ctx.fillStyle = mouseGradient;
+                ctx.beginPath();
+                ctx.arc(mouse.x, mouse.y, 220, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            for (let i = sparkles.length - 1; i >= 0; i--) {
+                let sp = sparkles[i];
+                sp.x += sp.vx;
+                sp.y += sp.vy;
+                sp.alpha -= 0.025;
+                if (sp.alpha <= 0) {
+                    sparkles.splice(i, 1);
+                    continue;
+                }
+                ctx.fillStyle = sp.color === '#38bdf8' ? `rgba(56, 189, 248, ${sp.alpha})` : `rgba(168, 85, 247, ${sp.alpha})`;
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = sp.color;
+                ctx.beginPath();
+                ctx.arc(sp.x, sp.y, sp.radius * sp.alpha, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            ctx.fillStyle = 'rgba(168, 85, 247, 0.8)';
+            for (let i = 0; i < particles.length; i++) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.x < 0) p.x = width;
+                if (p.x > width) p.x = 0;
+                if (p.y < 0) p.y = height;
+                if (p.y > height) p.y = 0;
+
+                if (mouse.x !== null) {
+                    let dx = mouse.x - p.x;
+                    let dy = mouse.y - p.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 150) {
+                        p.x += dx * 0.02;
+                        p.y += dy * 0.02;
+                    }
+                }
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                for (let j = i + 1; j < particles.length; j++) {
+                    let p2 = particles[j];
+                    let dx = p.x - p2.x;
+                    let dy = p.y - p2.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 130) {
+                        ctx.strokeStyle = `rgba(139, 92, 246, ${0.3 * (1 - dist / 130)})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            if (Math.random() < 0.04 && meteors.length < 4) {
+                createMeteor();
+            }
+
+            for (let i = meteors.length - 1; i >= 0; i--) {
+                let m = meteors[i];
+                m.x -= m.speed;
+                m.y += m.speed;
+                m.opacity -= 0.006;
+
+                if (m.opacity <= 0 || m.y > height + 100) {
+                    meteors.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                let gradient = ctx.createLinearGradient(m.x, m.y, m.x + m.length, m.y - m.length);
+                gradient.addColorStop(0, `rgba(255, 255, 255, ${m.opacity})`);
+                gradient.addColorStop(1, 'rgba(56, 189, 248, 0)');
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(m.x, m.y);
+                ctx.lineTo(m.x + m.length, m.y - m.length);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+    </script>
+
+    <!-- APP INTERACTION SCRIPT -->
+    <script>
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) targetTab.classList.add('active');
+            if (btn) btn.classList.add('active');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        const copyBtn = document.getElementById('btnCopyScript');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                const scriptText = document.getElementById('scriptCode').innerText;
+                navigator.clipboard.writeText(scriptText).then(() => {
+                    copyBtn.innerHTML = `<i class="fa-solid fa-check mr-2 icon-hover"></i> COPIED!`;
+                    setTimeout(() => { 
+                        copyBtn.innerHTML = `<i class="fa-solid fa-copy mr-2 icon-hover"></i> ${translations[currentLang].copy_script_btn}`; 
+                    }, 1500);
+                });
+            });
+        }
+
+        const btnStep1 = document.getElementById('btnStep1');
+        if (btnStep1) {
+            btnStep1.addEventListener('click', () => {
+                btnStep1.innerText = "Verifying...";
+                btnStep1.disabled = true;
+
+                setTimeout(() => {
+                    btnStep1.innerText = "COMPLETED ✓";
+                    btnStep1.style.background = "#22c55e";
+                    document.getElementById('step1Desc').innerText = currentLang === 'en' ? "Checkpoint verified successfully! Step 2 is now unlocked." : "Đã xác thực thành công! Bước 2 đã được mở khóa.";
+                    
+                    const btnGen = document.getElementById('btnGenerate');
+                    btnGen.disabled = false;
+                    btnGen.classList.remove('opacity-50', 'cursor-not-allowed');
+                }, 1200);
+            });
+        }
+    </script>
+
+    <!-- FIREBASE MODULE SCRIPT (WITH PERSISTENT KEY STORAGE & COOLDOWN) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        const firebaseConfig = {
+            databaseURL: "https://fishhub-35d18-default-rtdb.firebaseio.com/"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        function generateRandomChars(length) {
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            let result = "";
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        const COOLDOWN_TIME = 60 * 1000; // Thời gian chống spam liên tục (60 giây)
+
+        // --- TỰ ĐỘNG KHÔI PHỤC KEY CỐ ĐỊNH KHI TẢI LẠI TRANG (NẾU CHƯA HẾT HẠN 24H) ---
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('fishhub_saved_key');
+            const savedExpiry = localStorage.getItem('fishhub_key_expiry');
+            const now = Date.now();
+
+            if (savedKey && savedExpiry && now < parseInt(savedExpiry)) {
+                // Key vẫn còn hạn, giữ cố định trong ô chứa key
+                document.getElementById('keyOutput').innerText = savedKey;
+
+                const expiryDateObj = new Date(parseInt(savedExpiry));
+                const options = { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    second: '2-digit' 
+                };
+                const localeFormat = currentLang === 'en' ? 'en-US' : 'vi-VN';
+                const formattedExpiry = expiryDateObj.toLocaleDateString(localeFormat, options);
+
+                const detailsHTML = currentLang === 'en' ? `
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.35); padding: 10px 14px; border-radius: 10px; color: #4ade80; font-weight: 600;">
+                        <i class="fa-solid fa-circle-check" style="font-size: 15px;"></i> Active key loaded securely from storage!
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;"><i class="fa-regular fa-clock" style="color: #4ade80; width: 18px;"></i> <b>Expires At:</b> <span style="color: #4ade80; font-weight: 700;">${formattedExpiry}</span></div>
+                    <div style="padding-top: 8px; border-top: 1px solid rgba(0, 242, 254, 0.2); color: #cbd5e1; font-size: 13px; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-shield-cat" style="color: #00f2fe;"></i> Your active key is kept fixed until expiration.</div>
+                ` : `
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.35); padding: 10px 14px; border-radius: 10px; color: #4ade80; font-weight: 600;">
+                        <i class="fa-solid fa-circle-check" style="font-size: 15px;"></i> Đã tải lại key đang hoạt động từ bộ nhớ lưu trữ!
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;"><i class="fa-regular fa-clock" style="color: #4ade80; width: 18px;"></i> <b>Thời gian hết hạn:</b> <span style="color: #4ade80; font-weight: 700;">${formattedExpiry}</span></div>
+                    <div style="padding-top: 8px; border-top: 1px solid rgba(0, 242, 254, 0.2); color: #cbd5e1; font-size: 13px; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-shield-cat" style="color: #00f2fe;"></i> Key của bạn được giữ cố định trong ô cho đến khi hết hạn.</div>
+                `;
+
+                document.getElementById('keyDetailsContent').innerHTML = detailsHTML;
+                document.getElementById('keyDetailsCard').style.display = 'block';
+            } else {
+                // Đã quá hạn 24h hoặc chưa có -> Xóa dữ liệu cũ trong localStorage để sạch sẽ
+                localStorage.removeItem('fishhub_saved_key');
+                localStorage.removeItem('fishhub_key_expiry');
+            }
+        });
+
+        const btnGenKey = document.getElementById('btnGenerate');
+        if (btnGenKey) {
+            btnGenKey.addEventListener('click', () => {
+                // --- KIỂM TRA CHỐNG SPAM (ANTI-SPAM COOLDOWN) ---
+                const lastGenTime = localStorage.getItem('fishhub_last_gen_time');
+                const now = Date.now();
+                const warningBox = document.getElementById('cooldownWarning');
+                const warningText = document.getElementById('cooldownText');
+
+                if (lastGenTime && (now - lastGenTime < COOLDOWN_TIME)) {
+                    const remainingSeconds = Math.ceil((COOLDOWN_TIME - (now - lastGenTime)) / 1000);
+                    warningText.innerText = currentLang === 'en' 
+                        ? `Anti-spam active! Please wait ${remainingSeconds}s before generating another key.` 
+                        : `Đang bật chống spam! Vui lòng đợi ${remainingSeconds} giây trước khi tạo key tiếp theo.`;
+                    warningBox.classList.remove('hidden');
+                    return;
+                } else {
+                    warningBox.classList.add('hidden');
+                }
+                // ----------------------------------------------
+
+                const btn = document.getElementById('btnGenerate');
+                btn.innerText = "Generating...";
+                btn.disabled = true;
+
+                const newKey = "FishHub-" + generateRandomChars(22);
+                const currentTime = Date.now();
+                const expiryTime = currentTime + (24 * 60 * 60 * 1000);
+
+                // --- GIỮ NGUYÊN 100% HỆ THỐNG LƯU FIREBASE GỐC ---
+                set(ref(db, 'keys/' + newKey), {
+                    createdAt: currentTime,
+                    type: "normal"
+                }).then(() => {
+                    // Lưu mốc thời gian chống spam và CỐ ĐỊNH KEY vào localStorage
+                    localStorage.setItem('fishhub_last_gen_time', Date.now());
+                    localStorage.setItem('fishhub_saved_key', newKey);
+                    localStorage.setItem('fishhub_key_expiry', expiryTime);
+
+                    document.getElementById('keyOutput').innerText = newKey;
+                    
+                    navigator.clipboard.writeText(newKey);
+                    
+                    const createDateObj = new Date(currentTime);
+                    const expiryDateObj = new Date(expiryTime);
+
+                    const options = { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        second: '2-digit' 
+                    };
+
+                    const localeFormat = currentLang === 'en' ? 'en-US' : 'vi-VN';
+                    const formattedCreated = createDateObj.toLocaleDateString(localeFormat, options);
+                    const formattedExpiry = expiryDateObj.toLocaleDateString(localeFormat, options);
+
+                    const detailsHTML = currentLang === 'en' ? `
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.35); padding: 10px 14px; border-radius: 10px; color: #4ade80; font-weight: 600;">
+                            <i class="fa-solid fa-circle-check" style="font-size: 15px;"></i> Successfully generated and copied key to clipboard!
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;"><i class="fa-regular fa-calendar-plus" style="color: #38bdf8; width: 18px;"></i> <b>Created At:</b> ${formattedCreated}</div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;"><i class="fa-regular fa-clock" style="color: #4ade80; width: 18px;"></i> <b>Expires At:</b> <span style="color: #4ade80; font-weight: 700;">${formattedExpiry}</span></div>
+                        <div style="padding-top: 8px; border-top: 1px solid rgba(0, 242, 254, 0.2); color: #cbd5e1; font-size: 13px; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-shield-cat" style="color: #00f2fe;"></i> Exclusive key is valid for <b style="color: #ffffff;">24 hours</b>.</div>
+                    ` : `
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.35); padding: 10px 14px; border-radius: 10px; color: #4ade80; font-weight: 600;">
+                            <i class="fa-solid fa-circle-check" style="font-size: 15px;"></i> Đã tự động tạo và sao chép key vào bộ nhớ tạm thành công!
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;"><i class="fa-regular fa-calendar-plus" style="color: #38bdf8; width: 18px;"></i> <b>Thời gian khởi tạo:</b> ${formattedCreated}</div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;"><i class="fa-regular fa-clock" style="color: #4ade80; width: 18px;"></i> <b>Thời gian hết hạn:</b> <span style="color: #4ade80; font-weight: 700;">${formattedExpiry}</span></div>
+                        <div style="padding-top: 8px; border-top: 1px solid rgba(0, 242, 254, 0.2); color: #cbd5e1; font-size: 13px; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-shield-cat" style="color: #00f2fe;"></i> Key độc quyền có hiệu lực trong vòng <b style="color: #ffffff;">24 giờ</b>.</div>
+                    `;
+
+                    document.getElementById('keyDetailsContent').innerHTML = detailsHTML;
+                    document.getElementById('keyDetailsCard').style.display = 'block';
+
+                    btn.innerText = currentLang === 'en' ? "GENERATE KEY" : "TẠO KEY";
+                    btn.disabled = false;
+                }).catch((error) => {
+                    document.getElementById('keyOutput').innerText = "Error generating key!";
+                    document.getElementById('keyDetailsCard').style.display = 'none';
+                    btn.innerText = currentLang === 'en' ? "GENERATE KEY" : "TẠO KEY";
+                    btn.disabled = false;
+                });
+            });
         }
     </script>
 </body>
