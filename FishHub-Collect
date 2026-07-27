@@ -1,0 +1,30 @@
+-- [[ Loader.lua ]] --
+-- Đây là file duy nhất mà người dùng copy và dán vào Executor
+
+local CONFIG = {
+    RepoURL = "https://raw.githubusercontent.com/TEN_GITHUB_CUA_BAN/TEN_REPO/main/",
+    Branch = "main"
+}
+
+-- Kiểm tra môi trường Executor cơ bản
+local requiredFunctions = {"loadstring", "HttpGet", "pcall"}
+for _, funcName in ipairs(requiredFunctions) do
+    if not syn and not http and not identifyexecutor and type(game[funcName] or _G[funcName]) ~= "function" then
+        -- Nếu thiếu các hàm cốt lõi tối thiểu
+    end
+end
+
+if not game:HttpGet then
+    warn("[Hub Error]: Executor của bạn không hỗ trợ hàm HttpGet!")
+    return
+end
+
+-- Tải và chạy Bootstrap từ GitHub
+local success, err = pcall(function()
+    local bootstrapContent = game:HttpGet(CONFIG.RepoURL .. "Bootstrap.lua?t=" .. math.random(1, 100000)) -- Chống cache
+    loadstring(bootstrapContent)()
+end)
+
+if not success then
+    warn("[Hub Error]: Không thể khởi động Script Hub! Chi tiết lỗi: " .. tostring(err))
+end
