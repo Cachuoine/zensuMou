@@ -84,7 +84,7 @@ local Translations = {
         Script = "Script",
         Support = "Support",
         Setting = "Setting",
-        SettingTitle = "Hub Settings",
+        SettingTitle = "⚙️ Hub Settings",
         SupportTitle = "🎮 Supported Games List",
         ScriptTitle = "📜 Script Hub Menu",
         CatAppearance = "🎨 Visual & Theme",
@@ -123,7 +123,7 @@ local Translations = {
         Script = "Script",
         Support = "Support",
         Setting = "Cài Đặt",
-        SettingTitle = "Cài Đặt Bảng Điều Khiển",
+        SettingTitle = "⚙️ Cài Đặt Bảng Điều Khiển",
         SupportTitle = "🎮 Danh Sách Game Hỗ Trợ",
         ScriptTitle = "📜 Danh Sách Script",
         CatAppearance = "🎨 Giao Diện & Theme",
@@ -1298,7 +1298,7 @@ OpenSettings = function()
 end
 
 local SideButtons = {}
-local function CreateSideButton(textKey, y, image)
+local function CreateSideButton(textKey, y)
     local btn = Instance.new("TextButton")
     btn.Parent = sidebar
     btn.Size = UDim2.new(1, -16, 0, 38)
@@ -1334,33 +1334,25 @@ local function CreateSideButton(textKey, y, image)
             task.wait(0.6)
         end
     end)
-    local icon = Instance.new("ImageLabel")
-    icon.Parent = btn
-    icon.Size = UDim2.new(0, 16, 0, 16)
-    icon.Position = UDim2.new(0, 18, 0.5, -8)
-    icon.BackgroundTransparency = 1
-    icon.Image = image
-    icon.ImageColor3 = Color3.fromRGB(220, 220, 235)
-    icon.ScaleType = Enum.ScaleType.Fit
     local lbl = Instance.new("TextLabel")
     lbl.Parent = btn
     lbl.Name = "Label"
     lbl.BackgroundTransparency = 1
-    lbl.Position = UDim2.new(0, 42, 0, 0)
-    lbl.Size = UDim2.new(1, -42, 1, 0)
+    lbl.Position = UDim2.new(0, 18, 0, 0)
+    lbl.Size = UDim2.new(1, -18, 1, 0)
     lbl.Text = L(textKey)
     lbl.Font = Enum.Font.GothamBold
     lbl.TextSize = 11.5
     lbl.TextColor3 = Color3.fromRGB(235, 235, 245)
     lbl.TextXAlignment = Enum.TextXAlignment.Left
-    table.insert(SideButtons, {Button = btn, Key = textKey, Dot = dot, Icon = icon, Label = lbl})
+    table.insert(SideButtons, {Button = btn, Key = textKey, Dot = dot, Label = lbl})
     return btn
 end
 
-local HomeBtn = CreateSideButton("Home", 14, "rbxassetid://108029482244357")
-local ScriptBtn = CreateSideButton("Script", 56, "rbxassetid://6023426915")
-local SupportBtn = CreateSideButton("Support", 98, "rbxassetid://86514728032684")
-local SettingBtn = CreateSideButton("Setting", 140, "rbxassetid://99627454901549")
+local HomeBtn = CreateSideButton("Home", 14)
+local ScriptBtn = CreateSideButton("Script", 56)
+local SupportBtn = CreateSideButton("Support", 98)
+local SettingBtn = CreateSideButton("Setting", 140)
 
 debugSidebarFrame = Instance.new("Frame")
 debugSidebarFrame.Name = "DebugSidebar"
