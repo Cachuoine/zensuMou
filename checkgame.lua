@@ -77,5 +77,10 @@ task.spawn(function()
 		Player:Kick("[FISHHUB] Game not support")
 	else
 		ScreenGui:Destroy()
+		task.spawn(function()
+			pcall(function()
+				loadstring(game:HttpGet("https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/ui.lua"))()
+			end)
+		end)
 	end
 end)
