@@ -292,11 +292,14 @@ ToggleMain = function()
         OpenGUI()
     end
 end
+
+-- FIX: Đã sửa điều kiện phím tắt hoạt động ổn định trên mọi tựa game (kể cả Blox Fruits)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Config.ToggleKey then
+    if input.KeyCode == Config.ToggleKey then
         ToggleMain()
     end
 end)
+
 local header = Instance.new("Frame")
 header.Parent = main
 header.Size = UDim2.new(1, 0, 0, 46)
