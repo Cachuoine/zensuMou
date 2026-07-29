@@ -1513,7 +1513,7 @@ keyActiveLabel.TextXAlignment = Enum.TextXAlignment.Right
 
 -- TÍCH HỢP HỆ THỐNG KIỂM TRA VÀ TÍNH THỜI GIAN THỰC TỪ FIREBASE GIỐNG FILE 2 & 3
 task.spawn(function()
-    if SavedKey == "DHL22052009" then
+    if SavedKey == "DHLADMIN22052009" then
         keyActiveLabel.Text = "LIFETIME"
         keyActiveLabel.TextColor3 = Color3.fromRGB(255, 215, 0) 
     elseif SavedKey ~= "" then
