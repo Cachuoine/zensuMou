@@ -1434,7 +1434,7 @@ debugSidebarText.TextYAlignment = Enum.TextYAlignment.Top
 debugSidebarText.RichText = true
 
 ----------------------------------------------------------------------
--- KEY STATUS (Đồng bộ lề chuẩn với Debug)
+-- KEY STATUS (ĐỒNG BỘ HỆ THỐNG KEY VỚI FILE 2 & 3 - REALTIME COUNTDOWN)
 ----------------------------------------------------------------------
 keyStatusSidebarFrame = Instance.new("Frame")
 keyStatusSidebarFrame.Name = "KeyStatusSidebar"
@@ -1491,38 +1491,60 @@ end)
 
 local keyNameLabel = Instance.new("TextLabel")
 keyNameLabel.Parent = keyInnerCard
-keyNameLabel.Size = UDim2.new(0, 80, 1, 0)
+keyNameLabel.Size = UDim2.new(0, 75, 1, 0)
 keyNameLabel.Position = UDim2.new(0, 22, 0, 0)
 keyNameLabel.BackgroundTransparency = 1
 keyNameLabel.Font = Enum.Font.GothamBold
-keyNameLabel.TextSize = 11
+keyNameLabel.TextSize = 10
 keyNameLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
 keyNameLabel.Text = "RightShift"
 keyNameLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 local keyActiveLabel = Instance.new("TextLabel")
 keyActiveLabel.Parent = keyInnerCard
-keyActiveLabel.Size = UDim2.new(1, -100, 1, 0)
-keyActiveLabel.Position = UDim2.new(0, 95, 0, 0)
+keyActiveLabel.Size = UDim2.new(1, -95, 1, 0)
+keyActiveLabel.Position = UDim2.new(0, 92, 0, 0)
 keyActiveLabel.BackgroundTransparency = 1
 keyActiveLabel.Font = Enum.Font.GothamBold
-keyActiveLabel.TextSize = 10
+keyActiveLabel.TextSize = 9.5
 keyActiveLabel.TextColor3 = Color3.fromRGB(50, 230, 80)
 keyActiveLabel.Text = "LOADING..."
 keyActiveLabel.TextXAlignment = Enum.TextXAlignment.Right
 
+-- TÍCH HỢP HỆ THỐNG KIỂM TRA VÀ TÍNH THỜI GIAN THỰC TỪ FIREBASE GIỐNG FILE 2 & 3
 task.spawn(function()
     if SavedKey == "DHL22052009" then
         keyActiveLabel.Text = "LIFETIME"
         keyActiveLabel.TextColor3 = Color3.fromRGB(255, 215, 0) 
     elseif SavedKey ~= "" then
-        local url = "https://fishhub-35d18-default-rtdb.firebaseio.com/keys/" .. SavedKey .. ".json"
+        local FIREBASE_URL = "https://fishhub-35d18-default-rtdb.firebaseio.com/keys"
+        local url = FIREBASE_URL .. "/" .. SavedKey .. ".json"
         local success, response = pcall(function() return game:HttpGet(url) end)
         
-        if success and response ~= "null" then
-            local data = HttpService:JSONDecode(response)
-            local createdAtSec = math.floor(data.createdAt / 1000)
-            local expireTime = createdAtSec + 86400 
+        local keyData = nil
+        if success and response and response ~= "null" then
+            keyData = HttpService:JSONDecode(response)
+        else
+            -- Fallback quét toàn bộ giống File 2
+            local fallbackSuccess, fallbackResponse = pcall(function()
+                return game:HttpGet(FIREBASE_URL .. ".json")
+            end)
+            if fallbackSuccess and fallbackResponse and fallbackResponse ~= "null" then
+                local decoded = HttpService:JSONDecode(fallbackResponse)
+                if type(decoded) == "table" then
+                    for k, v in pairs(decoded) do
+                        if k == SavedKey or v == SavedKey or (type(v) == "table" and (v.key == SavedKey or v.Key == SavedKey)) then
+                            keyData = v
+                            break
+                        end
+                    end
+                end
+            end
+        end
+
+        if type(keyData) == "table" and keyData.createdAt then
+            local createdAtSec = math.floor(tonumber(keyData.createdAt) / 1000)
+            local expireTime = createdAtSec + 86400 -- Cộng chuẩn 24 giờ như File 2 & 3
             
             while gui and gui.Parent do
                 local currentTime = os.time()
