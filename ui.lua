@@ -26,7 +26,7 @@ local SupportedCategories = {
         CategoryName = "⚔️ Anime & RPG",
         Games = {
             { Name = "Evomon", PlaceIds = {134381727982611} },
-            { Name = "Blox Fruits", PlaceIds = {2753915549, 4442272183, 7449423635} },
+            { Name = "Blox Fruits", PlaceIds = {85211729168715, 79091703265657, 100117331123089, 73902483975735} },
 			{ Name = "Haze", PlaceIds = {6918802270} }
         }
     },
