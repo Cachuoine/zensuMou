@@ -1,14 +1,24 @@
--- Đây là script nội dung phụ để test chức năng gọi URL khi ấn vào nút Main
-print("Đã tải thành công Script Test Phụ từ URL!")
+-- Danh sách các Hub Script Blox Fruits
 
--- Bạn có thể tạo thêm các giao diện hoặc tính năng nhỏ ở đây để test
-local Player = game:GetService("Players").LocalPlayer
-local PlayerGui = Player:WaitForChild("PlayerGui")
+-- 1. APPLEHUB
+loadstring(game:HttpGet("https://raw.githubusercontent.com/AlexHerrySeek/AppleHub/refs/heads/main/loader/main.lua"))()
 
-if PlayerGui:FindFirstChild("FishHub") then
-    local mainWin = PlayerGui.FishHub:FindFirstChild("MainWindow")
-    if mainWin then
-        -- Tạo một thông báo nhỏ bên trong khi load xong script phụ
-        print("FishHub MainWindow đã sẵn sàng nhận script phụ.")
-    end
-end
+-- 2. NANAHUB
+loadstring(game:HttpGet("https://raw.githubusercontent.com/NaNaTV36/NaNaTVHubPremium/refs/heads/main/mainpremium.lua"))()
+
+-- 3. QUANTUMHUB
+loadstring(game:HttpGet("https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua"))()
+
+-- 4. REALKIDHUB
+loadstring(game:HttpGet("https://raw.githubusercontent.com/realkidhub/realkid/refs/heads/main/main.lua"))()
+
+-- 5. GRAVITYHUB
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Dev-GravityHub/BloxFruit/refs/heads/main/Main.lua"))()
+
+-- 6. NIGHTHUB
+loadstring(game:HttpGet("https://raw.githubusercontent.com/WhiteX1208/Scripts/refs/heads/main/BF-Beta.lua"))()
+
+-- 7. NIGHTMYSTICHUB
+repeat wait() until game:IsLoaded() and game.Players.LocalPlayer
+getgenv().team = "Marines" -- Chọn phe: Marines hoặc Pirates
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Dev-NightMystic/Bloxfruits/refs/heads/main/Script.lua"))()
