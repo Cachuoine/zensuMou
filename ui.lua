@@ -81,10 +81,12 @@ local Translations = {
     EN = {
         Title = "Script Collection",
         Home = "Home",
+        Script = "Script",
         Support = "Support",
         Setting = "Setting",
         SettingTitle = "Hub Settings",
         SupportTitle = "🎮 Supported Games List",
+        ScriptTitle = "📜 Script Hub Menu",
         CatAppearance = "🎨 Visual & Theme",
         CatSystem = "⚙️ System & Controls",
         CatActions = "⚡ Quick Utilities",
@@ -118,10 +120,12 @@ local Translations = {
     VN = {
         Title = "Bộ Sưu Tập Script",
         Home = "Trang Chủ",
+        Script = "Script",
         Support = "Support",
         Setting = "Cài Đặt",
         SettingTitle = "Cài Đặt Bảng Điều Khiển",
         SupportTitle = "🎮 Danh Sách Game Hỗ Trợ",
+        ScriptTitle = "📜 Danh Sách Script",
         CatAppearance = "🎨 Giao Diện & Theme",
         CatSystem = "⚙️ Hệ Thống & Phím Tắt",
         CatActions = "⚡ Công Cụ Nhanh",
@@ -161,7 +165,7 @@ local function L(key)
     return Translations["EN"][key] or key
 end
 local CurrentButton
-local OpenHome, OpenSupport, OpenSettings
+local OpenHome, OpenScriptMenu, OpenSupport, OpenSettings
 local OpenGUI, CloseGUI, ToggleMain
 local RefreshUI
 local gui = Instance.new("ScreenGui")
@@ -332,7 +336,7 @@ rightTitle.TextXAlignment = Enum.TextXAlignment.Left
 task.spawn(function()
     while header and header.Parent do
         leftTitle.Position = UDim2.new(0, -400, 0, 0)
-        rightTitle.Position = UDim2.new(1, 400, 0, 0)
+        rightTitle.Position = UDim2.new(0.5, 400, 0, 0)
         
         local tweenInfo = TweenInfo.new(2.5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
         local t1 = TweenService:Create(leftTitle, tweenInfo, {Position = UDim2.new(0, 0, 0, 0)})
@@ -376,7 +380,7 @@ pageContainer.BackgroundTransparency = 1
 local Indicator = Instance.new("Frame")
 Indicator.Parent = sidebar
 Indicator.Size = UDim2.new(0, 3, 0, 38)
-Indicator.Position = UDim2.new(0, 2, 0, 20)
+Indicator.Position = UDim2.new(0, 2, 0, 18)
 Indicator.BackgroundColor3 = Config.ThemeColor
 Indicator.BorderSizePixel = 0
 Instance.new("UICorner", Indicator).CornerRadius = UDim.new(1, 0)
@@ -535,6 +539,44 @@ OpenHome = function()
     CreateProfileRowWithCopy("👑 Creator (CRE)", "DaoHuyLam", "DaoHuyLam", Color3.fromRGB(255, 75, 75))
     CreateProfileRowWithCopy("🎮 Current Place ID", tostring(game.PlaceId), game.PlaceId, Config.ThemeColor)
     CreateProfileRowWithCopy("🌐 Server Job ID", game.JobId, game.JobId, Color3.fromRGB(0, 229, 255))
+end
+
+OpenScriptMenu = function()
+    ClearContent()
+    local titleLbl = Instance.new("TextLabel")
+    titleLbl.Parent = pageContainer
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Position = UDim2.new(0, 15, 0, 10)
+    titleLbl.Size = UDim2.new(1, -30, 0, 25)
+    titleLbl.Font = Enum.Font.GothamBold
+    titleLbl.Text = L("ScriptTitle")
+    titleLbl.TextSize = 18
+    titleLbl.TextColor3 = Color3.fromRGB(240, 240, 240)
+    titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+
+    local scriptCard = Instance.new("Frame")
+    scriptCard.Parent = pageContainer
+    scriptCard.Position = UDim2.new(0, 15, 0, 45)
+    scriptCard.Size = UDim2.new(1, -25, 1, -55)
+    scriptCard.BackgroundColor3 = Config.BgCategory
+    scriptCard.BorderSizePixel = 0
+    Instance.new("UICorner", scriptCard).CornerRadius = UDim.new(0, 12)
+    local cardStroke = Instance.new("UIStroke")
+    cardStroke.Parent = scriptCard
+    cardStroke.Color = Config.BorderColor
+    cardStroke.Thickness = 1
+
+    local descLbl = Instance.new("TextLabel")
+    descLbl.Parent = scriptCard
+    descLbl.Position = UDim2.new(0, 20, 0, 20)
+    descLbl.Size = UDim2.new(1, -40, 0, 40)
+    descLbl.BackgroundTransparency = 1
+    descLbl.Font = Enum.Font.Gotham
+    descLbl.Text = "Chọn các tính năng hoặc script bổ sung bên dưới để thực thi."
+    descLbl.TextSize = 12
+    descLbl.TextColor3 = Color3.fromRGB(180, 180, 195)
+    descLbl.TextXAlignment = Enum.TextXAlignment.Left
+    descLbl.TextWrapped = true
 end
 
 OpenSupport = function()
@@ -1315,9 +1357,10 @@ local function CreateSideButton(textKey, y, image)
     return btn
 end
 
-local HomeBtn = CreateSideButton("Home", 18, "rbxassetid://108029482244357")
-local SupportBtn = CreateSideButton("Support", 64, "rbxassetid://86514728032684")
-local SettingBtn = CreateSideButton("Setting", 110, "rbxassetid://99627454901549")
+local HomeBtn = CreateSideButton("Home", 14, "rbxassetid://108029482244357")
+local ScriptBtn = CreateSideButton("Script", 56, "rbxassetid://6023426915")
+local SupportBtn = CreateSideButton("Support", 98, "rbxassetid://86514728032684")
+local SettingBtn = CreateSideButton("Setting", 140, "rbxassetid://99627454901549")
 
 debugSidebarFrame = Instance.new("Frame")
 debugSidebarFrame.Name = "DebugSidebar"
@@ -1532,6 +1575,7 @@ local function SelectButton(btn)
     TweenService:Create(Indicator, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(0, 2, 0, btn.Position.Y.Offset)}):Play()
 end
 HomeBtn.MouseButton1Click:Connect(function() SelectButton(HomeBtn); OpenHome() end)
+ScriptBtn.MouseButton1Click:Connect(function() SelectButton(ScriptBtn); OpenScriptMenu() end)
 SupportBtn.MouseButton1Click:Connect(function() SelectButton(SupportBtn); OpenSupport() end)
 SettingBtn.MouseButton1Click:Connect(function() SelectButton(SettingBtn); OpenSettings() end)
 RefreshUI = function()
@@ -1548,6 +1592,7 @@ RefreshUI = function()
         end
     end
     if CurrentButton == HomeBtn then OpenHome()
+    elseif CurrentButton == ScriptBtn then OpenScriptMenu()
     elseif CurrentButton == SupportBtn then OpenSupport()
     elseif CurrentButton == SettingBtn then OpenSettings() end
 end
