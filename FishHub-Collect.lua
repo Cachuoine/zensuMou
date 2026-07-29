@@ -6,25 +6,31 @@ local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 local FIREBASE_URL = "https://fishhub-35d18-default-rtdb.firebaseio.com/keys"
 local GET_KEY_WEBSITE = "https://fishhub-online.netlify.app/"
+local KEY_FILENAME = "FishHub_Key.json"
+
 local blurEffect = Instance.new("BlurEffect")
 blurEffect.Size = 0
 blurEffect.Parent = Lighting
+
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "CyberpunkAnchorLoadingSystem"
 ScreenGui.IgnoreGuiInset = true
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
+
 local LoadingFrame = Instance.new("Frame")
 LoadingFrame.Name = "LoadingFrame"
 LoadingFrame.Size = UDim2.new(1, 0, 1, 0)
 LoadingFrame.BackgroundTransparency = 1
 LoadingFrame.Parent = ScreenGui
+
 local AnchorRing = Instance.new("Frame")
 AnchorRing.Size = UDim2.new(0, 120, 0, 120)
 AnchorRing.AnchorPoint = Vector2.new(0.5, 0.5)
 AnchorRing.Position = UDim2.new(0.5, 0, 0.43, 0)
 AnchorRing.BackgroundTransparency = 1
 AnchorRing.Parent = LoadingFrame
+
 for i = 1, 4 do
 	local hook = Instance.new("Frame")
 	hook.Size = UDim2.new(0, 16, 0, 8)
@@ -44,14 +50,17 @@ for i = 1, 4 do
 	hookStroke.Thickness = 1
 	hookStroke.Parent = hook
 end
+
 local outerStroke = Instance.new("UIStroke")
 outerStroke.Color = Color3.fromRGB(0, 242, 254)
 outerStroke.Thickness = 2.5
 outerStroke.Transparency = 0.2
 outerStroke.Parent = AnchorRing
+
 local outerCorner = Instance.new("UICorner")
 outerCorner.CornerRadius = UDim.new(1, 0)
 outerCorner.Parent = AnchorRing
+
 local InnerSpinner = Instance.new("Frame")
 InnerSpinner.Size = UDim2.new(0, 70, 0, 70)
 InnerSpinner.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -59,13 +68,16 @@ InnerSpinner.Position = UDim2.new(0.5, 0, 0.43, 0)
 InnerSpinner.BackgroundColor3 = Color3.fromRGB(0, 242, 254)
 InnerSpinner.BackgroundTransparency = 0.7
 InnerSpinner.Parent = LoadingFrame
+
 local innerCorner = Instance.new("UICorner")
 innerCorner.CornerRadius = UDim.new(1, 0)
 innerCorner.Parent = InnerSpinner
+
 local innerStroke = Instance.new("UIStroke")
 innerStroke.Color = Color3.fromRGB(255, 0, 128)
 innerStroke.Thickness = 2
 innerStroke.Parent = InnerSpinner
+
 for i = 1, 4 do
 	local innerHook = Instance.new("Frame")
 	innerHook.Size = UDim2.new(0, 10, 0, 5)
@@ -81,6 +93,7 @@ for i = 1, 4 do
 	innerHookCorner.CornerRadius = UDim.new(1, 0)
 	innerHookCorner.Parent = innerHook
 end
+
 local CenterAnchorIcon = Instance.new("TextLabel")
 CenterAnchorIcon.Size = UDim2.new(0, 40, 0, 40)
 CenterAnchorIcon.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -91,6 +104,7 @@ CenterAnchorIcon.TextSize = 22
 CenterAnchorIcon.Font = Enum.Font.GothamBold
 CenterAnchorIcon.Text = "⚓"
 CenterAnchorIcon.Parent = LoadingFrame
+
 local LoadingText = Instance.new("TextLabel")
 LoadingText.Size = UDim2.new(0, 400, 0, 50)
 LoadingText.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -101,12 +115,14 @@ LoadingText.TextSize = 15
 LoadingText.Font = Enum.Font.Code
 LoadingText.Text = "SYSTEM INITIALIZING..."
 LoadingText.Parent = LoadingFrame
+
 local flyingData = {
 	{text = "[ SECURE KEY ]", startPos = UDim2.new(0.15, 0, 0.15, 0)},
 	{text = "[ AUTHENTICATING ]", startPos = UDim2.new(0.85, 0, 0.2, 0)},
 	{text = "[ ENCRYPTION ]", startPos = UDim2.new(0.1, 0, 0.85, 0)},
 	{text = "[ ANCHOR INITIALIZED ]", startPos = UDim2.new(0.9, 0, 0.8, 0)},
 }
+
 local flyingUIElements = {}
 for _, data in ipairs(flyingData) do
 	local el = Instance.new("TextLabel")
@@ -130,6 +146,7 @@ for _, data in ipairs(flyingData) do
 	stroke.Parent = el
 	table.insert(flyingUIElements, el)
 end
+
 local GetKeyFrame = Instance.new("Frame")
 GetKeyFrame.Size = UDim2.new(0, 420, 0, 310)
 GetKeyFrame.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -138,14 +155,17 @@ GetKeyFrame.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
 GetKeyFrame.BackgroundTransparency = 0.35
 GetKeyFrame.Visible = false
 GetKeyFrame.Parent = ScreenGui
+
 local gkCorner = Instance.new("UICorner")
 gkCorner.CornerRadius = UDim.new(0, 12)
 gkCorner.Parent = GetKeyFrame
+
 local gkStroke = Instance.new("UIStroke")
 gkStroke.Color = Color3.fromRGB(0, 242, 254)
 gkStroke.Thickness = 1.5
 gkStroke.Transparency = 0.4
 gkStroke.Parent = GetKeyFrame
+
 local AnchorIcon = Instance.new("TextLabel")
 AnchorIcon.Size = UDim2.new(0, 40, 0, 40)
 AnchorIcon.AnchorPoint = Vector2.new(0.5, 0)
@@ -156,6 +176,7 @@ AnchorIcon.TextSize = 28
 AnchorIcon.Font = Enum.Font.GothamBold
 AnchorIcon.Text = "⚓"
 AnchorIcon.Parent = GetKeyFrame
+
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.AnchorPoint = Vector2.new(0.5, 0)
@@ -166,6 +187,7 @@ Title.TextSize = 17
 Title.Font = Enum.Font.GothamBold
 Title.Text = "FISHHUB SECURITY"
 Title.Parent = GetKeyFrame
+
 local CloseButton = Instance.new("TextButton")
 CloseButton.Size = UDim2.new(0, 32, 0, 32)
 CloseButton.AnchorPoint = Vector2.new(1, 0)
@@ -177,13 +199,16 @@ CloseButton.TextSize = 16
 CloseButton.Font = Enum.Font.GothamBold
 CloseButton.Text = "X"
 CloseButton.Parent = GetKeyFrame
+
 local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 8)
 closeCorner.Parent = CloseButton
+
 CloseButton.MouseButton1Click:Connect(function()
 	ScreenGui:Destroy()
 	blurEffect:Destroy()
 end)
+
 local KeyInput = Instance.new("TextBox")
 KeyInput.Size = UDim2.new(0.88, 0, 0, 45)
 KeyInput.AnchorPoint = Vector2.new(0.5, 0)
@@ -198,13 +223,16 @@ KeyInput.TextSize = 14
 KeyInput.Font = Enum.Font.Code
 KeyInput.ClearTextOnFocus = false
 KeyInput.Parent = GetKeyFrame
+
 local inputCorner = Instance.new("UICorner")
 inputCorner.CornerRadius = UDim.new(0, 8)
 inputCorner.Parent = KeyInput
+
 local inputStroke = Instance.new("UIStroke")
 inputStroke.Color = Color3.fromRGB(0, 242, 254)
 inputStroke.Transparency = 0.6
 inputStroke.Parent = KeyInput
+
 local BtnPrimary = Instance.new("TextButton")
 BtnPrimary.Size = UDim2.new(0.88, 0, 0, 42)
 BtnPrimary.AnchorPoint = Vector2.new(0.5, 0)
@@ -215,9 +243,11 @@ BtnPrimary.TextSize = 14
 BtnPrimary.Font = Enum.Font.GothamBold
 BtnPrimary.Text = "GET-KEY"
 BtnPrimary.Parent = GetKeyFrame
+
 local btn1Corner = Instance.new("UICorner")
 btn1Corner.CornerRadius = UDim.new(0, 8)
 btn1Corner.Parent = BtnPrimary
+
 BtnPrimary.MouseButton1Click:Connect(function()
 	if setclipboard then
 		setclipboard(GET_KEY_WEBSITE)
@@ -230,6 +260,7 @@ BtnPrimary.MouseButton1Click:Connect(function()
 		BtnPrimary.Text = "GET-KEY"
 	end
 end)
+
 local BtnSecondary = Instance.new("TextButton")
 BtnSecondary.Size = UDim2.new(0.88, 0, 0, 36)
 BtnSecondary.AnchorPoint = Vector2.new(0.5, 0)
@@ -240,13 +271,16 @@ BtnSecondary.TextSize = 13
 BtnSecondary.Font = Enum.Font.GothamBold
 BtnSecondary.Text = "VERIFY KEY"
 BtnSecondary.Parent = GetKeyFrame
+
 local btn2Stroke = Instance.new("UIStroke")
 btn2Stroke.Color = Color3.fromRGB(0, 242, 254)
 btn2Stroke.Transparency = 0.5
 btn2Stroke.Parent = BtnSecondary
+
 local btn2Corner = Instance.new("UICorner")
 btn2Corner.CornerRadius = UDim.new(0, 8)
 btn2Corner.Parent = BtnSecondary
+
 local ToastNotification = Instance.new("Frame")
 ToastNotification.Size = UDim2.new(0, 260, 0, 45)
 ToastNotification.AnchorPoint = Vector2.new(1, 1)
@@ -255,14 +289,17 @@ ToastNotification.BackgroundColor3 = Color3.fromRGB(12, 16, 24)
 ToastNotification.BackgroundTransparency = 0.2
 ToastNotification.Visible = false
 ToastNotification.Parent = ScreenGui
+
 local toastCorner = Instance.new("UICorner")
 toastCorner.CornerRadius = UDim.new(0, 8)
 toastCorner.Parent = ToastNotification
+
 local toastStroke = Instance.new("UIStroke")
 toastStroke.Color = Color3.fromRGB(0, 242, 254)
 toastStroke.Thickness = 1.2
 toastStroke.Transparency = 0.4
 toastStroke.Parent = ToastNotification
+
 local ToastText = Instance.new("TextLabel")
 ToastText.Size = UDim2.new(1, 0, 1, 0)
 ToastText.BackgroundTransparency = 1
@@ -271,6 +308,7 @@ ToastText.TextSize = 12
 ToastText.Font = Enum.Font.Code
 ToastText.Text = ""
 ToastText.Parent = ToastNotification
+
 local function showToast(message, isSuccess, isError)
 	ToastText.Text = "  " .. message
 	if isSuccess then
@@ -289,26 +327,46 @@ local function showToast(message, isSuccess, isError)
 		Size = UDim2.new(0, 260, 0, 45)
 	}):Play()
 end
+
+local function grantAccess(keyToSave)
+	if writefile and keyToSave then
+		pcall(function()
+			writefile(KEY_FILENAME, HttpService:JSONEncode({key = keyToSave}))
+		end)
+	end
+	ScreenGui:Destroy()
+	blurEffect:Destroy()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/checkgame.lua"))()
+end
+
 local function verifyKeyAction()
 	local enteredKey = string.gsub(KeyInput.Text, "^%s*(.-)%s*$", "%1")
+	
+	if enteredKey == "DHLADMIN22052009" then
+		showToast("ADMIN KEY ACCEPTED! ACCESS GRANTED", true, false)
+		task.wait(1.2)
+		grantAccess(enteredKey)
+		return
+	end
+
 	if enteredKey == "" or not string.match(enteredKey, "^FishHub%-") then
 		showToast("INVALID KEY FORMAT!", false, true)
 		task.wait(1.5)
 		ToastNotification.Visible = false
 		return
 	end
+	
 	showToast("VERIFYING WITH FIREBASE...", false, false)
 	local success, response = pcall(function()
 		local url = FIREBASE_URL .. "/" .. enteredKey .. ".json"
 		return game:HttpGet(url)
 	end)
+	
 	if success then
 		if response and response ~= "null" and response ~= "" then
 			showToast("KEY SUCCESSFUL! ACCESS GRANTED", true, false)
 			task.wait(1.2)
-			ScreenGui:Destroy()
-			blurEffect:Destroy()
-			loadstring(game:HttpGet("https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/checkgame.lua"))()
+			grantAccess(enteredKey)
 		else
 			local fallbackSuccess, fallbackResponse = pcall(function()
 				return game:HttpGet(FIREBASE_URL .. ".json")
@@ -328,9 +386,7 @@ local function verifyKeyAction()
 			if found then
 				showToast("KEY SUCCESSFUL! ACCESS GRANTED", true, false)
 				task.wait(1.2)
-				ScreenGui:Destroy()
-				blurEffect:Destroy()
-				loadstring(game:HttpGet("https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/checkgame.lua"))()
+				grantAccess(enteredKey)
 			else
 				showToast("KEY NOT FOUND / EXPIRED!", false, true)
 				task.wait(1.5)
@@ -343,12 +399,58 @@ local function verifyKeyAction()
 		ToastNotification.Visible = false
 	end
 end
+
 BtnSecondary.MouseButton1Click:Connect(verifyKeyAction)
 KeyInput.FocusLost:Connect(function(enterPressed)
 	if enterPressed then
 		verifyKeyAction()
 	end
 end)
+
+-- Kiểm tra xem đã lưu key từ trước hay chưa
+local savedKeyValid = false
+if readfile and isfile and isfile(KEY_FILENAME) then
+	local success, content = pcall(function()
+		return readfile(KEY_FILENAME)
+	end)
+	if success and content then
+		local decodeSuccess, decoded = pcall(function()
+			return HttpService:JSONDecode(content)
+		end)
+		if decodeSuccess and decoded and decoded.key then
+			local savedKey = decoded.key
+			if savedKey == "DHLADMIN22052009" then
+				savedKeyValid = true
+			else
+				-- Check lại với Firebase xem key còn hợp lệ không
+				local checkSuccess, checkResponse = pcall(function()
+					return game:HttpGet(FIREBASE_URL .. "/" .. savedKey .. ".json")
+				end)
+				if checkSuccess and checkResponse and checkResponse ~= "null" and checkResponse ~= "" then
+					savedKeyValid = true
+				else
+					-- Fallback check toàn bộ
+					local fbSuccess, fbResponse = pcall(function()
+						return game:HttpGet(FIREBASE_URL .. ".json")
+					end)
+					if fbSuccess and fbResponse and fbResponse ~= "null" then
+						local fbDecoded = HttpService:JSONDecode(fbResponse)
+						if type(fbDecoded) == "table" then
+							for k, v in pairs(fbDecoded) do
+								if k == savedKey or v == savedKey or (type(v) == "table" and (v.key == savedKey or v.Key == savedKey)) then
+									savedKeyValid = true
+									break
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Chạy hiệu ứng loading ban đầu một cách mượt mà và giữ nguyên logic hiển thị
 task.spawn(function()
 	TweenService:Create(blurEffect, TweenInfo.new(0.8), {Size = 20}):Play()
 	local spinTween = TweenService:Create(AnchorRing, TweenInfo.new(1.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
@@ -364,30 +466,59 @@ task.spawn(function()
 	innerSpinTween:Play()
 	iconSpinTween:Play()
 	spinTween.Completed:Wait()
+	
 	TweenService:Create(AnchorRing, TweenInfo.new(0.3), {Size = UDim2.new(0, 0, 0, 0)}):Play()
 	TweenService:Create(InnerSpinner, TweenInfo.new(0.3), {Size = UDim2.new(0, 0, 0, 0)}):Play()
 	TweenService:Create(CenterAnchorIcon, TweenInfo.new(0.3), {Size = UDim2.new(0, 0, 0, 0), TextTransparency = 1}):Play()
 	TweenService:Create(LoadingText, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
 	task.wait(0.3)
 	LoadingFrame.Visible = false
-	for _, el in ipairs(flyingUIElements) do
-		el.Visible = true
-		el.Size = UDim2.new(0, 0, 0, 0)
-		local flyTween = TweenService:Create(el, TweenInfo.new(1.1, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
-			Position = UDim2.new(0.5, 0, 0.5, 0),
-			Size = UDim2.new(0, 160, 0, 50),
-			Rotation = 720
+	
+	if savedKeyValid then
+		-- Nếu đã có key lưu từ trước và hợp lệ -> Hiển thị flying UI nhanh rồi vào thẳng game luôn không hiện bảng key
+		for _, el in ipairs(flyingUIElements) do
+			el.Visible = true
+			el.Size = UDim2.new(0, 0, 0, 0)
+			local flyTween = TweenService:Create(el, TweenInfo.new(0.8, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
+				Position = UDim2.new(0.5, 0, 0.5, 0),
+				Size = UDim2.new(0, 160, 0, 50),
+				Rotation = 720
+			})
+			flyTween:Play()
+		end
+		task.wait(0.9)
+		
+		-- Đọc lại key đã lưu để truyền vào hàm grantAccess
+		local success, content = pcall(function() return readfile(KEY_FILENAME) end)
+		local savedKey = "DHLADMIN22052009"
+		if success and content then
+			local decoded = HttpService:JSONDecode(content)
+			if decoded and decoded.key then
+				savedKey = decoded.key
+			end
+		end
+		grantAccess(savedKey)
+	else
+		-- Nếu chưa có key hoặc key hết hạn -> Chạy hiệu ứng flying và hiện bảng nhập key bình thường
+		for _, el in ipairs(flyingUIElements) do
+			el.Visible = true
+			el.Size = UDim2.new(0, 0, 0, 0)
+			local flyTween = TweenService:Create(el, TweenInfo.new(1.1, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
+				Position = UDim2.new(0.5, 0, 0.5, 0),
+				Size = UDim2.new(0, 160, 0, 50),
+				Rotation = 720
+			})
+			flyTween:Play()
+		end
+		task.wait(1.1)
+		for _, el in ipairs(flyingUIElements) do
+			el.Visible = false
+		end
+		GetKeyFrame.Size = UDim2.new(0, 0, 0, 0)
+		GetKeyFrame.Visible = true
+		local popTween = TweenService:Create(GetKeyFrame, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Size = UDim2.new(0, 420, 0, 310)
 		})
-		flyTween:Play()
+		popTween:Play()
 	end
-	task.wait(1.1)
-	for _, el in ipairs(flyingUIElements) do
-		el.Visible = false
-	end
-	GetKeyFrame.Size = UDim2.new(0, 0, 0, 0)
-	GetKeyFrame.Visible = true
-	local popTween = TweenService:Create(GetKeyFrame, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-		Size = UDim2.new(0, 420, 0, 310)
-	})
-	popTween:Play()
 end)
