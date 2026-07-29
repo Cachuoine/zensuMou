@@ -79,3 +79,4 @@ task.spawn(function()
 		ScreenGui:Destroy()
 	end
 end)
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/ui.lua"))()
