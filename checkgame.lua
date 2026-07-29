@@ -1,15 +1,16 @@
 local games = {
-	[85211729168715] = {name = "BloxFruit", status = "support"},
-	[79091703265657] = {name = "BloxFruit", status = "support"},
-	[100117331123089] = {name = "BloxFruit", status = "support"},
-	[73902483975735] = {name = "BloxFruit", status = "support"},
+	[85211729168715] = {name = "BloxFruit", status = "support", url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit.lua"},
+	[79091703265657] = {name = "BloxFruit", status = "support", url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit.lua"},
+	[100117331123089] = {name = "BloxFruit", status = "support", url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit.lua"},
+	[73902483975735] = {name = "BloxFruit", status = "support", url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit.lua"},
 	[134381727982611] = {name = "Evomon", status = "coming"},
 }
 local currentPlaceId = game.PlaceId
 local currentGameInfo = games[currentPlaceId]
 local gameName = currentGameInfo and currentGameInfo.name or "Game"
 local statusType = currentGameInfo and currentGameInfo.status or "not_supported"
-local isAllowed = (statusType == "support")
+local gameUrl = currentGameInfo and currentGameInfo.url or nil
+local isAllowed = (statusType == "support" and gameUrl ~= nil)
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Player = Players.LocalPlayer
@@ -79,7 +80,7 @@ task.spawn(function()
 		ScreenGui:Destroy()
 		task.spawn(function()
 			pcall(function()
-				loadstring(game:HttpGet("https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/ui.lua"))()
+				loadstring(game:HttpGet(gameUrl))()
 			end)
 		end)
 	end
