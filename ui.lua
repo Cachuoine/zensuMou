@@ -293,7 +293,6 @@ ToggleMain = function()
     end
 end
 
--- FIX: Đã sửa điều kiện phím tắt hoạt động ổn định trên mọi tựa game (kể cả Blox Fruits)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if input.KeyCode == Config.ToggleKey then
         ToggleMain()
@@ -1198,11 +1197,13 @@ end
 local HomeBtn = CreateSideButton("Home", 18, "rbxassetid://108029482244357")
 local SupportBtn = CreateSideButton("Support", 64, "rbxassetid://86514728032684")
 local SettingBtn = CreateSideButton("Setting", 110, "rbxassetid://99627454901549")
+
+-- ĐIỀU CHỈNH: Đưa cụm Debug sang góc dưới bên phải màn hình (Cố định độc lập với Main UI)
 debugSidebarFrame = Instance.new("Frame")
 debugSidebarFrame.Name = "DebugSidebar"
-debugSidebarFrame.Parent = sidebar
-debugSidebarFrame.Size = UDim2.new(1, -10, 0, 112)
-debugSidebarFrame.Position = UDim2.new(0, 5, 1, -178)
+debugSidebarFrame.Parent = gui
+debugSidebarFrame.Size = UDim2.new(0, 180, 0, 112)
+debugSidebarFrame.Position = UDim2.new(1, -190, 1, -182)
 debugSidebarFrame.BackgroundColor3 = Config.BgCard
 debugSidebarFrame.BackgroundTransparency = 0
 debugSidebarFrame.BorderSizePixel = 0
@@ -1214,8 +1215,8 @@ debugSidebarStroke.Thickness = 1
 debugSidebarStroke.Color = Config.BorderColor
 local debugSidebarText = Instance.new("TextLabel")
 debugSidebarText.Parent = debugSidebarFrame
-debugSidebarText.Size = UDim2.new(1, -6, 1, -6)
-debugSidebarText.Position = UDim2.new(0, 3, 0, 3)
+debugSidebarText.Size = UDim2.new(1, -12, 1, -6)
+debugSidebarText.Position = UDim2.new(0, 6, 0, 3)
 debugSidebarText.BackgroundTransparency = 1
 debugSidebarText.Font = Enum.Font.Code
 debugSidebarText.TextSize = 10
@@ -1223,11 +1224,12 @@ debugSidebarText.TextColor3 = Color3.fromRGB(240, 240, 240)
 debugSidebarText.TextXAlignment = Enum.TextXAlignment.Left
 debugSidebarText.TextYAlignment = Enum.TextYAlignment.Top
 debugSidebarText.RichText = true
+
 keyStatusSidebarFrame = Instance.new("Frame")
 keyStatusSidebarFrame.Name = "KeyStatusSidebar"
-keyStatusSidebarFrame.Parent = sidebar
-keyStatusSidebarFrame.Size = UDim2.new(1, -10, 0, 54)
-keyStatusSidebarFrame.Position = UDim2.new(0, 5, 1, -64)
+keyStatusSidebarFrame.Parent = gui
+keyStatusSidebarFrame.Size = UDim2.new(0, 180, 0, 54)
+keyStatusSidebarFrame.Position = UDim2.new(1, -190, 1, -64)
 keyStatusSidebarFrame.BackgroundColor3 = Config.BgCard
 keyStatusSidebarFrame.BackgroundTransparency = 0
 keyStatusSidebarFrame.BorderSizePixel = 0
