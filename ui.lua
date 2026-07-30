@@ -390,6 +390,16 @@ local function ClearContent()
     end
 end
 
+-- Hàm hỗ trợ tự động thêm hiệu ứng viền phát sáng khi rê chuột vào ô
+local function AddHoverGlow(card, stroke)
+    card.MouseEnter:Connect(function()
+        TweenService:Create(stroke, TweenInfo.new(0.2), {Color = Config.ThemeColor}):Play()
+    end)
+    card.MouseLeave:Connect(function()
+        TweenService:Create(stroke, TweenInfo.new(0.2), {Color = Config.BorderColor}):Play()
+    end)
+end
+
 OpenHome = function()
     ClearContent()
     
@@ -415,6 +425,7 @@ OpenHome = function()
     cardStroke.Parent = mainCard
     cardStroke.Color = Config.BorderColor
     cardStroke.Thickness = 1
+    AddHoverGlow(mainCard, cardStroke)
 
     local bigAvatar = Instance.new("ImageLabel")
     bigAvatar.Parent = mainCard
@@ -476,6 +487,11 @@ OpenHome = function()
         row.BackgroundColor3 = Config.BgCard
         row.BorderSizePixel = 0
         Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
+        local rowStroke = Instance.new("UIStroke")
+        rowStroke.Parent = row
+        rowStroke.Color = Config.BorderColor
+        rowStroke.Thickness = 1
+        AddHoverGlow(row, rowStroke)
 
         local tLbl = Instance.new("TextLabel")
         tLbl.Parent = row
@@ -514,6 +530,7 @@ OpenHome = function()
         stroke.Parent = copyBtn
         stroke.Color = Config.BorderColor
         stroke.Thickness = 1
+        AddHoverGlow(copyBtn, stroke)
 
         copyBtn.MouseButton1Click:Connect(function()
             pcall(function()
@@ -565,6 +582,7 @@ OpenScriptMenu = function()
     cardStroke.Parent = scriptCard
     cardStroke.Color = Config.BorderColor
     cardStroke.Thickness = 1
+    AddHoverGlow(scriptCard, cardStroke)
 
     local descLbl = Instance.new("TextLabel")
     descLbl.Parent = scriptCard
@@ -609,6 +627,8 @@ OpenSupport = function()
     searchStroke.Parent = searchBox
     searchStroke.Color = Config.BorderColor
     searchStroke.Thickness = 1
+    AddHoverGlow(searchBox, searchStroke)
+
     local searchPad = Instance.new("UIPadding")
     searchPad.Parent = searchBox
     searchPad.PaddingLeft = UDim.new(0, 12)
@@ -638,6 +658,8 @@ OpenSupport = function()
         stroke.Parent = catFrame
         stroke.Color = Config.BorderColor
         stroke.Thickness = 1
+        AddHoverGlow(catFrame, stroke)
+
         local catTitle = Instance.new("TextLabel")
         catTitle.Parent = catFrame
         catTitle.Position = UDim2.new(0, 12, 0, 10)
@@ -798,6 +820,8 @@ OpenSettings = function()
         stroke.Parent = categoryFrame
         stroke.Color = Config.BorderColor
         stroke.Thickness = 1
+        AddHoverGlow(categoryFrame, stroke)
+
         local catLabel = Instance.new("TextLabel")
         catLabel.Parent = categoryFrame
         catLabel.Position = UDim2.new(0, 12, 0, 8)
@@ -827,6 +851,12 @@ OpenSettings = function()
         card.BackgroundColor3 = Config.BgCard
         card.BorderSizePixel = 0
         Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+        local cardStroke = Instance.new("UIStroke")
+        cardStroke.Parent = card
+        cardStroke.Color = Config.BorderColor
+        cardStroke.Thickness = 1
+        AddHoverGlow(card, cardStroke)
+
         local nameLbl = Instance.new("TextLabel")
         nameLbl.Parent = card
         nameLbl.Position = UDim2.new(0, 10, 0, 6)
@@ -859,6 +889,8 @@ OpenSettings = function()
         toggleStroke.Parent = toggleBtn
         toggleStroke.Color = Config.BorderColor
         toggleStroke.Thickness = 1
+        AddHoverGlow(toggleBtn, toggleStroke)
+
         local dot = Instance.new("Frame")
         dot.Parent = toggleBtn
         dot.Size = UDim2.new(0, 8, 0, 8)
@@ -915,6 +947,11 @@ OpenSettings = function()
         card.BackgroundColor3 = Config.BgCard
         card.BorderSizePixel = 0
         Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+        local cardStroke = Instance.new("UIStroke")
+        cardStroke.Parent = card
+        cardStroke.Color = Config.BorderColor
+        cardStroke.Thickness = 1
+        AddHoverGlow(card, cardStroke)
 
         local nameLbl = Instance.new("TextLabel")
         nameLbl.Parent = card
@@ -976,6 +1013,7 @@ OpenSettings = function()
         boxStroke.Parent = inputValBox
         boxStroke.Color = Config.BorderColor
         boxStroke.Thickness = 1
+        AddHoverGlow(inputValBox, boxStroke)
 
         local function updateValue(val)
             val = math.clamp(val, minVal, maxVal)
@@ -1025,6 +1063,12 @@ OpenSettings = function()
     themeCard.Size = UDim2.new(1, 0, 0, 48)
     themeCard.BackgroundColor3 = Config.BgCard
     Instance.new("UICorner", themeCard).CornerRadius = UDim.new(0, 8)
+    local themeCardStroke = Instance.new("UIStroke")
+    themeCardStroke.Parent = themeCard
+    themeCardStroke.Color = Config.BorderColor
+    themeCardStroke.Thickness = 1
+    AddHoverGlow(themeCard, themeCardStroke)
+
     local themeLbl = Instance.new("TextLabel")
     themeLbl.Parent = themeCard
     themeLbl.Position = UDim2.new(0, 10, 0, 6)
@@ -1059,6 +1103,8 @@ OpenSettings = function()
     themeToggleStroke.Parent = themeToggleBtn
     themeToggleStroke.Color = Config.BorderColor
     themeToggleStroke.Thickness = 1
+    AddHoverGlow(themeToggleBtn, themeToggleStroke)
+
     local themeDropdown = Instance.new("Frame")
     themeDropdown.Parent = appearanceCat
     themeDropdown.Size = UDim2.new(1, 0, 0, 0)
@@ -1070,6 +1116,8 @@ OpenSettings = function()
     dropdownStroke.Parent = themeDropdown
     dropdownStroke.Color = Config.BorderColor
     dropdownStroke.Thickness = 1
+    AddHoverGlow(themeDropdown, dropdownStroke)
+
     local dropdownGrid = Instance.new("UIGridLayout")
     dropdownGrid.Parent = themeDropdown
     dropdownGrid.CellSize = UDim2.new(0, 70, 0, 52)
@@ -1112,6 +1160,12 @@ OpenSettings = function()
         colBtn.Text = ""
         colBtn.AutoButtonColor = false
         Instance.new("UICorner", colBtn).CornerRadius = UDim.new(1, 0)
+        local colBtnStroke = Instance.new("UIStroke")
+        colBtnStroke.Parent = colBtn
+        colBtnStroke.Color = Config.BorderColor
+        colBtnStroke.Thickness = 1
+        AddHoverGlow(colBtn, colBtnStroke)
+
         local nameText = Instance.new("TextLabel")
         nameText.Parent = colorItemFrame
         nameText.Size = UDim2.new(1, 0, 0, 16)
@@ -1162,6 +1216,12 @@ OpenSettings = function()
     keyCard.Size = UDim2.new(1, 0, 0, 48)
     keyCard.BackgroundColor3 = Config.BgCard
     Instance.new("UICorner", keyCard).CornerRadius = UDim.new(0, 8)
+    local keyCardStroke = Instance.new("UIStroke")
+    keyCardStroke.Parent = keyCard
+    keyCardStroke.Color = Config.BorderColor
+    keyCardStroke.Thickness = 1
+    AddHoverGlow(keyCard, keyCardStroke)
+
     local keyLbl = Instance.new("TextLabel")
     keyLbl.Parent = keyCard
     keyLbl.Position = UDim2.new(0, 10, 0, 6)
@@ -1192,6 +1252,12 @@ OpenSettings = function()
     keyBtn.TextSize = 11
     keyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     Instance.new("UICorner", keyBtn).CornerRadius = UDim.new(0, 6)
+    local keyBtnStroke = Instance.new("UIStroke")
+    keyBtnStroke.Parent = keyBtn
+    keyBtnStroke.Color = Config.BorderColor
+    keyBtnStroke.Thickness = 1
+    AddHoverGlow(keyBtn, keyBtnStroke)
+
     keyBtn.MouseButton1Click:Connect(function()
         keyBtn.Text = L("PressKey")
         keyBtn.BackgroundColor3 = Config.ThemeColor
@@ -1210,6 +1276,12 @@ OpenSettings = function()
     langCard.Size = UDim2.new(1, 0, 0, 48)
     langCard.BackgroundColor3 = Config.BgCard
     Instance.new("UICorner", langCard).CornerRadius = UDim.new(0, 8)
+    local langCardStroke = Instance.new("UIStroke")
+    langCardStroke.Parent = langCard
+    langCardStroke.Color = Config.BorderColor
+    langCardStroke.Thickness = 1
+    AddHoverGlow(langCard, langCardStroke)
+
     local langLbl = Instance.new("TextLabel")
     langLbl.Parent = langCard
     langLbl.Position = UDim2.new(0, 10, 0, 6)
@@ -1240,6 +1312,12 @@ OpenSettings = function()
     langBtn.TextSize = 10
     langBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     Instance.new("UICorner", langBtn).CornerRadius = UDim.new(0, 6)
+    local langBtnStroke = Instance.new("UIStroke")
+    langBtnStroke.Parent = langBtn
+    langBtnStroke.Color = Config.BorderColor
+    langBtnStroke.Thickness = 1
+    AddHoverGlow(langBtn, langBtnStroke)
+
     langBtn.MouseButton1Click:Connect(function()
         Config.Language = (Config.Language == "EN") and "VN" or "EN"
         RefreshUI()
@@ -1266,6 +1344,8 @@ OpenSettings = function()
         btnStroke.Parent = btn
         btnStroke.Color = Config.BorderColor
         btnStroke.Thickness = 1
+        AddHoverGlow(btn, btnStroke)
+
         btn.MouseButton1Click:Connect(callback)
     end
     CreateActionButton(L("RejoinBtn"), function()
@@ -1602,6 +1682,11 @@ local function CreateCircleButton(text, xOffset)
     btn.TextSize = 12
     btn.TextColor3 = Color3.fromRGB(230, 230, 240)
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    local btnStroke = Instance.new("UIStroke")
+    btnStroke.Parent = btn
+    btnStroke.Color = Config.BorderColor
+    btnStroke.Thickness = 1
+    AddHoverGlow(btn, btnStroke)
     return btn
 end
 local closeBtn = CreateCircleButton("×", 12)
@@ -1619,6 +1704,8 @@ local confirmStroke = Instance.new("UIStroke")
 confirmStroke.Parent = confirm
 confirmStroke.Color = Config.BorderColor
 confirmStroke.Thickness = 1
+AddHoverGlow(confirm, confirmStroke)
+
 local txt = Instance.new("TextLabel")
 txt.Parent = confirm
 txt.Size = UDim2.new(1, -20, 0, 40)
@@ -1637,6 +1724,12 @@ yes.TextColor3 = Color3.new(1, 1, 1)
 yes.Font = Enum.Font.GothamBold
 yes.TextSize = 12
 Instance.new("UICorner", yes).CornerRadius = UDim.new(0, 6)
+local yesStroke = Instance.new("UIStroke")
+yesStroke.Parent = yes
+yesStroke.Color = Config.BorderColor
+yesStroke.Thickness = 1
+AddHoverGlow(yes, yesStroke)
+
 local no = Instance.new("TextButton")
 no.Parent = confirm
 no.Size = UDim2.new(0.38, 0, 0, 30)
@@ -1646,6 +1739,11 @@ no.TextColor3 = Color3.new(1, 1, 1)
 no.Font = Enum.Font.GothamBold
 no.TextSize = 12
 Instance.new("UICorner", no).CornerRadius = UDim.new(0, 6)
+local noStroke = Instance.new("UIStroke")
+noStroke.Parent = no
+noStroke.Color = Config.BorderColor
+noStroke.Thickness = 1
+AddHoverGlow(no, noStroke)
 
 closeBtn.MouseButton1Click:Connect(function()
     txt.Text = L("CloseConfirm")
