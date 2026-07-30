@@ -390,7 +390,6 @@ local function ClearContent()
     end
 end
 
--- Hàm hỗ trợ tự động thêm hiệu ứng viền phát sáng khi rê chuột vào ô
 local function AddHoverGlow(card, stroke)
     card.MouseEnter:Connect(function()
         TweenService:Create(stroke, TweenInfo.new(0.2), {Color = Config.ThemeColor}):Play()
@@ -609,11 +608,13 @@ OpenScriptMenu = function()
     }
 
     for _, scr in ipairs(scriptsToLoad) do
-        local row = Instance.new("Frame")
+        local row = Instance.new("TextButton")
         row.Parent = scriptCard
         row.Size = UDim2.new(1, 0, 0, 50)
         row.BackgroundColor3 = Config.BgCard
         row.BorderSizePixel = 0
+        row.AutoButtonColor = false
+        row.Text = ""
         Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
         local rowStroke = Instance.new("UIStroke")
         rowStroke.Parent = row
@@ -624,7 +625,7 @@ OpenScriptMenu = function()
         local nameLbl = Instance.new("TextLabel")
         nameLbl.Parent = row
         nameLbl.Position = UDim2.new(0, 15, 0, 0)
-        nameLbl.Size = UDim2.new(0.6, 0, 1, 0)
+        nameLbl.Size = UDim2.new(1, -30, 1, 0)
         nameLbl.BackgroundTransparency = 1
         nameLbl.Font = Enum.Font.GothamBold
         nameLbl.Text = scr.Name
@@ -633,29 +634,13 @@ OpenScriptMenu = function()
         nameLbl.TextXAlignment = Enum.TextXAlignment.Left
         nameLbl.TextTruncate = Enum.TextTruncate.AtEnd
 
-        local execBtn = Instance.new("TextButton")
-        execBtn.Parent = row
-        execBtn.Size = UDim2.new(0, 90, 0, 30)
-        execBtn.Position = UDim2.new(1, -100, 0.5, -15)
-        execBtn.BackgroundColor3 = Config.ThemeColor
-        execBtn.Font = Enum.Font.GothamBold
-        execBtn.Text = "Execute"
-        execBtn.TextSize = 11
-        execBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Instance.new("UICorner", execBtn).CornerRadius = UDim.new(0, 6)
-        local execStroke = Instance.new("UIStroke")
-        execStroke.Parent = execBtn
-        execStroke.Color = Config.BorderColor
-        execStroke.Thickness = 1
-        AddHoverGlow(execBtn, execStroke)
-
-        execBtn.MouseButton1Click:Connect(function()
+        row.MouseButton1Click:Connect(function()
             pcall(function()
                 loadstring(scr.Code)()
-                execBtn.Text = "Executed!"
+                nameLbl.Text = scr.Name .. " (Đã chạy!)"
                 task.delay(1.5, function()
-                    if execBtn and execBtn.Parent then
-                        execBtn.Text = "Execute"
+                    if nameLbl and nameLbl.Parent then
+                        nameLbl.Text = scr.Name
                     end
                 end)
             end)
