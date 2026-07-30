@@ -4,7 +4,11 @@ local games = {
 	[100117331123089] = {name = "BloxFruit", status = "support", url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit.lua"},
 	[73902483975735] = {name = "BloxFruit", status = "support", url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit.lua"},
 	[134381727982611] = {name = "Evomon", status = "support", url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/evomon.lua"},
-	[79546208627805] = {name = "99 Nights in the Forest", status = "coming", 
+	[79546208627805] = {name = "99 Nights in the Forest", status = "coming"},
+	[97598239454123] = {name = "Grow a Garden 2", status = "coming"},
+	[6918802270] = {name = "Haze Seas", status = "coming"},
+	[16732694052] = {name = "Fisch", status = "coming"},
+	[84515722934860] = {name = "Anime Expeditions", status = "coming"},
 }
 local currentPlaceId = game.PlaceId
 local currentGameInfo = games[currentPlaceId]
