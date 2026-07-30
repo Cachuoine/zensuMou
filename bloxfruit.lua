@@ -647,6 +647,7 @@ OpenScriptMenu = function()
 
     local scriptsData = {
         { Name = "APPLEHUB", Desc = "Apple Hub Script Loader", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/AlexHerrySeek/AppleHub/refs/heads/main/loader/main.lua"))()' },
+        { Name = "HOHOHUB", Desc = "HOHO H Script Loader", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/acsu123/HOHO_H/main/Loading_UI"))()' },
         { Name = "NANAHUB", Desc = "NaNaTV Hub Premium Loader", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/NaNaTV36/NaNaTVHubPremium/refs/heads/main/mainpremium.lua"))()' },
         { Name = "QUANTUMHUB", Desc = "Quantum Onyx Script Loader", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua"))()' },
         { Name = "REALKIDHUB", Desc = "Real Kid Hub Script Loader", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/realkidhub/realkid/refs/heads/main/main.lua"))()' },
@@ -654,6 +655,10 @@ OpenScriptMenu = function()
         { Name = "NIGHTHUB", Desc = "WhiteX Blox Fruits Beta Loader", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/WhiteX1208/Scripts/refs/heads/main/BF-Beta.lua"))()' },
         { Name = "NIGHTMYSTICHUB", Desc = "Night Mystic Hub Config", Code = 'repeat wait() until game:IsLoaded() and game.Players.LocalPlayer; getgenv().team = "Marines"; loadstring(game:HttpGet("https://raw.githubusercontent.com/Dev-NightMystic/Bloxfruits/refs/heads/main/Script.lua"))()' },
     }
+
+    table.sort(scriptsData, function(a, b)
+        return a.Name < b.Name
+    end)
 
     for _, item in ipairs(scriptsData) do
         local itemCard = Instance.new("TextButton")
@@ -2368,12 +2373,18 @@ closeBtn.MouseButton1Click:Connect(function()
     txt.Text = L("CloseConfirm")
     yes.Text = L("Yes")
     no.Text = L("No")
-    confirm.Visible = confirmation and true or true
+    confirm.Visible = true
+end)
+hideBtn.MouseButton1Click:Connect(function()
+    CloseGUI()
+end)
+yes.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+no.MouseButton1Click:Connect(function()
+    confirm.Visible = false
 end)
 
-yes.MouseButton1Click:Connect(function() gui:Destroy() end)
-no.MouseButton1Click:Connect(function() confirm.Visible = false end)
-hideBtn.MouseButton1Click:Connect(function() CloseGUI() end)
 SelectButton(HomeBtn)
 OpenHome()
 OpenGUI()
