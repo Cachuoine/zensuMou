@@ -3,7 +3,7 @@ local games = {
 	[79091703265657] = {name = "BloxFruit", status = "support", url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit.lua"},
 	[100117331123089] = {name = "BloxFruit", status = "support", url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit.lua"},
 	[73902483975735] = {name = "BloxFruit", status = "support", url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/bloxfruit.lua"},
-	[134381727982611] = {name = "Evomon", status = "coming"},
+	[134381727982611] = {name = "Evomon", status = "support"}, url = ""},
 }
 local currentPlaceId = game.PlaceId
 local currentGameInfo = games[currentPlaceId]
