@@ -82,11 +82,13 @@ local Translations = {
         Title = "Script Collection",
         Home = "Home",
         Script = "Main",
+        Kaitun = "Kaitun",
         Support = "Support",
         Setting = "Setting",
         SettingTitle = "⚙️ Hub Settings",
         SupportTitle = "🎮 Supported Games List",
-        ScriptTitle = "📜 Main Menu & Kaitun Config",
+        ScriptTitle = "📜 Main Script Hub",
+        KaitunTitle = "⚡ Kaitun Config & Menu",
         CatAppearance = "🎨 Visual & Theme",
         CatSystem = "⚙️ System & Controls",
         CatActions = "⚡ Quick Utilities",
@@ -121,11 +123,13 @@ local Translations = {
         Title = "Bộ Sưu Tập Script",
         Home = "Trang Chủ",
         Script = "Main",
+        Kaitun = "Kaitun",
         Support = "Support",
         Setting = "Cài Đặt",
         SettingTitle = "⚙️ Cài Đặt Bảng Điều Khiển",
         SupportTitle = "🎮 Danh Sách Game Hỗ Trợ",
-        ScriptTitle = "📜 Danh Sách Main & Cấu Hình Kaitun",
+        ScriptTitle = "📜 Danh Sách Main Script",
+        KaitunTitle = "⚡ Cấu Hình & Menu Kaitun",
         CatAppearance = "🎨 Giao Diện & Theme",
         CatSystem = "⚙️ Hệ Thống & Phím Tắt",
         CatActions = "⚡ Công Cụ Nhanh",
@@ -165,7 +169,6 @@ local function L(key)
     return Translations["EN"][key] or key
 end
 
--- Hàm hỗ trợ thêm hiệu ứng hover phát sáng cho các ô/card/button trong main
 local function AddHoverGlow(element, strokeInstance, originalColor)
     if not element or not strokeInstance then return end
     element.MouseEnter:Connect(function()
@@ -177,7 +180,7 @@ local function AddHoverGlow(element, strokeInstance, originalColor)
 end
 
 local CurrentButton
-local OpenHome, OpenScriptMenu, OpenSupport, OpenSettings
+local OpenHome, OpenScriptMenu, OpenKaitunMenu, OpenSupport, OpenSettings
 local OpenGUI, CloseGUI, ToggleMain
 local RefreshUI
 local gui = Instance.new("ScreenGui")
@@ -392,7 +395,7 @@ pageContainer.BackgroundTransparency = 1
 local Indicator = Instance.new("Frame")
 Indicator.Parent = sidebar
 Indicator.Size = UDim2.new(0, 3, 0, 38)
-Indicator.Position = UDim2.new(0, 2, 0, 18)
+Indicator.Position = UDim2.new(0, 2, 0, 14)
 Indicator.BackgroundColor3 = Config.ThemeColor
 Indicator.BorderSizePixel = 0
 Instance.new("UICorner", Indicator).CornerRadius = UDim.new(1, 0)
@@ -587,45 +590,10 @@ OpenScriptMenu = function()
     cardStroke.Thickness = 1
     AddHoverGlow(scriptCard, cardStroke)
 
-    local subNav = Instance.new("Frame")
-    subNav.Parent = scriptCard
-    subNav.Position = UDim2.new(0, 15, 0, 15)
-    subNav.Size = UDim2.new(1, -30, 0, 34)
-    subNav.BackgroundColor3 = Config.BgCard
-    subNav.BorderSizePixel = 0
-    Instance.new("UICorner", subNav).CornerRadius = UDim.new(0, 8)
-    local subNavStroke = Instance.new("UIStroke")
-    subNavStroke.Parent = subNav
-    subNavStroke.Color = Config.BorderColor
-    subNavStroke.Thickness = 1
-    AddHoverGlow(subNav, subNavStroke)
-
-    local tabScriptsBtn = Instance.new("TextButton")
-    tabScriptsBtn.Parent = subNav
-    tabScriptsBtn.Size = UDim2.new(0.5, -4, 1, -6)
-    tabScriptsBtn.Position = UDim2.new(0, 3, 0, 3)
-    tabScriptsBtn.BackgroundColor3 = Config.ThemeColor
-    tabScriptsBtn.Font = Enum.Font.GothamBold
-    tabScriptsBtn.Text = "📜 Main"
-    tabScriptsBtn.TextSize = 11
-    tabScriptsBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Instance.new("UICorner", tabScriptsBtn).CornerRadius = UDim.new(0, 6)
-
-    local tabKaitunBtn = Instance.new("TextButton")
-    tabKaitunBtn.Parent = subNav
-    tabKaitunBtn.Size = UDim2.new(0.5, -4, 1, -6)
-    tabKaitunBtn.Position = UDim2.new(0.5, 1, 0, 3)
-    tabKaitunBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-    tabKaitunBtn.Font = Enum.Font.GothamBold
-    tabKaitunBtn.Text = "⚡ Kaitun Config & Main"
-    tabKaitunBtn.TextSize = 11
-    tabKaitunBtn.TextColor3 = Color3.fromRGB(180, 180, 190)
-    Instance.new("UICorner", tabKaitunBtn).CornerRadius = UDim.new(0, 6)
-
     local containerScriptHub = Instance.new("Frame")
     containerScriptHub.Parent = scriptCard
-    containerScriptHub.Position = UDim2.new(0, 15, 0, 58)
-    containerScriptHub.Size = UDim2.new(1, -30, 1, -70)
+    containerScriptHub.Position = UDim2.new(0, 15, 0, 15)
+    containerScriptHub.Size = UDim2.new(1, -30, 1, -30)
     containerScriptHub.BackgroundTransparency = 1
     containerScriptHub.Visible = true
 
@@ -703,13 +671,40 @@ OpenScriptMenu = function()
             end)
         end)
     end
+end
+
+OpenKaitunMenu = function()
+    ClearContent()
+    local titleLbl = Instance.new("TextLabel")
+    titleLbl.Parent = pageContainer
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Position = UDim2.new(0, 15, 0, 10)
+    titleLbl.Size = UDim2.new(1, -30, 0, 25)
+    titleLbl.Font = Enum.Font.GothamBold
+    titleLbl.Text = L("KaitunTitle")
+    titleLbl.TextSize = 18
+    titleLbl.TextColor3 = Color3.fromRGB(240, 240, 240)
+    titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+
+    local scriptCard = Instance.new("Frame")
+    scriptCard.Parent = pageContainer
+    scriptCard.Position = UDim2.new(0, 15, 0, 45)
+    scriptCard.Size = UDim2.new(1, -25, 1, -55)
+    scriptCard.BackgroundColor3 = Config.BgCategory
+    scriptCard.BorderSizePixel = 0
+    Instance.new("UICorner", scriptCard).CornerRadius = UDim.new(0, 12)
+    local cardStroke = Instance.new("UIStroke")
+    cardStroke.Parent = scriptCard
+    cardStroke.Color = Config.BorderColor
+    cardStroke.Thickness = 1
+    AddHoverGlow(scriptCard, cardStroke)
 
     local containerKaitunConfig = Instance.new("Frame")
     containerKaitunConfig.Parent = scriptCard
-    containerKaitunConfig.Position = UDim2.new(0, 15, 0, 58)
-    containerKaitunConfig.Size = UDim2.new(1, -30, 1, -70)
+    containerKaitunConfig.Position = UDim2.new(0, 15, 0, 15)
+    containerKaitunConfig.Size = UDim2.new(1, -30, 1, -30)
     containerKaitunConfig.BackgroundTransparency = 1
-    containerKaitunConfig.Visible = false
+    containerKaitunConfig.Visible = true
 
     local kaitunScroll = Instance.new("ScrollingFrame")
     kaitunScroll.Parent = containerKaitunConfig
@@ -1201,24 +1196,6 @@ OpenScriptMenu = function()
     for _, sInfo in ipairs(kaitunScripts) do
         CreateKaitunSection(sInfo)
     end
-
-    tabScriptsBtn.MouseButton1Click:Connect(function()
-        tabScriptsBtn.BackgroundColor3 = Config.ThemeColor
-        tabScriptsBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        tabKaitunBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-        tabKaitunBtn.TextColor3 = Color3.fromRGB(180, 180, 190)
-        containerScriptHub.Visible = true
-        containerKaitunConfig.Visible = false
-    end)
-
-    tabKaitunBtn.MouseButton1Click:Connect(function()
-        tabKaitunBtn.BackgroundColor3 = Config.ThemeColor
-        tabKaitunBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        tabScriptsBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-        tabScriptsBtn.TextColor3 = Color3.fromRGB(180, 180, 190)
-        containerScriptHub.Visible = false
-        containerKaitunConfig.Visible = true
-    end)
 end
 
 OpenSupport = function()
@@ -2050,8 +2027,9 @@ end
 
 local HomeBtn = CreateSideButton("Home", 14)
 local ScriptBtn = CreateSideButton("Script", 56)
-local SupportBtn = CreateSideButton("Support", 98)
-local SettingBtn = CreateSideButton("Setting", 140)
+local KaitunBtn = CreateSideButton("Kaitun", 98)
+local SupportBtn = CreateSideButton("Support", 140)
+local SettingBtn = CreateSideButton("Setting", 182)
 
 debugSidebarFrame = Instance.new("Frame")
 debugSidebarFrame.Name = "DebugSidebar"
@@ -2267,8 +2245,10 @@ local function SelectButton(btn)
 end
 HomeBtn.MouseButton1Click:Connect(function() SelectButton(HomeBtn); OpenHome() end)
 ScriptBtn.MouseButton1Click:Connect(function() SelectButton(ScriptBtn); OpenScriptMenu() end)
+KaitunBtn.MouseButton1Click:Connect(function() SelectButton(KaitunBtn); OpenKaitunMenu() end)
 SupportBtn.MouseButton1Click:Connect(function() SelectButton(SupportBtn); OpenSupport() end)
 SettingBtn.MouseButton1Click:Connect(function() SelectButton(SettingBtn); OpenSettings() end)
+
 RefreshUI = function()
     Indicator.BackgroundColor3 = Config.ThemeColor
     sidebar.BackgroundColor3 = Config.BgSidebar
@@ -2289,9 +2269,11 @@ RefreshUI = function()
     end
     if CurrentButton == HomeBtn then OpenHome()
     elseif CurrentButton == ScriptBtn then OpenScriptMenu()
+    elseif CurrentButton == KaitunBtn then OpenKaitunMenu()
     elseif CurrentButton == SupportBtn then OpenSupport()
     elseif CurrentButton == SettingBtn then OpenSettings() end
 end
+
 local function CreateCircleButton(text, xOffset)
     local btn = Instance.new("TextButton")
     btn.Parent = main
