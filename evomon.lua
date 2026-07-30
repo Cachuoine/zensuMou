@@ -571,12 +571,17 @@ OpenScriptMenu = function()
     titleLbl.TextColor3 = Color3.fromRGB(240, 240, 240)
     titleLbl.TextXAlignment = Enum.TextXAlignment.Left
 
-    local scriptCard = Instance.new("Frame")
+    local scriptCard = Instance.new("ScrollingFrame")
     scriptCard.Parent = pageContainer
     scriptCard.Position = UDim2.new(0, 15, 0, 45)
     scriptCard.Size = UDim2.new(1, -25, 1, -55)
     scriptCard.BackgroundColor3 = Config.BgCategory
+    scriptCard.BackgroundTransparency = 0
     scriptCard.BorderSizePixel = 0
+    scriptCard.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scriptCard.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    scriptCard.ScrollBarThickness = 3
+    scriptCard.ScrollBarImageColor3 = Color3.fromRGB(120, 120, 140)
     Instance.new("UICorner", scriptCard).CornerRadius = UDim.new(0, 12)
     local cardStroke = Instance.new("UIStroke")
     cardStroke.Parent = scriptCard
@@ -584,17 +589,78 @@ OpenScriptMenu = function()
     cardStroke.Thickness = 1
     AddHoverGlow(scriptCard, cardStroke)
 
-    local descLbl = Instance.new("TextLabel")
-    descLbl.Parent = scriptCard
-    descLbl.Position = UDim2.new(0, 20, 0, 20)
-    descLbl.Size = UDim2.new(1, -40, 0, 40)
-    descLbl.BackgroundTransparency = 1
-    descLbl.Font = Enum.Font.Gotham
-    descLbl.Text = "Chọn các tính năng hoặc script bổ sung bên dưới để thực thi."
-    descLbl.TextSize = 12
-    descLbl.TextColor3 = Color3.fromRGB(180, 180, 195)
-    descLbl.TextXAlignment = Enum.TextXAlignment.Left
-    descLbl.TextWrapped = true
+    local scriptListLayout = Instance.new("UIListLayout")
+    scriptListLayout.Parent = scriptCard
+    scriptListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    scriptListLayout.Padding = UDim.new(0, 12)
+
+    local scriptPad = Instance.new("UIPadding")
+    scriptPad.Parent = scriptCard
+    scriptPad.PaddingTop = UDim.new(0, 15)
+    scriptPad.PaddingBottom = UDim.new(0, 15)
+    scriptPad.PaddingLeft = UDim.new(0, 15)
+    scriptPad.PaddingRight = UDim.new(0, 15)
+
+    local scriptsToLoad = {
+        {Name = "NasiHub (Evomon)", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/JualNasiRendang/nasirendang-evomon/main/nasirendang-evomon.lua"))()'},
+        {Name = "EvomonHub (Ouroboros)", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua"))()'},
+        {Name = "VxezeHub (Evomon)", Code = 'loadstring(game:HttpGet("https://gist.githubusercontent.com/angeryy-tvy/9def5e4f9f594da721371d3fcfe76967/raw/Evomon-VxezeHub"))()'},
+        {Name = "CyraaHub", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/LynX99-9/komtolmmek2script/refs/heads/main/CyraaHub.lua", true))()'}
+    }
+
+    for _, scr in ipairs(scriptsToLoad) do
+        local row = Instance.new("Frame")
+        row.Parent = scriptCard
+        row.Size = UDim2.new(1, 0, 0, 50)
+        row.BackgroundColor3 = Config.BgCard
+        row.BorderSizePixel = 0
+        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
+        local rowStroke = Instance.new("UIStroke")
+        rowStroke.Parent = row
+        rowStroke.Color = Config.BorderColor
+        rowStroke.Thickness = 1
+        AddHoverGlow(row, rowStroke)
+
+        local nameLbl = Instance.new("TextLabel")
+        nameLbl.Parent = row
+        nameLbl.Position = UDim2.new(0, 15, 0, 0)
+        nameLbl.Size = UDim2.new(0.6, 0, 1, 0)
+        nameLbl.BackgroundTransparency = 1
+        nameLbl.Font = Enum.Font.GothamBold
+        nameLbl.Text = scr.Name
+        nameLbl.TextSize = 13
+        nameLbl.TextColor3 = Color3.fromRGB(240, 240, 245)
+        nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+        nameLbl.TextTruncate = Enum.TextTruncate.AtEnd
+
+        local execBtn = Instance.new("TextButton")
+        execBtn.Parent = row
+        execBtn.Size = UDim2.new(0, 90, 0, 30)
+        execBtn.Position = UDim2.new(1, -100, 0.5, -15)
+        execBtn.BackgroundColor3 = Config.ThemeColor
+        execBtn.Font = Enum.Font.GothamBold
+        execBtn.Text = "Execute"
+        execBtn.TextSize = 11
+        execBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Instance.new("UICorner", execBtn).CornerRadius = UDim.new(0, 6)
+        local execStroke = Instance.new("UIStroke")
+        execStroke.Parent = execBtn
+        execStroke.Color = Config.BorderColor
+        execStroke.Thickness = 1
+        AddHoverGlow(execBtn, execStroke)
+
+        execBtn.MouseButton1Click:Connect(function()
+            pcall(function()
+                loadstring(scr.Code)()
+                execBtn.Text = "Executed!"
+                task.delay(1.5, function()
+                    if execBtn and execBtn.Parent then
+                        execBtn.Text = "Execute"
+                    end
+                end)
+            end)
+        end)
+    end
 end
 
 OpenSupport = function()
