@@ -81,12 +81,12 @@ local Translations = {
     EN = {
         Title = "Script Collection",
         Home = "Home",
-        Script = "Script",
+        Script = "Main",
         Support = "Support",
         Setting = "Setting",
         SettingTitle = "⚙️ Hub Settings",
         SupportTitle = "🎮 Supported Games List",
-        ScriptTitle = "📜 Script Hub Menu",
+        ScriptTitle = "📜 Main Menu & Kaitun Config",
         CatAppearance = "🎨 Visual & Theme",
         CatSystem = "⚙️ System & Controls",
         CatActions = "⚡ Quick Utilities",
@@ -120,12 +120,12 @@ local Translations = {
     VN = {
         Title = "Bộ Sưu Tập Script",
         Home = "Trang Chủ",
-        Script = "Script",
+        Script = "Main",
         Support = "Support",
         Setting = "Cài Đặt",
         SettingTitle = "⚙️ Cài Đặt Bảng Điều Khiển",
         SupportTitle = "🎮 Danh Sách Game Hỗ Trợ",
-        ScriptTitle = "📜 Danh Sách Script",
+        ScriptTitle = "📜 Danh Sách Main & Cấu Hình Kaitun",
         CatAppearance = "🎨 Giao Diện & Theme",
         CatSystem = "⚙️ Hệ Thống & Phím Tắt",
         CatActions = "⚡ Công Cụ Nhanh",
@@ -164,6 +164,18 @@ local function L(key)
     end
     return Translations["EN"][key] or key
 end
+
+-- Hàm hỗ trợ thêm hiệu ứng hover phát sáng cho các ô/card/button trong main
+local function AddHoverGlow(element, strokeInstance, originalColor)
+    if not element or not strokeInstance then return end
+    element.MouseEnter:Connect(function()
+        TweenService:Create(strokeInstance, TweenInfo.new(0.2), {Color = Config.ThemeColor, Thickness = 2}):Play()
+    end)
+    element.MouseLeave:Connect(function()
+        TweenService:Create(strokeInstance, TweenInfo.new(0.2), {Color = originalColor or Config.BorderColor, Thickness = 1}):Play()
+    end)
+end
+
 local CurrentButton
 local OpenHome, OpenScriptMenu, OpenSupport, OpenSettings
 local OpenGUI, CloseGUI, ToggleMain
@@ -314,7 +326,7 @@ middleSeparator.TextXAlignment = Enum.TextXAlignment.Center
 local leftTitle = Instance.new("TextLabel")
 leftTitle.Parent = header
 leftTitle.BackgroundTransparency = 1
-leftTitle.Size = UDim2.new(0.5, -15, 1, 0)
+leftTitle.Size = UDim2.new(0.5, -22, 1, 0)
 leftTitle.RichText = true
 leftTitle.Text = "⚓ <font color='#00E5FF'>FishHub</font>"
 leftTitle.Font = Enum.Font.GothamBold
@@ -325,7 +337,7 @@ leftTitle.TextXAlignment = Enum.TextXAlignment.Right
 local rightTitle = Instance.new("TextLabel")
 rightTitle.Parent = header
 rightTitle.BackgroundTransparency = 1
-rightTitle.Size = UDim2.new(0.5, -15, 1, 0)
+rightTitle.Size = UDim2.new(0.5, -22, 1, 0)
 rightTitle.RichText = true
 rightTitle.Text = "<font color='#A855F7'>Script Collection</font>"
 rightTitle.Font = Enum.Font.GothamBold
@@ -415,6 +427,7 @@ OpenHome = function()
     cardStroke.Parent = mainCard
     cardStroke.Color = Config.BorderColor
     cardStroke.Thickness = 1
+    AddHoverGlow(mainCard, cardStroke)
 
     local bigAvatar = Instance.new("ImageLabel")
     bigAvatar.Parent = mainCard
@@ -461,8 +474,9 @@ OpenHome = function()
     infoHolder.BackgroundTransparency = 1
     infoHolder.CanvasSize = UDim2.new(0, 0, 0, 0)
     infoHolder.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    infoHolder.ScrollBarThickness = 3
-    infoHolder.ScrollBarImageColor3 = Color3.fromRGB(120, 120, 140)
+    infoHolder.ScrollBarThickness = 6
+    infoHolder.ScrollBarImageColor3 = Config.ThemeColor
+    Instance.new("UICorner", infoHolder).CornerRadius = UDim.new(0, 4)
 
     local uiList = Instance.new("UIListLayout")
     uiList.Parent = infoHolder
@@ -476,6 +490,11 @@ OpenHome = function()
         row.BackgroundColor3 = Config.BgCard
         row.BorderSizePixel = 0
         Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
+        local rowStroke = Instance.new("UIStroke")
+        rowStroke.Parent = row
+        rowStroke.Color = Config.BorderColor
+        rowStroke.Thickness = 1
+        AddHoverGlow(row, rowStroke)
 
         local tLbl = Instance.new("TextLabel")
         tLbl.Parent = row
@@ -514,6 +533,7 @@ OpenHome = function()
         stroke.Parent = copyBtn
         stroke.Color = Config.BorderColor
         stroke.Thickness = 1
+        AddHoverGlow(copyBtn, stroke)
 
         copyBtn.MouseButton1Click:Connect(function()
             pcall(function()
@@ -565,18 +585,635 @@ OpenScriptMenu = function()
     cardStroke.Parent = scriptCard
     cardStroke.Color = Config.BorderColor
     cardStroke.Thickness = 1
+    AddHoverGlow(scriptCard, cardStroke)
 
-    local descLbl = Instance.new("TextLabel")
-    descLbl.Parent = scriptCard
-    descLbl.Position = UDim2.new(0, 20, 0, 20)
-    descLbl.Size = UDim2.new(1, -40, 0, 40)
-    descLbl.BackgroundTransparency = 1
-    descLbl.Font = Enum.Font.Gotham
-    descLbl.Text = "Chọn các tính năng hoặc script bổ sung bên dưới để thực thi."
-    descLbl.TextSize = 12
-    descLbl.TextColor3 = Color3.fromRGB(180, 180, 195)
-    descLbl.TextXAlignment = Enum.TextXAlignment.Left
-    descLbl.TextWrapped = true
+    local subNav = Instance.new("Frame")
+    subNav.Parent = scriptCard
+    subNav.Position = UDim2.new(0, 15, 0, 15)
+    subNav.Size = UDim2.new(1, -30, 0, 34)
+    subNav.BackgroundColor3 = Config.BgCard
+    subNav.BorderSizePixel = 0
+    Instance.new("UICorner", subNav).CornerRadius = UDim.new(0, 8)
+    local subNavStroke = Instance.new("UIStroke")
+    subNavStroke.Parent = subNav
+    subNavStroke.Color = Config.BorderColor
+    subNavStroke.Thickness = 1
+    AddHoverGlow(subNav, subNavStroke)
+
+    local tabScriptsBtn = Instance.new("TextButton")
+    tabScriptsBtn.Parent = subNav
+    tabScriptsBtn.Size = UDim2.new(0.5, -4, 1, -6)
+    tabScriptsBtn.Position = UDim2.new(0, 3, 0, 3)
+    tabScriptsBtn.BackgroundColor3 = Config.ThemeColor
+    tabScriptsBtn.Font = Enum.Font.GothamBold
+    tabScriptsBtn.Text = "📜 Main"
+    tabScriptsBtn.TextSize = 11
+    tabScriptsBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Instance.new("UICorner", tabScriptsBtn).CornerRadius = UDim.new(0, 6)
+
+    local tabKaitunBtn = Instance.new("TextButton")
+    tabKaitunBtn.Parent = subNav
+    tabKaitunBtn.Size = UDim2.new(0.5, -4, 1, -6)
+    tabKaitunBtn.Position = UDim2.new(0.5, 1, 0, 3)
+    tabKaitunBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+    tabKaitunBtn.Font = Enum.Font.GothamBold
+    tabKaitunBtn.Text = "⚡ Kaitun Config & Main"
+    tabKaitunBtn.TextSize = 11
+    tabKaitunBtn.TextColor3 = Color3.fromRGB(180, 180, 190)
+    Instance.new("UICorner", tabKaitunBtn).CornerRadius = UDim.new(0, 6)
+
+    local containerScriptHub = Instance.new("Frame")
+    containerScriptHub.Parent = scriptCard
+    containerScriptHub.Position = UDim2.new(0, 15, 0, 58)
+    containerScriptHub.Size = UDim2.new(1, -30, 1, -70)
+    containerScriptHub.BackgroundTransparency = 1
+    containerScriptHub.Visible = true
+
+    local scriptScroll = Instance.new("ScrollingFrame")
+    scriptScroll.Parent = containerScriptHub
+    scriptScroll.Position = UDim2.new(0, 0, 0, 0)
+    scriptScroll.Size = UDim2.new(1, 0, 1, 0)
+    scriptScroll.BackgroundTransparency = 1
+    scriptScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scriptScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    scriptScroll.ScrollBarThickness = 6
+    scriptScroll.ScrollBarImageColor3 = Config.ThemeColor
+    Instance.new("UICorner", scriptScroll).CornerRadius = UDim.new(0, 4)
+
+    local scriptListLayout = Instance.new("UIListLayout")
+    scriptListLayout.Parent = scriptScroll
+    scriptListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    scriptListLayout.Padding = UDim.new(0, 10)
+
+    local scriptsData = {
+        { Name = "APPLEHUB", Desc = "Apple Hub Script Loader", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/AlexHerrySeek/AppleHub/refs/heads/main/loader/main.lua"))()' },
+        { Name = "NANAHUB", Desc = "NaNaTV Hub Premium Loader", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/NaNaTV36/NaNaTVHubPremium/refs/heads/main/mainpremium.lua"))()' },
+        { Name = "QUANTUMHUB", Desc = "Quantum Onyx Script Loader", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua"))()' },
+        { Name = "REALKIDHUB", Desc = "Real Kid Hub Script Loader", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/realkidhub/realkid/refs/heads/main/main.lua"))()' },
+        { Name = "GRAVITYHUB", Desc = "Dev-Gravity Hub Blox Fruit Loader", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/Dev-GravityHub/BloxFruit/refs/heads/main/Main.lua"))()' },
+        { Name = "NIGHTHUB", Desc = "WhiteX Blox Fruits Beta Loader", Code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/WhiteX1208/Scripts/refs/heads/main/BF-Beta.lua"))()' },
+        { Name = "NIGHTMYSTICHUB", Desc = "Night Mystic Hub Config", Code = 'repeat wait() until game:IsLoaded() and game.Players.LocalPlayer; getgenv().team = "Marines"; loadstring(game:HttpGet("https://raw.githubusercontent.com/Dev-NightMystic/Bloxfruits/refs/heads/main/Script.lua"))()' },
+    }
+
+    for _, item in ipairs(scriptsData) do
+        local itemCard = Instance.new("TextButton")
+        itemCard.Parent = scriptScroll
+        itemCard.Size = UDim2.new(1, -6, 0, 48)
+        itemCard.BackgroundColor3 = Config.BgCard
+        itemCard.BorderSizePixel = 0
+        itemCard.AutoButtonColor = false
+        itemCard.Text = ""
+        Instance.new("UICorner", itemCard).CornerRadius = UDim.new(0, 8)
+        local itemStroke = Instance.new("UIStroke")
+        itemStroke.Parent = itemCard
+        itemStroke.Color = Config.BorderColor
+        itemStroke.Thickness = 1
+        AddHoverGlow(itemCard, itemStroke)
+
+        local nameLbl = Instance.new("TextLabel")
+        nameLbl.Parent = itemCard
+        nameLbl.Position = UDim2.new(0, 14, 0, 0)
+        nameLbl.Size = UDim2.new(1, -28, 1, 0)
+        nameLbl.BackgroundTransparency = 1
+        nameLbl.Font = Enum.Font.GothamBold
+        nameLbl.Text = item.Name
+        nameLbl.TextSize = 13
+        nameLbl.TextColor3 = Config.ThemeColor
+        nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+        nameLbl.TextYAlignment = Enum.TextYAlignment.Center
+
+        itemCard.MouseButton1Click:Connect(function()
+            pcall(function()
+                local oldText = nameLbl.Text
+                nameLbl.Text = "⚡ Running " .. item.Name .. "..."
+                loadstring(item.Code)()
+                task.delay(1.2, function()
+                    if nameLbl and nameLbl.Parent then
+                        nameLbl.Text = "✅ Executed: " .. item.Name
+                        task.delay(1.2, function()
+                            if nameLbl and nameLbl.Parent then nameLbl.Text = oldText end
+                        end)
+                    end
+                end)
+            end)
+        end)
+    end
+
+    local containerKaitunConfig = Instance.new("Frame")
+    containerKaitunConfig.Parent = scriptCard
+    containerKaitunConfig.Position = UDim2.new(0, 15, 0, 58)
+    containerKaitunConfig.Size = UDim2.new(1, -30, 1, -70)
+    containerKaitunConfig.BackgroundTransparency = 1
+    containerKaitunConfig.Visible = false
+
+    local kaitunScroll = Instance.new("ScrollingFrame")
+    kaitunScroll.Parent = containerKaitunConfig
+    kaitunScroll.Size = UDim2.new(1, 0, 1, 0)
+    kaitunScroll.BackgroundTransparency = 1
+    kaitunScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    kaitunScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    kaitunScroll.ScrollBarThickness = 6
+    kaitunScroll.ScrollBarImageColor3 = Config.ThemeColor
+    Instance.new("UICorner", kaitunScroll).CornerRadius = UDim.new(0, 4)
+
+    local kaitunListLayout = Instance.new("UIListLayout")
+    kaitunListLayout.Parent = kaitunScroll
+    kaitunListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    kaitunListLayout.Padding = UDim.new(0, 10)
+
+    local kaitunScripts = {
+        {
+            Name = "RealKidHub Kaitun",
+            Loadstring = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/realkidhub/realkid/refs/heads/main/kaitun.lua"))()',
+            InitConfig = function()
+                getgenv().Configs = {
+                    ["Quest"] = {
+                        ["Evo Race V1"] = true;
+                        ["Evo Race V2"] = true;
+                        ["RGB Haki"] = true;
+                        ["Pull Lerver"] = true;
+                    };
+                    Sword = {
+                        "Dual-Headed Blade";
+                        "Smoke Admiral";
+                        "Wardens Sword";
+                        "Cutlass";
+                        "Katana";
+                        "Dual Katana";
+                        "Triple Katana";
+                        "Iron Mace";
+                        "Saber";
+                        "Pole (1st Form)";
+                        "Gravity Blade";
+                        "Longsword";
+                        "Rengoku";
+                        "Midnight Blade";
+                        "Soul Cane";
+                        "Bisento";
+                        "Yama";
+                        "Tushita";
+                        "Cursed Dual Katana";
+                    };
+                    Gun = {
+                        "Skull Guitar";
+                        "Kabucha";
+                        "Venom Bow";
+                        "Musket";
+                        "Flintlock";
+                        "Refined Slingshot"; 
+                        "Magma Blaster";
+                        "Dual Flintlock";
+                        "Cannon";
+                        "Bizarre Revolver";
+                        "Bazooka";
+                    };
+                    ["Bypass TP"] = true;
+                    ["Auto Active Race V4"] = true;
+                }
+            end
+        },
+        {
+            Name = "BananaHub Kaitun",
+            Loadstring = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/x2RunE/paid_script_cracked/refs/heads/main/banana-cat/kaitunLoader.lua"))()',
+            InitConfig = function()
+                getgenv().SettingFarm = {
+                    ["Hide UI"] = false,
+                    ["Reset Teleport"] = {
+                        ["Enabled"] = false,
+                        ["Delay Reset"] = 3,
+                        ["Item Dont Reset"] = {
+                            ["Fruit"] = {
+                                ["Enabled"] = true,
+                                ["All Fruit"] = true, 
+                                ["Select Fruit"] = {
+                                    ["Enabled"] = false,
+                                },
+                            },
+                        },
+                    },
+                    ["White Screen"] = false,
+                    ["Lock Fps"] = {
+                        ["Enabled"] = false,
+                        ["FPS"] = 20,
+                    },
+                    ["Get Items"] = {
+                        ["Saber"] = true,
+                        ["Godhuman"] = true,
+                        ["Skull Guitar"] = true,
+                        ["Mirror Fractal"] = true,
+                        ["Cursed Dual Katana"] = true,
+                        ["Upgrade Race V2-V3"] = true,
+                        ["Auto Pull Lever"] = true,
+                        ["Shark Anchor"] = true,
+                    },
+                    ["Get Rare Items"] = {
+                        ["Rengoku"] = false,
+                        ["Dragon Trident"] = false, 
+                        ["Pole (1st Form)"] = false,
+                        ["Gravity Blade"] = false,
+                    },
+                    ["Farm Fragments"] = {
+                        ["Enabled"] = true,
+                        ["Fragment"] = 50000,
+                    },
+                    ["Auto Chat"] = {
+                        ["Enabled"] = false,
+                    },
+                    ["Auto Summon Rip Indra"] = true,
+                    ["Select Hop"] = {
+                        ["Hop Server If Have Player Near"] = false, 
+                        ["Hop Find Rip Indra Get Valkyrie Helm or Get Tushita"] = true, 
+                        ["Hop Find Dough King Get Mirror Fractal"] = false,
+                        ["Hop Find Raids Castle [CDK]"] = true,
+                        ["Hop Find Cake Queen [CDK]"] = true,
+                        ["Hop Find Soul Reaper [CDK]"] = true,
+                        ["Hop Find Darkbeard [SG]"] = true,
+                        ["Hop Find Mirage [ Pull Lever ]"] = false,
+                    },
+                    ["Farm Mastery"] = {
+                        ["Melee"] = false,
+                        ["Sword"] = false,
+                    },
+                    ["Buy Haki"] = {
+                        ["Enhancement"] = true,
+                        ["Skyjump"] = true,
+                        ["Flash Step"] = true,
+                        ["Observation"] = true,
+                    },
+                    ["Sniper Fruit Shop"] = {
+                        ["Enabled"] = true,
+                    },
+                    ["Webhook"] = {
+                        ["Enabled"] = true,
+                        ["WebhookUrl"] = "",
+                    }
+                }
+            end
+        },
+        {
+            Name = "VxezeHub Kaitun",
+            Loadstring = 'repeat wait() until game:IsLoaded(); getgenv().Hide_UI = false; getgenv().Team = "Marines"; getgenv().Studio = {["Blox Fruit"] = {["Sub"] = {["Pull Lever"] = true,["Sniper Fruit"] = {["Enabled"] = false,["Fruit"] = {"Tiger-Tiger","Kitsune-Kitsune","Dragon-Dragon","Yeti-Yeti","Gas-Gas"}},["Setting Player"] = {["Lock Fps"] = {["Enabled"] = true,["FPS"] = 20},["Hop When Idle"] = true,["Hop"] = {["Enable"] = true,["Delay"] = 5}}}},["Items"] = {["Material"] = {["Dark Fragments"] = true,["Mirror Fractal"] = true},["Melee"] = {["Fighting Style"] = true},["Sword"] = {["Saber"] = true,["Cursed Dual Katana"] = true},["Gun"] = {["Skull Guitar"] = true}},["Webhook"] = {["Url"] = "",["Delay"] = 60,["Ping Notify"] = ""}}}; loadstring(game:HttpGet("https://raw.githubusercontent.com/Dex-Bear/VxezeHubLoader/refs/heads/main/KaitunBF.lua"))()',
+            InitConfig = function()
+                getgenv().Hide_UI = false
+                getgenv().Team = "Marines"
+                getgenv().Studio = {
+                    ["Blox Fruit"] = {
+                        ["Sub"] = {
+                            ["Pull Lever"] = true,
+                            ["Sniper Fruit"] = {
+                                ["Enabled"] = false,
+                                ["Fruit"] = { "Tiger-Tiger", "Kitsune-Kitsune", "Dragon-Dragon", "Yeti-Yeti", "Gas-Gas" },
+                            },
+                            ["Setting Player"] = {
+                                ["Lock Fps"] = {
+                                    ["Enabled"] = true,
+                                    ["FPS"] = 20,
+                                },
+                                ["Hop When Idle"] = true,
+                                ["Hop"] = {
+                                    ["Enable"] = true,
+                                    ["Delay"] = 5,
+                                }
+                            }
+                        },
+                        ["Items"] = {
+                            ["Material"] = {
+                                ["Dark Fragments"] = true,
+                                ["Mirror Fractal"] = true,
+                            },
+                            ["Melee"] = {
+                                ["Fighting Style"] = true,
+                            },
+                            ["Sword"] = {
+                                ["Saber"] = true,
+                                ["Cursed Dual Katana"] = true
+                            },
+                            ["Gun"] = {
+                                ["Skull Guitar"] = true,
+                            },
+                        },
+                        ["Webhook"] = {
+                            ["Url"] = "",
+                            ["Delay"] = 60,
+                            ["Ping Notify"] = "",
+                        },
+                    }
+                }
+            end
+        }
+    }
+
+    local function CreateKaitunSection(scriptInfo)
+        scriptInfo.InitConfig()
+
+        local boxFrame = Instance.new("Frame")
+        boxFrame.Parent = kaitunScroll
+        boxFrame.Size = UDim2.new(1, -6, 0, 0)
+        boxFrame.AutomaticSize = Enum.AutomaticSize.Y
+        boxFrame.BackgroundColor3 = Config.BgCard
+        boxFrame.BorderSizePixel = 0
+        Instance.new("UICorner", boxFrame).CornerRadius = UDim.new(0, 8)
+        local stroke = Instance.new("UIStroke")
+        stroke.Parent = boxFrame
+        stroke.Color = Config.BorderColor
+        stroke.Thickness = 1
+        AddHoverGlow(boxFrame, stroke)
+
+        local topLayout = Instance.new("UIListLayout")
+        topLayout.Parent = boxFrame
+        topLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        topLayout.Padding = UDim.new(0, 6)
+        local pad = Instance.new("UIPadding")
+        pad.Parent = boxFrame
+        pad.PaddingTop = UDim.new(0, 10)
+        pad.PaddingBottom = UDim.new(0, 10)
+        pad.PaddingLeft = UDim.new(0, 10)
+        pad.PaddingRight = UDim.new(0, 10)
+
+        local headerRow = Instance.new("Frame")
+        headerRow.Parent = boxFrame
+        headerRow.Size = UDim2.new(1, 0, 0, 32)
+        headerRow.BackgroundTransparency = 1
+
+        local lblTitle = Instance.new("TextLabel")
+        lblTitle.Parent = headerRow
+        lblTitle.Size = UDim2.new(0.55, 0, 1, 0)
+        lblTitle.BackgroundTransparency = 1
+        lblTitle.Font = Enum.Font.GothamBold
+        lblTitle.Text = scriptInfo.Name
+        lblTitle.TextSize = 12
+        lblTitle.TextColor3 = Config.ThemeColor
+        lblTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+        local execBtn = Instance.new("TextButton")
+        execBtn.Parent = headerRow
+        execBtn.Size = UDim2.new(0.42, 0, 1, 0)
+        execBtn.Position = UDim2.new(0.58, 0, 0, 0)
+        execBtn.BackgroundColor3 = Color3.fromRGB(40, 180, 80)
+        execBtn.Font = Enum.Font.GothamBold
+        execBtn.Text = "▶ EXECUTE"
+        execBtn.TextSize = 11
+        execBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Instance.new("UICorner", execBtn).CornerRadius = UDim.new(0, 6)
+        local execStroke = Instance.new("UIStroke")
+        execStroke.Parent = execBtn
+        execStroke.Color = Config.BorderColor
+        execStroke.Thickness = 1
+        AddHoverGlow(execBtn, execStroke)
+
+        execBtn.MouseButton1Click:Connect(function()
+            pcall(function()
+                execBtn.Text = "⚡ RUNNING..."
+                loadstring(scriptInfo.Loadstring)()
+                task.delay(1.2, function()
+                    if execBtn and execBtn.Parent then
+                        execBtn.Text = "✅ SUCCESS"
+                        task.delay(1.2, function()
+                            if execBtn and execBtn.Parent then execBtn.Text = "▶ EXECUTE" end
+                        end)
+                    end
+                end)
+            end)
+        end)
+
+        local function BuildControls(tbl, prefix)
+            for k, v in pairs(tbl) do
+                local vType = type(v)
+                local fullKeyName = prefix ~= "" and (prefix .. " > " .. tostring(k)) or tostring(k)
+
+                if vType == "boolean" then
+                    local row = Instance.new("Frame")
+                    row.Parent = boxFrame
+                    row.Size = UDim2.new(1, 0, 0, 30)
+                    row.BackgroundTransparency = 1
+
+                    local lbl = Instance.new("TextLabel")
+                    lbl.Parent = row
+                    lbl.Size = UDim2.new(0.7, 0, 1, 0)
+                    lbl.BackgroundTransparency = 1
+                    lbl.Font = Enum.Font.Gotham
+                    lbl.Text = "• " .. fullKeyName
+                    lbl.TextSize = 11
+                    lbl.TextColor3 = Color3.fromRGB(220, 220, 230)
+                    lbl.TextXAlignment = Enum.TextXAlignment.Left
+
+                    local tBtn = Instance.new("TextButton")
+                    tBtn.Parent = row
+                    tBtn.Size = UDim2.new(0, 65, 0, 24)
+                    tBtn.Position = UDim2.new(1, -65, 0.5, -12)
+                    tBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+                    tBtn.AutoButtonColor = false
+                    tBtn.Text = ""
+                    Instance.new("UICorner", tBtn).CornerRadius = UDim.new(0, 4)
+                    local tBtnStroke = Instance.new("UIStroke")
+                    tBtnStroke.Parent = tBtn
+                    tBtnStroke.Color = Config.BorderColor
+                    tBtnStroke.Thickness = 1
+                    AddHoverGlow(tBtn, tBtnStroke)
+
+                    local sText = Instance.new("TextLabel")
+                    sText.Parent = tBtn
+                    sText.Size = UDim2.new(1, 0, 1, 0)
+                    sText.BackgroundTransparency = 1
+                    sText.Font = Enum.Font.GothamBold
+                    sText.TextSize = 10
+                    sText.TextXAlignment = Enum.TextXAlignment.Center
+
+                    local function updateToggle()
+                        if tbl[k] then
+                            sText.Text = "ON"
+                            sText.TextColor3 = Color3.fromRGB(50, 230, 80)
+                        else
+                            sText.Text = "OFF"
+                            sText.TextColor3 = Color3.fromRGB(230, 50, 50)
+                        end
+                    end
+                    updateToggle()
+
+                    tBtn.MouseButton1Click:Connect(function()
+                        tbl[k] = not tbl[k]
+                        updateToggle()
+                    end)
+                elseif vType == "number" then
+                    local row = Instance.new("Frame")
+                    row.Parent = boxFrame
+                    row.Size = UDim2.new(1, 0, 0, 32)
+                    row.BackgroundTransparency = 1
+
+                    local lbl = Instance.new("TextLabel")
+                    lbl.Parent = row
+                    lbl.Size = UDim2.new(0.6, 0, 1, 0)
+                    lbl.BackgroundTransparency = 1
+                    lbl.Font = Enum.Font.Gotham
+                    lbl.Text = "• " .. fullKeyName
+                    lbl.TextSize = 11
+                    lbl.TextColor3 = Color3.fromRGB(220, 220, 230)
+                    lbl.TextXAlignment = Enum.TextXAlignment.Left
+
+                    local valBox = Instance.new("TextBox")
+                    valBox.Parent = row
+                    valBox.Size = UDim2.new(0, 80, 0, 24)
+                    valBox.Position = UDim2.new(1, -80, 0.5, -12)
+                    valBox.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+                    valBox.BorderSizePixel = 0
+                    valBox.Font = Enum.Font.GothamBold
+                    valBox.Text = tostring(tbl[k])
+                    valBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    valBox.TextSize = 11
+                    valBox.ClearTextOnFocus = false
+                    Instance.new("UICorner", valBox).CornerRadius = UDim.new(0, 4)
+                    local valBoxStroke = Instance.new("UIStroke")
+                    valBoxStroke.Parent = valBox
+                    valBoxStroke.Color = Config.BorderColor
+                    valBoxStroke.Thickness = 1
+                    AddHoverGlow(valBox, valBoxStroke)
+
+                    valBox.FocusLost:Connect(function()
+                        local num = tonumber(valBox.Text)
+                        if num then
+                            tbl[k] = num
+                        else
+                            valBox.Text = tostring(tbl[k])
+                        end
+                    end)
+                elseif vType == "string" and (string.lower(tostring(k)):find("url") or string.lower(tostring(k)):find("webhook")) then
+                    local row = Instance.new("Frame")
+                    row.Parent = boxFrame
+                    row.Size = UDim2.new(1, 0, 0, 32)
+                    row.BackgroundTransparency = 1
+
+                    local lbl = Instance.new("TextLabel")
+                    lbl.Parent = row
+                    lbl.Size = UDim2.new(0.4, 0, 1, 0)
+                    lbl.BackgroundTransparency = 1
+                    lbl.Font = Enum.Font.Gotham
+                    lbl.Text = "• " .. fullKeyName
+                    lbl.TextSize = 11
+                    lbl.TextColor3 = Color3.fromRGB(220, 220, 230)
+                    lbl.TextXAlignment = Enum.TextXAlignment.Left
+
+                    local inputBox = Instance.new("TextBox")
+                    inputBox.Parent = row
+                    inputBox.Size = UDim2.new(0.6, 0, 0, 24)
+                    inputBox.Position = UDim2.new(0.4, 0, 0.5, -12)
+                    inputBox.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+                    inputBox.BorderSizePixel = 0
+                    inputBox.Font = Enum.Font.Gotham
+                    inputBox.PlaceholderText = "Enter Webhook URL..."
+                    inputBox.PlaceholderColor3 = Color3.fromRGB(130, 130, 145)
+                    inputBox.Text = tostring(tbl[k])
+                    inputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    inputBox.TextSize = 10
+                    inputBox.ClearTextOnFocus = false
+                    Instance.new("UICorner", inputBox).CornerRadius = UDim.new(0, 4)
+                    local inputBoxStroke = Instance.new("UIStroke")
+                    inputBoxStroke.Parent = inputBox
+                    inputBoxStroke.Color = Config.BorderColor
+                    inputBoxStroke.Thickness = 1
+                    AddHoverGlow(inputBox, inputBoxStroke)
+
+                    inputBox.FocusLost:Connect(function()
+                        tbl[k] = inputBox.Text
+                    end)
+                elseif vType == "table" and k ~= "Sword" and k ~= "Gun" then
+                    BuildControls(v, fullKeyName)
+                end
+            end
+        end
+
+        if scriptInfo.Name == "RealKidHub Kaitun" then
+            BuildControls(getgenv().Configs, "")
+            
+            local showItemBtn = Instance.new("TextButton")
+            showItemBtn.Parent = boxFrame
+            showItemBtn.Size = UDim2.new(1, 0, 0, 32)
+            showItemBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
+            showItemBtn.Font = Enum.Font.GothamBold
+            showItemBtn.Text = "📦 Show Item (Sword & Gun)"
+            showItemBtn.TextSize = 11
+            showItemBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Instance.new("UICorner", showItemBtn).CornerRadius = UDim.new(0, 6)
+            local showItemStroke = Instance.new("UIStroke")
+            showItemStroke.Parent = showItemBtn
+            showItemStroke.Color = Config.BorderColor
+            showItemStroke.Thickness = 1
+            AddHoverGlow(showItemBtn, showItemStroke)
+
+            local itemContainer = Instance.new("Frame")
+            itemContainer.Parent = boxFrame
+            itemContainer.Size = UDim2.new(1, 0, 0, 0)
+            itemContainer.AutomaticSize = Enum.AutomaticSize.Y
+            itemContainer.BackgroundTransparency = 1
+            itemContainer.Visible = false
+
+            local containerLayout = Instance.new("UIListLayout")
+            containerLayout.Parent = itemContainer
+            containerLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            containerLayout.Padding = UDim.new(0, 4)
+
+            local function addLabel(txtStr, isHeader)
+                local lbl = Instance.new("TextLabel")
+                lbl.Parent = itemContainer
+                lbl.Size = UDim2.new(1, 0, 0, 22)
+                lbl.BackgroundTransparency = 1
+                lbl.Font = Enum.Font.GothamBold
+                lbl.Text = txtStr
+                lbl.TextSize = isHeader and 11.5 or 10.5
+                lbl.TextColor3 = isHeader and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(200, 200, 210)
+                lbl.TextXAlignment = Enum.TextXAlignment.Left
+            end
+
+            addLabel("--- SWORD LIST ---", true)
+            if getgenv().Configs.Sword then
+                for _, swordName in ipairs(getgenv().Configs.Sword) do
+                    addLabel(" • " .. tostring(swordName), false)
+                end
+            end
+
+            addLabel("--- GUN LIST ---", true)
+            if getgenv().Configs.Gun then
+                for _, gunName in ipairs(getgenv().Configs.Gun) do
+                    addLabel(" • " .. tostring(gunName), false)
+                end
+            end
+
+            showItemBtn.MouseButton1Click:Connect(function()
+                itemContainer.Visible = not itemContainer.Visible
+                if itemContainer.Visible then
+                    showItemBtn.Text = "📦 Hide Item (Sword & Gun)"
+                else
+                    showItemBtn.Text = "📦 Show Item (Sword & Gun)"
+                end
+            end)
+
+        elseif scriptInfo.Name == "BananaHub Kaitun" then
+            BuildControls(getgenv().SettingFarm, "")
+        elseif scriptInfo.Name == "VxezeHub Kaitun" then
+            BuildControls(getgenv().Studio, "")
+        end
+    end
+
+    for _, sInfo in ipairs(kaitunScripts) do
+        CreateKaitunSection(sInfo)
+    end
+
+    tabScriptsBtn.MouseButton1Click:Connect(function()
+        tabScriptsBtn.BackgroundColor3 = Config.ThemeColor
+        tabScriptsBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        tabKaitunBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+        tabKaitunBtn.TextColor3 = Color3.fromRGB(180, 180, 190)
+        containerScriptHub.Visible = true
+        containerKaitunConfig.Visible = false
+    end)
+
+    tabKaitunBtn.MouseButton1Click:Connect(function()
+        tabKaitunBtn.BackgroundColor3 = Config.ThemeColor
+        tabKaitunBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        tabScriptsBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+        tabScriptsBtn.TextColor3 = Color3.fromRGB(180, 180, 190)
+        containerScriptHub.Visible = false
+        containerKaitunConfig.Visible = true
+    end)
 end
 
 OpenSupport = function()
@@ -609,6 +1246,7 @@ OpenSupport = function()
     searchStroke.Parent = searchBox
     searchStroke.Color = Config.BorderColor
     searchStroke.Thickness = 1
+    AddHoverGlow(searchBox, searchStroke)
     local searchPad = Instance.new("UIPadding")
     searchPad.Parent = searchBox
     searchPad.PaddingLeft = UDim.new(0, 12)
@@ -619,8 +1257,10 @@ OpenSupport = function()
     scrollHolder.BackgroundTransparency = 1
     scrollHolder.CanvasSize = UDim2.new(0, 0, 0, 0)
     scrollHolder.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    scrollHolder.ScrollBarThickness = 3
-    scrollHolder.ScrollBarImageColor3 = Color3.fromRGB(120, 120, 140)
+    scrollHolder.ScrollBarThickness = 6
+    scrollHolder.ScrollBarImageColor3 = Config.ThemeColor
+    Instance.new("UICorner", scrollHolder).CornerRadius = UDim.new(0, 4)
+
     local uiList = Instance.new("UIListLayout")
     uiList.Parent = scrollHolder
     uiList.SortOrder = Enum.SortOrder.LayoutOrder
@@ -638,6 +1278,7 @@ OpenSupport = function()
         stroke.Parent = catFrame
         stroke.Color = Config.BorderColor
         stroke.Thickness = 1
+        AddHoverGlow(catFrame, stroke)
         local catTitle = Instance.new("TextLabel")
         catTitle.Parent = catFrame
         catTitle.Position = UDim2.new(0, 12, 0, 10)
@@ -688,13 +1329,17 @@ OpenSupport = function()
             card.MouseEnter:Connect(function()
                 if not isCurrentGame then
                     TweenService:Create(card, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(70, 70, 85)}):Play()
-                    TweenService:Create(cardStroke, TweenInfo.new(0.2), {Color = Config.ThemeColor}):Play()
+                    TweenService:Create(cardStroke, TweenInfo.new(0.2), {Color = Config.ThemeColor, Thickness = 2}):Play()
+                else
+                    TweenService:Create(cardStroke, TweenInfo.new(0.2), {Thickness = 2}):Play()
                 end
             end)
             card.MouseLeave:Connect(function()
                 if not isCurrentGame then
                     TweenService:Create(card, TweenInfo.new(0.2), {BackgroundColor3 = Config.BgCard}):Play()
-                    TweenService:Create(cardStroke, TweenInfo.new(0.2), {Color = Config.BorderColor}):Play()
+                    TweenService:Create(cardStroke, TweenInfo.new(0.2), {Color = Config.BorderColor, Thickness = 1}):Play()
+                else
+                    TweenService:Create(cardStroke, TweenInfo.new(0.2), {Thickness = 2}):Play()
                 end
             end)
             local gameTitle = Instance.new("TextLabel")
@@ -780,8 +1425,10 @@ OpenSettings = function()
     settingsHolder.BackgroundTransparency = 1
     settingsHolder.CanvasSize = UDim2.new(0, 0, 0, 0)
     settingsHolder.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    settingsHolder.ScrollBarThickness = 3
-    settingsHolder.ScrollBarImageColor3 = Color3.fromRGB(120, 120, 140)
+    settingsHolder.ScrollBarThickness = 6
+    settingsHolder.ScrollBarImageColor3 = Config.ThemeColor
+    Instance.new("UICorner", settingsHolder).CornerRadius = UDim.new(0, 4)
+
     local uiList = Instance.new("UIListLayout")
     uiList.Parent = settingsHolder
     uiList.SortOrder = Enum.SortOrder.LayoutOrder
@@ -798,6 +1445,7 @@ OpenSettings = function()
         stroke.Parent = categoryFrame
         stroke.Color = Config.BorderColor
         stroke.Thickness = 1
+        AddHoverGlow(categoryFrame, stroke)
         local catLabel = Instance.new("TextLabel")
         catLabel.Parent = categoryFrame
         catLabel.Position = UDim2.new(0, 12, 0, 8)
@@ -827,6 +1475,12 @@ OpenSettings = function()
         card.BackgroundColor3 = Config.BgCard
         card.BorderSizePixel = 0
         Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+        local cardStroke = Instance.new("UIStroke")
+        cardStroke.Parent = card
+        cardStroke.Color = Config.BorderColor
+        cardStroke.Thickness = 1
+        AddHoverGlow(card, cardStroke)
+
         local nameLbl = Instance.new("TextLabel")
         nameLbl.Parent = card
         nameLbl.Position = UDim2.new(0, 10, 0, 6)
@@ -859,6 +1513,8 @@ OpenSettings = function()
         toggleStroke.Parent = toggleBtn
         toggleStroke.Color = Config.BorderColor
         toggleStroke.Thickness = 1
+        AddHoverGlow(toggleBtn, toggleStroke)
+
         local dot = Instance.new("Frame")
         dot.Parent = toggleBtn
         dot.Size = UDim2.new(0, 8, 0, 8)
@@ -915,6 +1571,11 @@ OpenSettings = function()
         card.BackgroundColor3 = Config.BgCard
         card.BorderSizePixel = 0
         Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+        local cardStroke = Instance.new("UIStroke")
+        cardStroke.Parent = card
+        cardStroke.Color = Config.BorderColor
+        cardStroke.Thickness = 1
+        AddHoverGlow(card, cardStroke)
 
         local nameLbl = Instance.new("TextLabel")
         nameLbl.Parent = card
@@ -976,6 +1637,7 @@ OpenSettings = function()
         boxStroke.Parent = inputValBox
         boxStroke.Color = Config.BorderColor
         boxStroke.Thickness = 1
+        AddHoverGlow(inputValBox, boxStroke)
 
         local function updateValue(val)
             val = math.clamp(val, minVal, maxVal)
@@ -1025,6 +1687,12 @@ OpenSettings = function()
     themeCard.Size = UDim2.new(1, 0, 0, 48)
     themeCard.BackgroundColor3 = Config.BgCard
     Instance.new("UICorner", themeCard).CornerRadius = UDim.new(0, 8)
+    local themeCardStroke = Instance.new("UIStroke")
+    themeCardStroke.Parent = themeCard
+    themeCardStroke.Color = Config.BorderColor
+    themeCardStroke.Thickness = 1
+    AddHoverGlow(themeCard, themeCardStroke)
+
     local themeLbl = Instance.new("TextLabel")
     themeLbl.Parent = themeCard
     themeLbl.Position = UDim2.new(0, 10, 0, 6)
@@ -1059,6 +1727,8 @@ OpenSettings = function()
     themeToggleStroke.Parent = themeToggleBtn
     themeToggleStroke.Color = Config.BorderColor
     themeToggleStroke.Thickness = 1
+    AddHoverGlow(themeToggleBtn, themeToggleStroke)
+
     local themeDropdown = Instance.new("Frame")
     themeDropdown.Parent = appearanceCat
     themeDropdown.Size = UDim2.new(1, 0, 0, 0)
@@ -1070,6 +1740,8 @@ OpenSettings = function()
     dropdownStroke.Parent = themeDropdown
     dropdownStroke.Color = Config.BorderColor
     dropdownStroke.Thickness = 1
+    AddHoverGlow(themeDropdown, dropdownStroke)
+
     local dropdownGrid = Instance.new("UIGridLayout")
     dropdownGrid.Parent = themeDropdown
     dropdownGrid.CellSize = UDim2.new(0, 70, 0, 52)
@@ -1112,6 +1784,12 @@ OpenSettings = function()
         colBtn.Text = ""
         colBtn.AutoButtonColor = false
         Instance.new("UICorner", colBtn).CornerRadius = UDim.new(1, 0)
+        local colBtnStroke = Instance.new("UIStroke")
+        colBtnStroke.Parent = colBtn
+        colBtnStroke.Color = Config.BorderColor
+        colBtnStroke.Thickness = 1
+        AddHoverGlow(colBtn, colBtnStroke)
+
         local nameText = Instance.new("TextLabel")
         nameText.Parent = colorItemFrame
         nameText.Size = UDim2.new(1, 0, 0, 16)
@@ -1135,26 +1813,16 @@ OpenSettings = function()
     
     local systemCat = CreateCategory(L("CatSystem"))
     CreateSettingToggle(systemCat, L("DebugToggle"), L("DebugDesc"), "ShowDebug", function(val)
-        if debugSidebarFrame then
-            debugSidebarFrame.Visible = val
-        end
-        if keyStatusSidebarFrame then
-            keyStatusSidebarFrame.Visible = val
-        end
+        if debugSidebarFrame then debugSidebarFrame.Visible = val end
+        if keyStatusSidebarFrame then keyStatusSidebarFrame.Visible = val end
     end)
 
     CreateSettingSlider(systemCat, L("DebugTransparencyTitle"), L("DebugTransparencyDesc"), "DebugTransparency", 0, 1, function(val)
-        if debugSidebarFrame then
-            debugSidebarFrame.BackgroundTransparency = val
-        end
-        if keyStatusSidebarFrame then
-            keyStatusSidebarFrame.BackgroundTransparency = val
-        end
+        if debugSidebarFrame then debugSidebarFrame.BackgroundTransparency = val end
+        if keyStatusSidebarFrame then keyStatusSidebarFrame.BackgroundTransparency = val end
     end)
     CreateSettingSlider(systemCat, L("UITransparencyTitle"), L("UITransparencyDesc"), "UITransparency", 0, 1, function(val)
-        if main then
-            main.BackgroundTransparency = val
-        end
+        if main then main.BackgroundTransparency = val end
     end)
 
     local keyCard = Instance.new("Frame")
@@ -1162,6 +1830,12 @@ OpenSettings = function()
     keyCard.Size = UDim2.new(1, 0, 0, 48)
     keyCard.BackgroundColor3 = Config.BgCard
     Instance.new("UICorner", keyCard).CornerRadius = UDim.new(0, 8)
+    local keyCardStroke = Instance.new("UIStroke")
+    keyCardStroke.Parent = keyCard
+    keyCardStroke.Color = Config.BorderColor
+    keyCardStroke.Thickness = 1
+    AddHoverGlow(keyCard, keyCardStroke)
+
     local keyLbl = Instance.new("TextLabel")
     keyLbl.Parent = keyCard
     keyLbl.Position = UDim2.new(0, 10, 0, 6)
@@ -1192,6 +1866,12 @@ OpenSettings = function()
     keyBtn.TextSize = 11
     keyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     Instance.new("UICorner", keyBtn).CornerRadius = UDim.new(0, 6)
+    local keyBtnStroke = Instance.new("UIStroke")
+    keyBtnStroke.Parent = keyBtn
+    keyBtnStroke.Color = Config.BorderColor
+    keyBtnStroke.Thickness = 1
+    AddHoverGlow(keyBtn, keyBtnStroke)
+
     keyBtn.MouseButton1Click:Connect(function()
         keyBtn.Text = L("PressKey")
         keyBtn.BackgroundColor3 = Config.ThemeColor
@@ -1210,6 +1890,12 @@ OpenSettings = function()
     langCard.Size = UDim2.new(1, 0, 0, 48)
     langCard.BackgroundColor3 = Config.BgCard
     Instance.new("UICorner", langCard).CornerRadius = UDim.new(0, 8)
+    local langCardStroke = Instance.new("UIStroke")
+    langCardStroke.Parent = langCard
+    langCardStroke.Color = Config.BorderColor
+    langCardStroke.Thickness = 1
+    AddHoverGlow(langCard, langCardStroke)
+
     local langLbl = Instance.new("TextLabel")
     langLbl.Parent = langCard
     langLbl.Position = UDim2.new(0, 10, 0, 6)
@@ -1240,6 +1926,12 @@ OpenSettings = function()
     langBtn.TextSize = 10
     langBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     Instance.new("UICorner", langBtn).CornerRadius = UDim.new(0, 6)
+    local langBtnStroke = Instance.new("UIStroke")
+    langBtnStroke.Parent = langBtn
+    langBtnStroke.Color = Config.BorderColor
+    langBtnStroke.Thickness = 1
+    AddHoverGlow(langBtn, langBtnStroke)
+
     langBtn.MouseButton1Click:Connect(function()
         Config.Language = (Config.Language == "EN") and "VN" or "EN"
         RefreshUI()
@@ -1266,6 +1958,8 @@ OpenSettings = function()
         btnStroke.Parent = btn
         btnStroke.Color = Config.BorderColor
         btnStroke.Thickness = 1
+        AddHoverGlow(btn, btnStroke)
+
         btn.MouseButton1Click:Connect(callback)
     end
     CreateActionButton(L("RejoinBtn"), function()
@@ -1583,6 +2277,11 @@ RefreshUI = function()
             item.Label.TextColor3 = Config.ThemeColor
         end
     end
+    for _, child in ipairs(pageContainer:GetDescendants()) do
+        if child:IsA("ScrollingFrame") then
+            child.ScrollBarImageColor3 = Config.ThemeColor
+        end
+    end
     if CurrentButton == HomeBtn then OpenHome()
     elseif CurrentButton == ScriptBtn then OpenScriptMenu()
     elseif CurrentButton == SupportBtn then OpenSupport()
@@ -1602,6 +2301,11 @@ local function CreateCircleButton(text, xOffset)
     btn.TextSize = 12
     btn.TextColor3 = Color3.fromRGB(230, 230, 240)
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    local btnStroke = Instance.new("UIStroke")
+    btnStroke.Parent = btn
+    btnStroke.Color = Config.BorderColor
+    btnStroke.Thickness = 1
+    AddHoverGlow(btn, btnStroke)
     return btn
 end
 local closeBtn = CreateCircleButton("×", 12)
@@ -1619,6 +2323,8 @@ local confirmStroke = Instance.new("UIStroke")
 confirmStroke.Parent = confirm
 confirmStroke.Color = Config.BorderColor
 confirmStroke.Thickness = 1
+AddHoverGlow(confirm, confirmStroke)
+
 local txt = Instance.new("TextLabel")
 txt.Parent = confirm
 txt.Size = UDim2.new(1, -20, 0, 40)
@@ -1637,6 +2343,12 @@ yes.TextColor3 = Color3.new(1, 1, 1)
 yes.Font = Enum.Font.GothamBold
 yes.TextSize = 12
 Instance.new("UICorner", yes).CornerRadius = UDim.new(0, 6)
+local yesStroke = Instance.new("UIStroke")
+yesStroke.Parent = yes
+yesStroke.Color = Config.BorderColor
+yesStroke.Thickness = 1
+AddHoverGlow(yes, yesStroke)
+
 local no = Instance.new("TextButton")
 no.Parent = confirm
 no.Size = UDim2.new(0.38, 0, 0, 30)
@@ -1646,12 +2358,17 @@ no.TextColor3 = Color3.new(1, 1, 1)
 no.Font = Enum.Font.GothamBold
 no.TextSize = 12
 Instance.new("UICorner", no).CornerRadius = UDim.new(0, 6)
+local noStroke = Instance.new("UIStroke")
+noStroke.Parent = no
+noStroke.Color = Config.BorderColor
+noStroke.Thickness = 1
+AddHoverGlow(no, noStroke)
 
 closeBtn.MouseButton1Click:Connect(function()
     txt.Text = L("CloseConfirm")
     yes.Text = L("Yes")
     no.Text = L("No")
-    confirm.Visible = true
+    confirm.Visible = confirmation and true or true
 end)
 
 yes.MouseButton1Click:Connect(function() gui:Destroy() end)
