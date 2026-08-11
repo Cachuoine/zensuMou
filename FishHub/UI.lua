@@ -2431,8 +2431,8 @@ contentContainer.BackgroundTransparency = 1
 local tabs = {}
 
 
-local HOME_URL = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub/Home.lua"
-local FUNCTION_URL = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub/Function.lua"
+local HOME_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/Home.lua"
+local FUNCTION_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/Function.lua"
 
 local RemoteCache = {}
 local RemoteLoading = {}
@@ -2628,16 +2628,8 @@ local function CreateTabContent(name)
     tabs[name] = tabFrame
     return tabFrame
 end
-    end
-
-    tabs[name] = tabFrame
-    return tabFrame
-end
 
 CreateTabContent("Home")
-CreateTabContent("Function")
-CreateTabContent("Creative")
-
 CreateTabContent("Function")
 CreateTabContent("Creative")
 
