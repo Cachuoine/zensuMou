@@ -2432,7 +2432,7 @@ local tabs = {}
 
 
 local HOME_URL = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub/Home.lua"
-local FUNCTION_URL = "hhttps://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub/Function.lua"
+local FUNCTION_URL = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub/Function.lua"
 
 local RemoteCache = {}
 local RemoteLoading = {}
