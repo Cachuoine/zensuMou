@@ -1,59 +1,139 @@
-local tab = ...
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+if not player then return end
+
+local gui = player:WaitForChild("PlayerGui", 10)
+local fishHub = gui and gui:FindFirstChild("FishHub")
+local tab = fishHub and fishHub:FindFirstChild("FunctionTab")
 if not tab then return end
 
-local layout = Instance.new("UIListLayout")
-layout.Parent = tab
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Padding = UDim.new(0, 10)
-layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
--- 1. Search Bar
-local searchBox = Instance.new("TextBox")
-searchBox.Parent = tab
-searchBox.Size = UDim2.new(1, -20, 0, 35)
-searchBox.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-searchBox.BorderSizePixel = 0
-searchBox.PlaceholderText = "search..."
-searchBox.Text = ""
-searchBox.Font = Enum.Font.GothamMedium
-searchBox.TextSize = 12
-searchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-searchBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
-Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 8)
-
-local functionsList = {"shop", "setting farm", "farm", "item & quest", "island", "fruit", "setiing"}
-local cardFrames = {}
-
-for _, funcName in ipairs(functionsList) do
-    local card = Instance.new("Frame")
-    card.Name = funcName
-    card.Parent = tab
-    card.Size = UDim2.new(1, -20, 0, 40)
-    card.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-    card.BorderSizePixel = 0
-    Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
-    
-    local label = Instance.new("TextLabel")
-    label.Parent = card
-    label.Size = UDim2.new(1, -20, 1, 0)
-    label.Position = UDim2.new(0, 10, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 12
-    label.TextColor3 = Color3.fromRGB(240, 240, 240)
-    label.Text = funcName:upper()
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    
-    table.insert(cardFrames, {Card = card, Name = funcName})
+for _, child in ipairs(tab:GetChildren()) do
+    child:Destroy()
 end
 
-searchBox:GetPropertyChangedSignal("Text"):Connect(function()
-    local query = searchBox.Text:lower()
-    for _, item in ipairs(cardFrames) do
-        if query == "" or string.find(item.Name, query) then
-            item.Card.Visible = true
-        else
-            item.Card.Visible = false
-        end
+local main = fishHub:FindFirstChild("MainWindow")
+local function theme()
+    local stroke = main and main:FindFirstChildOfClass("UIStroke")
+    return stroke and stroke.Color or Color3.fromRGB(0, 229, 255)
+end
+
+local search = Instance.new("TextBox")
+search.Size = UDim2.new(1, -8, 0, 34)
+search.Position = UDim2.new(0, 4, 0, 4)
+search.BackgroundColor3 = Color3.fromRGB(8, 9, 13)
+search.BackgroundTransparency = 0.05
+search.BorderSizePixel = 0
+search.Font = Enum.Font.GothamMedium
+search.TextSize = 11
+search.TextColor3 = Color3.fromRGB(235, 238, 245)
+search.PlaceholderColor3 = Color3.fromRGB(125, 130, 145)
+search.PlaceholderText = "search..."
+search.Text = ""
+search.ClearTextOnFocus = false
+search.Parent = tab
+
+local searchCorner = Instance.new("UICorner")
+searchCorner.CornerRadius = UDim.new(0, 8)
+searchCorner.Parent = search
+
+local searchStroke = Instance.new("UIStroke")
+searchStroke.Color = theme()
+searchStroke.Transparency = 0.5
+searchStroke.Parent = search
+
+local grid = Instance.new("UIGridLayout")
+grid.CellSize = UDim2.new(0.5, -7, 0, 82)
+grid.CellPadding = UDim2.new(0, 10, 0, 10)
+grid.SortOrder = Enum.SortOrder.LayoutOrder
+grid.Parent = tab
+
+local padding = Instance.new("UIPadding")
+padding.PaddingTop = UDim.new(0, 50)
+padding.PaddingLeft = UDim.new(0, 4)
+padding.PaddingRight = UDim.new(0, 4)
+padding.PaddingBottom = UDim.new(0, 8)
+padding.Parent = tab
+
+local names = {
+    "shop",
+    "setting farm",
+    "farm",
+    "item & quest",
+    "island",
+    "fruit",
+    "setiing"
+}
+
+local cards = {}
+
+local function createCard(name)
+    local card = Instance.new("TextButton")
+    card.Name = name:gsub("%W", "") .. "Card"
+    card.BackgroundColor3 = Color3.fromRGB(8, 9, 13)
+    card.BackgroundTransparency = 0.04
+    card.BorderSizePixel = 0
+    card.AutoButtonColor = false
+    card.Text = ""
+    card.Parent = tab
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = card
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = theme()
+    stroke.Transparency = 0.52
+    stroke.Thickness = 1
+    stroke.Parent = card
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, -20, 0, 25)
+    title.Position = UDim2.new(0, 10, 0, 11)
+    title.BackgroundTransparency = 1
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 12
+    title.TextColor3 = Color3.fromRGB(240, 242, 248)
+    title.Text = name
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = card
+
+    local desc = Instance.new("TextLabel")
+    desc.Size = UDim2.new(1, -20, 0, 25)
+    desc.Position = UDim2.new(0, 10, 0, 38)
+    desc.BackgroundTransparency = 1
+    desc.Font = Enum.Font.Code
+    desc.TextSize = 9
+    desc.TextColor3 = Color3.fromRGB(120, 125, 140)
+    desc.Text = "Function content"
+    desc.TextXAlignment = Enum.TextXAlignment.Left
+    desc.Parent = card
+
+    card.MouseEnter:Connect(function()
+        card.BackgroundColor3 = Color3.fromRGB(16, 17, 24)
+        stroke.Transparency = 0.1
+    end)
+
+    card.MouseLeave:Connect(function()
+        card.BackgroundColor3 = Color3.fromRGB(8, 9, 13)
+        stroke.Transparency = 0.52
+    end)
+
+    card.MouseButton1Click:Connect(function()
+        desc.Text = "Ready • " .. name
+    end)
+
+    cards[#cards + 1] = {button = card, name = name}
+end
+
+for _, name in ipairs(names) do
+    createCard(name)
+end
+
+search:GetPropertyChangedSignal("Text"):Connect(function()
+    local query = string.lower(search.Text)
+    for _, item in ipairs(cards) do
+        item.button.Visible = query == "" or string.find(string.lower(item.name), query, 1, true) ~= nil
     end
 end)
