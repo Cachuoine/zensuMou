@@ -154,80 +154,131 @@ local function section(titleText, height)
     return card
 end
 
-local status = section("PLAYER STATUS", 188)
+local status = section("PLAYER STATUS", 136, 2)
 
-local function getValue(...)
+local function findValue(...)
     local names = {...}
     local containers = {
         player:FindFirstChild("leaderstats"),
         player:FindFirstChild("Data"),
         player:FindFirstChild("data")
     }
+
     for _, container in ipairs(containers) do
         if container then
             for _, name in ipairs(names) do
-                local v = container:FindFirstChild(name)
-                if v then return v end
+                local value = container:FindFirstChild(name)
+                if value then
+                    return value
+                end
             end
         end
     end
+
     for _, name in ipairs(names) do
-        local v = player:FindFirstChild(name)
-        if v then return v end
+        local value = player:FindFirstChild(name)
+        if value then
+            return value
+        end
     end
 end
 
-local function num(v)
-    if not v then return "0" end
-    local n = tonumber(v.Value or v)
-    if not n then return tostring(v.Value or v) end
+local function formatNumber(value)
+    if not value then
+        return "0"
+    end
+
+    local raw = value.Value
+    local n = tonumber(raw)
+
+    if not n then
+        return tostring(raw or 0)
+    end
+
     local s = tostring(math.floor(n))
     local sign = ""
-    if s:sub(1,1) == "-" then sign="-"; s=s:sub(2) end
-    while true do
-        local a,b = s:gsub("^(%d+)(%d%d%d)", "%1,%2")
-        s=a
-        if b==0 then break end
+
+    if s:sub(1, 1) == "-" then
+        sign = "-"
+        s = s:sub(2)
     end
-    return sign..s
+
+    while true do
+        local replaced, count = s:gsub("^(%d+)(%d%d%d)", "%1,%2")
+        s = replaced
+        if count == 0 then
+            break
+        end
+    end
+
+    return sign .. s
 end
 
-local function stat(titleText, value, x, y)
-    local r = Instance.new("Frame")
-    r.Size = UDim2.new(.5, -9, 0, 34)
-    r.Position = UDim2.new(x, 4, 0, y)
-    r.BackgroundColor3 = Color3.fromRGB(12,13,19)
-    r.BorderSizePixel = 0
-    r.Parent = status
-    corner(r, 7)
+local function createStat(titleText, valueText, x, y)
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(0.5, -9, 0, 34)
+    card.Position = UDim2.new(x, 4, 0, y)
+    card.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
+    card.BorderSizePixel = 0
+    card.Parent = status
+    corner(card, 7)
 
-    local a = label(r, titleText, 8, Color3.fromRGB(115,120,135), Enum.Font.GothamBold)
-    a.Size = UDim2.new(.58, 0, 1, 0)
-    a.Position = UDim2.new(0, 8, 0, 0)
+    local title = label(card, titleText, 8, Color3.fromRGB(115, 120, 135), Enum.Font.GothamBold)
+    title.Size = UDim2.new(0.58, 0, 1, 0)
+    title.Position = UDim2.new(0, 8, 0, 0)
 
-    local b = label(r, value, 9, Color3.fromRGB(240,242,248), Enum.Font.GothamBold)
-    b.Size = UDim2.new(.42, -8, 1, 0)
-    b.Position = UDim2.new(.58, 0, 0, 0)
-    b.TextXAlignment = Enum.TextXAlignment.Right
-    return b
+    local value = label(card, valueText, 9, Color3.fromRGB(240, 242, 248), Enum.Font.GothamBold)
+    value.Size = UDim2.new(0.42, -8, 1, 0)
+    value.Position = UDim2.new(0.58, 0, 0, 0)
+    value.TextXAlignment = Enum.TextXAlignment.Right
+
+    return title, value
 end
 
-local levelV = getValue("Level","level")
-local beliV = getValue("Beli","Money","money")
-local fragV = getValue("Fragments","Fragment","fragments")
-local bountyV = getValue("Bounty","Bounty/Honor","BountyHonor")
-local honorV = getValue("Honor","Honor/Bounty","HonorBounty")
+local levelValue = findValue("Level", "level")
+local beliValue = findValue("Beli", "Money", "money")
+local fragmentsValue = findValue("Fragments", "Fragment", "fragments")
 
-local level = stat("LEVEL", num(levelV), 0, 7)
-local beli = stat("BELI", num(beliV), .5, 7)
-local frag = stat("FRAGMENTS", num(fragV), 0, 48)
-local bounty = stat("BOUNTY", num(bountyV), .5, 48)
-local honor = stat("HONOR", num(honorV), 0, 89)
-local placeId = stat("PLACE ID", tostring(game.PlaceId), .5, 89)
-local teamValue = stat("TEAM VALUE", player.Team and player.Team.Name or "None", 0, 130)
-local team = stat("TEAM", player.Team and player.Team.Name or "None", .5, 130)
+local levelTitle, level = createStat("LEVEL", formatNumber(levelValue), 0, 7)
+local beliTitle, beli = createStat("BELI", formatNumber(beliValue), 0.5, 7)
+local fragmentTitle, fragments = createStat("FRAGMENTS", formatNumber(fragmentsValue), 0, 48)
+local reputationTitle, reputation = createStat("BOUNTY", "0", 0.5, 48)
 
-local info = section("INFORMATION", 168)
+local function getTeamKind()
+    local team = player.Team
+    if not team then
+        return "Unknown"
+    end
+
+    local name = string.lower(team.Name)
+
+    if string.find(name, "pirate", 1, true) or string.find(name, "pira", 1, true) then
+        return "Pirates"
+    end
+
+    if string.find(name, "marine", 1, true) or string.find(name, "mari", 1, true) then
+        return "Marines"
+    end
+
+    return team.Name
+end
+
+local function refreshReputation()
+    local kind = getTeamKind()
+
+    if kind == "Pirates" then
+        reputationTitle.Text = "BOUNTY"
+        reputation.Text = formatNumber(findValue("Bounty", "bounty"))
+    elseif kind == "Marines" then
+        reputationTitle.Text = "HONOR"
+        reputation.Text = formatNumber(findValue("Honor", "honor"))
+    else
+        reputationTitle.Text = "BOUNTY"
+        reputation.Text = formatNumber(findValue("Bounty", "bounty"))
+    end
+end
+
+local info = section("INFORMATION", 142)
 
 local avatar = Instance.new("ImageLabel")
 avatar.Size = UDim2.new(0, 64, 0, 64)
@@ -277,19 +328,16 @@ hint.Size = UDim2.new(1, -26, 0, 17)
 
 task.spawn(function()
     while tab.Parent do
-        levelV = getValue("Level","level")
-        beliV = getValue("Beli","Money","money")
-        fragV = getValue("Fragments","Fragment","fragments")
-        bountyV = getValue("Bounty","Bounty/Honor","BountyHonor")
-        honorV = getValue("Honor","Honor/Bounty","HonorBounty")
-        level.Text=num(levelV)
-        beli.Text=num(beliV)
-        frag.Text=num(fragV)
-        bounty.Text=num(bountyV)
-        honor.Text=num(honorV)
-        local t=player.Team and player.Team.Name or "None"
-        team.Text=t
-        teamValue.Text=t
-        task.wait(.5)
+        levelValue = findValue("Level", "level")
+        beliValue = findValue("Beli", "Money", "money")
+        fragmentsValue = findValue("Fragments", "Fragment", "fragments")
+
+        level.Text = formatNumber(levelValue)
+        beli.Text = formatNumber(beliValue)
+        fragments.Text = formatNumber(fragmentsValue)
+
+        refreshReputation()
+
+        task.wait(0.5)
     end
 end)
