@@ -1,144 +1,282 @@
-local tab = ...
-if not tab then return end
-
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
+local TweenService = game:GetService("TweenService")
+
 local player = Players.LocalPlayer
+if not player then return end
 
-local layout = Instance.new("UIListLayout")
-layout.Parent = tab
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Padding = UDim.new(0, 15)
-layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+local gui = player:WaitForChild("PlayerGui", 10)
+if not gui then return end
 
-local function createFadedLineContainer()
-    local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, -20, 0, 110)
-    container.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-    container.BackgroundTransparency = 0.3
-    container.BorderSizePixel = 0
-    Instance.new("UICorner", container).CornerRadius = UDim.new(0, 8)
-    
-    local function addLine(yPos)
-        local line = Instance.new("Frame")
-        line.Parent = container
-        line.Size = UDim2.new(1, 0, 0, 1)
-        line.Position = UDim2.new(0, 0, 0, yPos)
-        line.BackgroundColor3 = Color3.fromRGB(0, 229, 255)
-        line.BorderSizePixel = 0
-        local grad = Instance.new("UIGradient")
-        grad.Parent = line
-        grad.Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 1),
-            NumberSequenceKeypoint.new(0.5, 0),
-            NumberSequenceKeypoint.new(1, 1)
-        })
-    end
-    addLine(5)
-    addLine(105)
-    return container
+local fishHub = gui:FindFirstChild("FishHub")
+if not fishHub then return end
+
+local tab = fishHub:FindFirstChild("HomeTab")
+if not tab then return end
+
+for _, child in ipairs(tab:GetChildren()) do
+    child:Destroy()
 end
 
--- 1. Welcome Section
-local welcomeCard = Instance.new("Frame")
-welcomeCard.Parent = tab
-welcomeCard.Size = UDim2.new(1, -20, 0, 60)
-welcomeCard.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-welcomeCard.BorderSizePixel = 0
-Instance.new("UICorner", welcomeCard).CornerRadius = UDim.new(0, 8)
+local function getTheme()
+    local main = fishHub:FindFirstChild("MainWindow")
+    local stroke = main and main:FindFirstChildOfClass("UIStroke")
+    return stroke and stroke.Color or Color3.fromRGB(0, 229, 255)
+end
 
-local gameName = "Blox Fruit"
+local function corner(parent, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius or 10)
+    c.Parent = parent
+end
+
+local function section(parent, title, height)
+    local holder = Instance.new("Frame")
+    holder.Size = UDim2.new(1, -8, 0, height)
+    holder.BackgroundTransparency = 1
+    holder.BorderSizePixel = 0
+    holder.Parent = parent
+
+    local top = Instance.new("Frame")
+    top.Size = UDim2.new(1, 0, 0, 1)
+    top.Position = UDim2.new(0, 0, 0, 15)
+    top.BackgroundColor3 = getTheme()
+    top.BorderSizePixel = 0
+    top.Parent = holder
+
+    local topGradient = Instance.new("UIGradient")
+    topGradient.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.9),
+        NumberSequenceKeypoint.new(0.2, 0.55),
+        NumberSequenceKeypoint.new(0.5, 0),
+        NumberSequenceKeypoint.new(0.8, 0.55),
+        NumberSequenceKeypoint.new(1, 0.9)
+    })
+    topGradient.Parent = top
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0, 180, 0, 30)
+    label.Position = UDim2.new(0.5, -90, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 12
+    label.TextColor3 = getTheme()
+    label.Text = title
+    label.TextXAlignment = Enum.TextXAlignment.Center
+    label.Parent = holder
+
+    local bottom = top:Clone()
+    bottom.Position = UDim2.new(0, 0, 1, -1)
+    bottom.Parent = holder
+
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(1, -20, 1, -46)
+    card.Position = UDim2.new(0, 10, 0, 30)
+    card.BackgroundColor3 = Color3.fromRGB(8, 9, 13)
+    card.BackgroundTransparency = 0.08
+    card.BorderSizePixel = 0
+    card.Parent = holder
+    corner(card, 10)
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = getTheme()
+    stroke.Transparency = 0.65
+    stroke.Thickness = 1
+    stroke.Parent = card
+
+    return holder, card
+end
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 12)
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Parent = tab
+
+local welcome = Instance.new("Frame")
+welcome.Size = UDim2.new(1, -8, 0, 78)
+welcome.BackgroundColor3 = Color3.fromRGB(8, 9, 13)
+welcome.BackgroundTransparency = 0.08
+welcome.BorderSizePixel = 0
+welcome.Parent = tab
+corner(welcome, 10)
+
+local welcomeStroke = Instance.new("UIStroke")
+welcomeStroke.Color = getTheme()
+welcomeStroke.Transparency = 0.55
+welcomeStroke.Parent = welcome
+
+local gameName = "Roblox Game"
 pcall(function()
     local info = MarketplaceService:GetProductInfo(game.PlaceId)
-    if info and info.Name then gameName = info.Name end
+    if info and info.Name then
+        gameName = info.Name
+    end
 end)
 
-local welcomeText = Instance.new("TextLabel")
-welcomeText.Parent = welcomeCard
-welcomeText.Size = UDim2.new(1, -20, 1, 0)
-welcomeText.Position = UDim2.new(0, 10, 0, 0)
-welcomeText.BackgroundTransparency = 1
-welcomeText.Font = Enum.Font.GothamBold
-welcomeText.TextSize = 13
-welcomeText.TextColor3 = Color3.fromRGB(255, 255, 255)
-welcomeText.Text = "👋 Welcome to FishHub! Supported Game: " .. gameName
-welcomeText.TextWrapped = true
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -24, 0, 28)
+title.Position = UDim2.new(0, 12, 0, 9)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.TextSize = 17
+title.TextColor3 = getTheme()
+title.Text = "WELCOME TO FISHHUB"
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = welcome
 
--- 2. Player Status Section
-local statusContainer = createFadedLineContainer()
-statusContainer.Parent = tab
-statusContainer.Size = UDim2.new(1, -20, 0, 120)
+local subtitle = Instance.new("TextLabel")
+subtitle.Size = UDim2.new(1, -24, 0, 28)
+subtitle.Position = UDim2.new(0, 12, 0, 39)
+subtitle.BackgroundTransparency = 1
+subtitle.Font = Enum.Font.GothamMedium
+subtitle.TextSize = 11
+subtitle.TextColor3 = Color3.fromRGB(180, 185, 200)
+subtitle.Text = "Script support: " .. gameName .. "  •  PlaceId: " .. tostring(game.PlaceId)
+subtitle.TextXAlignment = Enum.TextXAlignment.Left
+subtitle.Parent = welcome
 
-local statusTitle = Instance.new("TextLabel")
-statusTitle.Parent = statusContainer
-statusTitle.Size = UDim2.new(1, 0, 0, 20)
-statusTitle.Position = UDim2.new(0, 0, 0, 10)
-statusTitle.BackgroundTransparency = 1
-statusTitle.Font = Enum.Font.GothamBold
-statusTitle.TextSize = 12
-statusTitle.TextColor3 = Color3.fromRGB(0, 229, 255)
-statusTitle.Text = "PLAYER STATUS"
-statusTitle.TextXAlignment = Enum.TextXAlignment.Center
+local statusHolder, statusCard = section(tab, "PLAYER STATUS", 125)
+statusHolder.LayoutOrder = 2
 
-local statusContent = Instance.new("TextLabel")
-statusContent.Parent = statusContainer
-statusContent.Size = UDim2.new(1, -20, 1, -35)
-statusContent.Position = UDim2.new(0, 10, 0, 30)
-statusContent.BackgroundTransparency = 1
-statusContent.Font = Enum.Font.Code
-statusContent.TextSize = 11
-statusContent.TextColor3 = Color3.fromRGB(220, 220, 220)
-statusContent.TextXAlignment = Enum.TextXAlignment.Center
-statusContent.TextYAlignment = Enum.TextYAlignment.Center
-statusContent.TextWrapped = true
+local infoHolder, infoCard = section(tab, "INFORMATION", 150)
+infoHolder.LayoutOrder = 3
+
+local function findStat(...)
+    local names = {...}
+    local leaderstats = player:FindFirstChild("leaderstats")
+    if not leaderstats then return nil end
+    for _, name in ipairs(names) do
+        local value = leaderstats:FindFirstChild(name)
+        if value then
+            return value
+        end
+    end
+    return nil
+end
+
+local function valueText(...)
+    local obj = findStat(...)
+    return obj and tostring(obj.Value) or "0"
+end
+
+local function formatNumber(value)
+    local n = tonumber(value)
+    if not n then return tostring(value) end
+    local s = tostring(math.floor(n))
+    local sign = ""
+    if s:sub(1,1) == "-" then
+        sign = "-"
+        s = s:sub(2)
+    end
+    while true do
+        local replaced, count = s:gsub("^(%d+)(%d%d%d)", "%1,%2")
+        s = replaced
+        if count == 0 then break end
+    end
+    return sign .. s
+end
+
+local function addStatusRow(parent, x, y, labelText, valueTextValue)
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(0.5, -8, 0, 30)
+    row.Position = UDim2.new(x, 4, 0, y)
+    row.BackgroundTransparency = 1
+    row.Parent = parent
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.48, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamMedium
+    label.TextSize = 10
+    label.TextColor3 = Color3.fromRGB(140, 145, 160)
+    label.Text = labelText
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = row
+
+    local value = Instance.new("TextLabel")
+    value.Size = UDim2.new(0.52, 0, 1, 0)
+    value.Position = UDim2.new(0.48, 0, 0, 0)
+    value.BackgroundTransparency = 1
+    value.Font = Enum.Font.GothamBold
+    value.TextSize = 11
+    value.TextColor3 = Color3.fromRGB(240, 242, 248)
+    value.Text = valueTextValue
+    value.TextXAlignment = Enum.TextXAlignment.Right
+    value.Parent = row
+
+    return value
+end
+
+local levelLabel = addStatusRow(statusCard, 0, 8, "LEVEL", formatNumber(valueText("Level", "level")))
+local teamLabel = addStatusRow(statusCard, 0.5, 8, "TEAM", player.Team and player.Team.Name or "None")
+local beliLabel = addStatusRow(statusCard, 0, 42, "BELI", formatNumber(valueText("Beli", "Money", "money")))
+local fragmentLabel = addStatusRow(statusCard, 0.5, 42, "FRAGMENTS", formatNumber(valueText("Fragments", "Fragment", "fragments")))
+
+local teamRealLabel = addStatusRow(statusCard, 0, 76, "TEAM VALUE", player.Team and player.Team.Name or "None")
+local placeLabel = addStatusRow(statusCard, 0.5, 76, "PLACE ID", tostring(game.PlaceId))
+
+local avatar = Instance.new("ImageLabel")
+avatar.Size = UDim2.new(0, 58, 0, 58)
+avatar.Position = UDim2.new(0, 12, 0, 11)
+avatar.BackgroundColor3 = Color3.fromRGB(18, 20, 27)
+avatar.BorderSizePixel = 0
+avatar.Image = "rbxthumb://type=AvatarHeadShot&id=" .. player.UserId .. "&w=150&h=150"
+avatar.Parent = infoCard
+corner(avatar, 10)
+
+local nameLabel = Instance.new("TextLabel")
+nameLabel.Size = UDim2.new(1, -88, 0, 22)
+nameLabel.Position = UDim2.new(0, 80, 0, 10)
+nameLabel.BackgroundTransparency = 1
+nameLabel.Font = Enum.Font.GothamBold
+nameLabel.TextSize = 13
+nameLabel.TextColor3 = Color3.fromRGB(245, 245, 250)
+nameLabel.Text = player.DisplayName
+nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+nameLabel.Parent = infoCard
+
+local usernameLabel = nameLabel:Clone()
+usernameLabel.Position = UDim2.new(0, 80, 0, 32)
+usernameLabel.TextSize = 10
+usernameLabel.Font = Enum.Font.GothamMedium
+usernameLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
+usernameLabel.Text = "@" .. player.Name
+usernameLabel.Parent = infoCard
+
+local useridLabel = nameLabel:Clone()
+useridLabel.Position = UDim2.new(0, 80, 0, 54)
+useridLabel.TextSize = 10
+useridLabel.TextColor3 = Color3.fromRGB(170, 175, 190)
+useridLabel.Text = "UserId: " .. tostring(player.UserId)
+useridLabel.Parent = infoCard
+
+local executor = "Unknown"
+pcall(function()
+    if identifyexecutor then
+        local a, b = identifyexecutor()
+        executor = tostring(a or b or "Unknown")
+    elseif getexecutorname then
+        executor = tostring(getexecutorname())
+    end
+end)
+
+local executorLabel = useridLabel:Clone()
+executorLabel.Position = UDim2.new(0, 80, 0, 76)
+executorLabel.Text = "Executor: " .. executor
+executorLabel.Parent = infoCard
+
+local function refresh()
+    levelLabel.Text = formatNumber(valueText("Level", "level"))
+    beliLabel.Text = formatNumber(valueText("Beli", "Money", "money"))
+    fragmentLabel.Text = formatNumber(valueText("Fragments", "Fragment", "fragments"))
+    teamLabel.Text = player.Team and player.Team.Name or "None"
+    teamRealLabel.Text = player.Team and player.Team.Name or "None"
+end
 
 task.spawn(function()
-    while statusContent and statusContent.Parent do
-        local leaderstats = player:FindFirstChild("leaderstats")
-        local level = leaderstats and leaderstats:FindFirstChild("Level") and leaderstats.Level.Value or 0
-        local beli = leaderstats and leaderstats:FindFirstChild("Beli") and leaderstats.Beli.Value or 0.0
-        local frag = leaderstats and leaderstats:FindFirstChild("Fragments") and leaderstats.Fragments.Value or 0.0
-        local data = player:FindFirstChild("Data")
-        local team = data and data:FindFirstChild("Faction") and data.Faction.Value or "Marine"
-        
-        statusContent.Text = string.format("Level: %.1f | Team: %s\nBeli: %.1f | Fragments: %.1f", tonumber(level) or 0, tostring(team), tonumber(beli) or 0.0, tonumber(frag) or 0.0)
+    while tab.Parent do
+        refresh()
         task.wait(1)
     end
 end)
-
--- 3. Information Section
-local infoContainer = createFadedLineContainer()
-infoContainer.Parent = tab
-infoContainer.Size = UDim2.new(1, -20, 0, 100)
-
-local infoTitle = Instance.new("TextLabel")
-infoTitle.Parent = infoContainer
-infoTitle.Size = UDim2.new(1, 0, 0, 20)
-infoTitle.Position = UDim2.new(0, 0, 0, 10)
-infoTitle.BackgroundTransparency = 1
-infoTitle.Font = Enum.Font.GothamBold
-infoTitle.TextSize = 12
-infoTitle.TextColor3 = Color3.fromRGB(0, 229, 255)
-infoTitle.Text = "USER INFORMATION"
-infoTitle.TextXAlignment = Enum.TextXAlignment.Center
-
-local avtImg = Instance.new("ImageLabel")
-avtImg.Parent = infoContainer
-avtImg.Size = UDim2.new(0, 40, 0, 40)
-avtImg.Position = UDim2.new(0, 15, 0, 45)
-avtImg.BackgroundTransparency = 1
-pcall(function()
-    avtImg.Image = Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size42x42)
-end)
-Instance.new("UICorner", avtImg).CornerRadius = UDim.new(1, 0)
-
-local infoDetails = Instance.new("TextLabel")
-infoDetails.Parent = infoContainer
-infoDetails.Size = UDim2.new(1, -70, 0, 60)
-infoDetails.Position = UDim2.new(0, 65, 0, 35)
-infoDetails.BackgroundTransparency = 1
-infoDetails.Font = Enum.Font.GothamMedium
-infoDetails.TextSize = 11
-infoDetails.TextColor3 = Color3.fromRGB(240, 240, 240)
-infoDetails.TextXAlignment = Enum.TextXAlignment.Left
-infoDetails.Text = string.format("Name: %s\n@Name: @%s\nUserID: %d\nExecutor: %s", player.Name, player.Name, player.UserId, identifyexecutor and identifyexecutor() or "Unknown")
