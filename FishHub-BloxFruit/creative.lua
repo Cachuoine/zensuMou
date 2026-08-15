@@ -1,162 +1,105 @@
-return function(ctx)
-    local Players = game:GetService("Players")
+-- URL: https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/creative.lua
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
 
-    local Container = ctx.Container
-    local Theme = ctx.ThemeColor()
-    local Text = ctx.Config.Text
-    local Muted = ctx.Config.Muted
-    local Inner = ctx.Config.Inner
-    local Card = ctx.Config.Card
-    local Border = ctx.Config.Border
-
-    local function Corner(parent, radius)
-        local c = Instance.new("UICorner")
-        c.CornerRadius = UDim.new(0, radius or 8)
-        c.Parent = parent
+return function(tabFrame)
+    for _, child in ipairs(tabFrame:GetChildren()) do
+        child:Destroy()
     end
 
-    local function Section(title)
-        local holder = Instance.new("Frame")
-        holder.Parent = Container
-        holder.Size = UDim2.new(1, -12, 0, 34)
-        holder.BackgroundTransparency = 1
+    local layout = Instance.new("UIListLayout")
+    layout.Parent = tabFrame
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 12)
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
-        local left = Instance.new("Frame")
-        left.Parent = holder
-        left.Size = UDim2.new(0.5, -68, 0, 1)
-        left.Position = UDim2.new(0, 0, 0.5, 6)
-        left.BackgroundColor3 = Theme
-        left.BorderSizePixel = 0
+    tabFrame.CanvasSize = UDim2.new(0, 0, 0, 250)
 
-        local right = Instance.new("Frame")
-        right.Parent = holder
-        right.Size = UDim2.new(0.5, -68, 0, 1)
-        right.Position = UDim2.new(0.5, 68, 0, 6)
-        right.BackgroundColor3 = Theme
-        right.BorderSizePixel = 0
+    local function createFadedLineContainer(parent, height, order)
+        local container = Instance.new("Frame")
+        container.Parent = parent
+        container.Size = UDim2.new(1, -20, 0, height)
+        container.BackgroundColor3 = Color3.fromRGB(15, 16, 22)
+        container.BorderSizePixel = 0
+        container.LayoutOrder = order
+        Instance.new("UICorner", container).CornerRadius = UDim.new(0, 8)
 
-        local gl = Instance.new("UIGradient")
-        gl.Parent = left
-        gl.Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 0.9),
-            NumberSequenceKeypoint.new(0.6, 0.1),
-            NumberSequenceKeypoint.new(1, 0)
+        local topDivider = Instance.new("Frame")
+        topDivider.Parent = container
+        topDivider.Size = UDim2.new(1, 0, 0, 1)
+        topDivider.BackgroundColor3 = Color3.fromRGB(0, 229, 255)
+        topDivider.BorderSizePixel = 0
+        local topGrad = Instance.new("UIGradient")
+        topGrad.Parent = topDivider
+        topGrad.Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.5, 0),
+            NumberSequenceKeypoint.new(1, 1)
         })
 
-        local gr = Instance.new("UIGradient")
-        gr.Parent = right
-        gr.Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 0),
-            NumberSequenceKeypoint.new(0.4, 0.1),
-            NumberSequenceKeypoint.new(1, 0.9)
+        local bottomDivider = Instance.new("Frame")
+        bottomDivider.Parent = container
+        bottomDivider.Size = UDim2.new(1, 0, 0, 1)
+        bottomDivider.Position = UDim2.new(0, 0, 1, -1)
+        bottomDivider.BackgroundColor3 = Color3.fromRGB(0, 229, 255)
+        bottomDivider.BorderSizePixel = 0
+        local botGrad = Instance.new("UIGradient")
+        botGrad.Parent = bottomDivider
+        botGrad.Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.5, 0),
+            NumberSequenceKeypoint.new(1, 1)
         })
 
-        local label = Instance.new("TextLabel")
-        label.Parent = holder
-        label.Size = UDim2.fromOffset(136, 22)
-        label.Position = UDim2.new(0.5, 0, 0.5, 0)
-        label.AnchorPoint = Vector2.new(0.5, 0.5)
-        label.BackgroundTransparency = 1
-        label.Text = title
-        label.Font = Enum.Font.GothamBold
-        label.TextSize = 11
-        label.TextColor3 = Theme
+        return container
     end
 
-    local function CardFrame(height)
-        local card = Instance.new("Frame")
-        card.Parent = Container
-        card.Size = UDim2.new(1, -12, 0, height)
-        card.BackgroundColor3 = Inner
-        card.BorderSizePixel = 0
-        Corner(card, 9)
-
-        local stroke = Instance.new("UIStroke")
-        stroke.Parent = card
-        stroke.Color = Border
-        stroke.Transparency = 0.35
-
-        return card
-    end
-
-    Section("ROBLOX PLAYERS")
-
-    local robloxCard = CardFrame(108)
-
-    local avatar = Instance.new("ImageLabel")
-    avatar.Parent = robloxCard
-    avatar.Size = UDim2.fromOffset(64, 64)
-    avatar.Position = UDim2.fromOffset(12, 22)
-    avatar.BackgroundColor3 = Card
-    avatar.BorderSizePixel = 0
-    avatar.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
-    Corner(avatar, 10)
-
-    task.spawn(function()
-        local ok, image = pcall(function()
-            return Players:GetUserThumbnailAsync(
-                ctx.Player.UserId,
-                Enum.ThumbnailType.HeadShot,
-                Enum.ThumbnailSize.Size100x100
-            )
-        end)
-        if ok then avatar.Image = image end
+    -- 1. Roblox Players Section
+    locaiRobloxContainer = createFadedLineContainer(tabFrame, 70, 1)
+    
+    local rbtAvatar = Instance.new("ImageLabel")
+    rbtAvatar.Parent = locaiRobloxContainer
+    rbtAvatar.Size = UDim2.new(0, 50, 0, 50)
+    rbtAvatar.Position = UDim2.new(0, 10, 0.5, -25)
+    rbtAvatar.BackgroundTransparency = 1
+    pcall(function()
+        rbtAvatar.Image = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
     end)
 
-    local title = Instance.new("TextLabel")
-    title.Parent = robloxCard
-    title.Size = UDim2.new(1, -95, 0, 20)
-    title.Position = UDim2.fromOffset(88, 24)
-    title.BackgroundTransparency = 1
-    title.Text = "thankhuyenhuy"
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 11
-    title.TextColor3 = Theme
-    title.TextXAlignment = Enum.TextXAlignment.Left
+    local rbtText = Instance.new("TextLabel")
+    rbtText.Parent = locaiRobloxContainer
+    rbtText.Size = UDim2.new(1, -70, 1, 0)
+    rbtText.Position = UDim2.new(0, 68, 0, 0)
+    rbtText.BackgroundTransparency = 1
+    rbtText.Font = Enum.Font.GothamBold
+    rbtText.TextSize = 11
+    rbtText.TextColor3 = Color3.fromRGB(240, 240, 250)
+    rbtText.TextXAlignment = Enum.TextXAlignment.Left
+    rbtText.TextYAlignment = Enum.TextYAlignment.Center
+    rbtText.Text = "Name: thankhuyenhuy\n@Name: @thankhuyenhuy"
 
-    local username = Instance.new("TextLabel")
-    username.Parent = robloxCard
-    username.Size = UDim2.new(1, -95, 0, 20)
-    username.Position = UDim2.fromOffset(88, 48)
-    username.BackgroundTransparency = 1
-    username.Text = "@thankhuyenhuy"
-    username.Font = Enum.Font.GothamMedium
-    username.TextSize = 10
-    username.TextColor3 = Muted
-    username.TextXAlignment = Enum.TextXAlignment.Left
+    -- 2. Facebook Players Section
+    local fbContainer = createFadedLineContainer(tabFrame, 60, 2)
+    
+    local fbButton = Instance.new("TextButton")
+    fbButton.Parent = fbContainer
+    fbButton.Size = UDim2.new(1, -20, 0, 36)
+    fbButton.Position = UDim2.new(0.5, 0, 0.5, 0)
+    fbButton.AnchorPoint = Vector2.new(0.5, 0.5)
+    fbButton.BackgroundColor3 = Color3.fromRGB(24, 119, 242)
+    fbButton.BorderSizePixel = 0
+    fbButton.Font = Enum.Font.GothamBold
+    fbButton.TextSize = 12
+    fbButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    fbButton.Text = "Add Facebook Profile"
+    Instance.new("UICorner", fbButton).CornerRadius = UDim.new(0, 6)
 
-    Section("FACEBOOK PLAYERS")
-
-    local facebookCard = CardFrame(72)
-
-    local addButton = Instance.new("TextButton")
-    addButton.Parent = facebookCard
-    addButton.Size = UDim2.new(1, -20, 0, 42)
-    addButton.Position = UDim2.fromOffset(10, 15)
-    addButton.BackgroundColor3 = Theme
-    addButton.BorderSizePixel = 0
-    addButton.AutoButtonColor = false
-    addButton.Text = "ADD"
-    addButton.Font = Enum.Font.GothamBold
-    addButton.TextSize = 11
-    addButton.TextColor3 = Color3.fromRGB(20, 22, 28)
-    Corner(addButton, 8)
-
-    addButton.MouseButton1Click:Connect(function()
-        local url = "https://www.facebook.com/dao.huy.lam.09/"
+    fbButton.MouseButton1Click:Connect(function()
+        local fbUrl = "https://www.facebook.com/dao.huy.lam.09/"
         pcall(function()
             if setclipboard then
-                setclipboard(url)
+                setclipboard(fbUrl)
             end
         end)
-        ctx.Notify("Facebook link copied")
-    end)
-
-    addButton.MouseEnter:Connect(function()
-        addButton.BackgroundTransparency = 0.08
-    end)
-
-    addButton.MouseLeave:Connect(function()
-        addButton.BackgroundTransparency = 0
     end)
 end
