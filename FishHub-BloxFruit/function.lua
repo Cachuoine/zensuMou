@@ -1,108 +1,50 @@
-return function(ctx)
-    local Container = ctx.Container
-    local Theme = ctx.ThemeColor()
-    local Text = ctx.Config.Text
-    local Muted = ctx.Config.Muted
-    local Card = ctx.Config.Card
-    local Inner = ctx.Config.Inner
-
-    local Search = Instance.new("TextBox")
-    Search.Parent = Container
-    Search.Size = UDim2.new(1, -12, 0, 38)
-    Search.BackgroundColor3 = Inner
-    Search.BorderSizePixel = 0
-    Search.ClearTextOnFocus = false
-    Search.PlaceholderText = "search..."
-    Search.PlaceholderColor3 = Muted
-    Search.Text = ""
-    Search.TextColor3 = Text
-    Search.Font = Enum.Font.GothamMedium
-    Search.TextSize = 10
-    Search.TextXAlignment = Enum.TextXAlignment.Left
-    Search.Parent = Container
-
-    local searchPadding = Instance.new("UIPadding")
-    searchPadding.Parent = Search
-    searchPadding.PaddingLeft = UDim.new(0, 12)
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = Search
-
-    local searchStroke = Instance.new("UIStroke")
-    searchStroke.Parent = Search
-    searchStroke.Color = Theme
-    searchStroke.Transparency = 0.45
-
-    local Grid = Instance.new("Frame")
-    Grid.Parent = Container
-    Grid.Size = UDim2.new(1, -12, 0, 180)
-    Grid.BackgroundTransparency = 1
-
-    local gridLayout = Instance.new("UIGridLayout")
-    gridLayout.Parent = Grid
-    gridLayout.CellSize = UDim2.new(0.5, -6, 0, 50)
-    gridLayout.CellPadding = UDim2.fromOffset(8, 8)
-    gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
-    local names = {
-        "Shop",
-        "Setting Farm",
-        "Farm",
-        "Item & Quest",
-        "Island",
-        "Fruit",
-        "Setting"
-    }
-
-    local cards = {}
-
-    local function createFunction(name)
-        local button = Instance.new("TextButton")
-        button.Parent = Grid
-        button.BackgroundColor3 = Card
-        button.BorderSizePixel = 0
-        button.AutoButtonColor = false
-        button.Text = name
-        button.Font = Enum.Font.GothamBold
-        button.TextSize = 10
-        button.TextColor3 = Text
-        Instance.new("UICorner", button).CornerRadius = UDim.new(0, 8)
-
-        local stroke = Instance.new("UIStroke")
-        stroke.Parent = button
-        stroke.Color = Theme
-        stroke.Transparency = 0.5
-
-        button.MouseEnter:Connect(function()
-            button.BackgroundColor3 = Theme
-            button.TextColor3 = Color3.fromRGB(20, 22, 28)
-        end)
-
-        button.MouseLeave:Connect(function()
-            button.BackgroundColor3 = Card
-            button.TextColor3 = Text
-        end)
-
-        button.MouseButton1Click:Connect(function()
-            ctx.Notify(name .. " selected")
-        end)
-
-        cards[#cards + 1] = {
-            Name = string.lower(name),
-            Button = button
-        }
+-- URL: https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/function.lua
+return function(tabFrame)
+    for _, child in ipairs(tabFrame:GetChildren()) do
+        child:Destroy()
     end
 
-    for _, name in ipairs(names) do
-        createFunction(name)
+    local layout = Instance.new("UIListLayout")
+    layout.Parent = tabFrame
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 8)
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+    tabFrame.CanvasSize = UDim2.new(0, 0, 0, 320)
+
+    -- 1. Search Bar
+    local searchBox = Instance.new("TextBox")
+    searchBox.Parent = tabFrame
+    searchBox.Size = UDim2.new(1, -20, 0, 34)
+    searchBox.BackgroundColor3 = Color3.fromRGB(30, 32, 42)
+    searchBox.BorderSizePixel = 0
+    searchBox.Font = Enum.Font.GothamMedium
+    searchBox.TextSize = 12
+    searchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    searchBox.PlaceholderText = "search..."
+    searchBox.Text = ""
+    searchBox.LayoutOrder = 1
+    Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 6)
+
+    -- 2. Function Cards
+    local functionsList = {"shop", "setting farm", "farm", "item & quest", "island", "fruit", "setiing"}
+    
+    for i, funcName in ipairs(functionsList) do
+        local card = Instance.new("TextButton")
+        card.Parent = tabFrame
+        card.Size = UDim2.new(1, -20, 0, 34)
+        card.BackgroundColor3 = Color3.fromRGB(45, 47, 58)
+        card.BorderSizePixel = 0
+        card.AutoButtonColor = false
+        card.Font = Enum.Font.GothamBold
+        card.TextSize = 12
+        card.TextColor3 = Color3.fromRGB(240, 240, 250)
+        card.Text = "⚡ " .. funcName:upper()
+        card.LayoutOrder = i + 1
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 6)
+
+        card.MouseButton1Click:Connect(function()
+            print("Triggered function: " .. funcName)
+        end)
     end
-
-    Search:GetPropertyChangedSignal("Text"):Connect(function()
-        local query = string.lower(Search.Text)
-
-        for _, item in ipairs(cards) do
-            item.Button.Visible = query == "" or string.find(item.Name, query, 1, true) ~= nil
-        end
-    end)
 end
