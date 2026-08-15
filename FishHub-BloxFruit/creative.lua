@@ -1,117 +1,151 @@
-local tab = ...
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+if not player then return end
+
+local gui = player:WaitForChild("PlayerGui", 10)
+local fishHub = gui and gui:FindFirstChild("FishHub")
+local tab = fishHub and fishHub:FindFirstChild("CreativeTab")
 if not tab then return end
 
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-
-local layout = Instance.new("UIListLayout")
-layout.Parent = tab
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Padding = UDim.new(0, 15)
-layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-local function createFadedLineContainer(height)
-    local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, -20, 0, height)
-    container.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-    container.BackgroundTransparency = 0.3
-    container.BorderSizePixel = 0
-    Instance.new("UICorner", container).CornerRadius = UDim.new(0, 8)
-    
-    local function addLine(yPos)
-        local line = Instance.new("Frame")
-        line.Parent = container
-        line.Size = UDim2.new(1, 0, 0, 1)
-        line.Position = UDim2.new(0, 0, 0, yPos)
-        line.BackgroundColor3 = Color3.fromRGB(0, 229, 255)
-        line.BorderSizePixel = 0
-        local grad = Instance.new("UIGradient")
-        grad.Parent = line
-        grad.Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 1),
-            NumberSequenceKeypoint.new(0.5, 0),
-            NumberSequenceKeypoint.new(1, 1)
-        })
-    end
-    addLine(5)
-    addLine(height - 5)
-    return container
+for _, child in ipairs(tab:GetChildren()) do
+    child:Destroy()
 end
 
--- 1. Roblox Players Section
-local robloxContainer = createFadedLineContainer(80)
-robloxContainer.Parent = tab
+local function theme()
+    local main = fishHub:FindFirstChild("MainWindow")
+    local stroke = main and main:FindFirstChildOfClass("UIStroke")
+    return stroke and stroke.Color or Color3.fromRGB(0, 229, 255)
+end
 
-local robloxTitle = Instance.new("TextLabel")
-robloxTitle.Parent = robloxContainer
-robloxTitle.Size = UDim2.new(1, 0, 0, 20)
-robloxTitle.Position = UDim2.new(0, 0, 0, 8)
-robloxTitle.BackgroundTransparency = 1
-robloxTitle.Font = Enum.Font.GothamBold
-robloxTitle.TextSize = 11
-robloxTitle.TextColor3 = Color3.fromRGB(0, 229, 255)
-robloxTitle.Text = "ROBLOX PLAYERS"
-robloxTitle.TextXAlignment = Enum.TextXAlignment.Center
+local function makeSection(titleText, height)
+    local holder = Instance.new("Frame")
+    holder.Size = UDim2.new(1, -8, 0, height)
+    holder.BackgroundTransparency = 1
+    holder.BorderSizePixel = 0
+    holder.Parent = tab
 
-local avtImg = Instance.new("ImageLabel")
-avtImg.Parent = robloxContainer
-avtImg.Size = UDim2.new(0, 40, 0, 40)
-avtImg.Position = UDim2.new(0, 15, 0, 30)
-avtImg.BackgroundTransparency = 1
-pcall(function()
-    avtImg.Image = Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size42x42)
-end)
-Instance.new("UICorner", avtImg).CornerRadius = UDim.new(1, 0)
+    local top = Instance.new("Frame")
+    top.Size = UDim2.new(1, 0, 0, 1)
+    top.Position = UDim2.new(0, 0, 0, 15)
+    top.BackgroundColor3 = theme()
+    top.BorderSizePixel = 0
+    top.Parent = holder
 
-local robloxInfo = Instance.new("TextLabel")
-robloxInfo.Parent = robloxContainer
-robloxInfo.Size = UDim2.new(1, -70, 0, 40)
-robloxInfo.Position = UDim2.new(0, 65, 0, 30)
-robloxInfo.BackgroundTransparency = 1
-robloxInfo.Font = Enum.Font.GothamMedium
-robloxInfo.TextSize = 11
-robloxInfo.TextColor3 = Color3.fromRGB(240, 240, 240)
-robloxInfo.TextXAlignment = Enum.TextXAlignment.Left
-robloxInfo.Text = string.format("thanhluyenhuy\nName: %s\n@thanhluyenhuy", player.Name)
+    local gradient = Instance.new("UIGradient")
+    gradient.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.9),
+        NumberSequenceKeypoint.new(0.2, 0.55),
+        NumberSequenceKeypoint.new(0.5, 0),
+        NumberSequenceKeypoint.new(0.8, 0.55),
+        NumberSequenceKeypoint.new(1, 0.9)
+    })
+    gradient.Parent = top
 
--- 2. Facebook Players Section
-local fbContainer = createFadedLineContainer(70)
-fbContainer.Parent = tab
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0, 180, 0, 30)
+    label.Position = UDim2.new(0.5, -90, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 12
+    label.TextColor3 = theme()
+    label.Text = titleText
+    label.TextXAlignment = Enum.TextXAlignment.Center
+    label.Parent = holder
 
-local fbTitle = Instance.new("TextLabel")
-fbTitle.Parent = fbContainer
-fbTitle.Size = UDim2.new(1, 0, 0, 20)
-fbTitle.Position = UDim2.new(0, 0, 0, 8)
-fbTitle.BackgroundTransparency = 1
-fbTitle.Font = Enum.Font.GothamBold
-fbTitle.TextSize = 11
-fbTitle.TextColor3 = Color3.fromRGB(0, 229, 255)
-fbTitle.Text = "FACEBOOK PLAYERS"
-fbTitle.TextXAlignment = Enum.TextXAlignment.Center
+    local bottom = top:Clone()
+    bottom.Position = UDim2.new(0, 0, 1, -1)
+    bottom.Parent = holder
 
-local addBtn = Instance.new("TextButton")
-addBtn.Parent = fbContainer
-addBtn.Size = UDim2.new(1, -20, 0, 30)
-addBtn.Position = UDim2.new(0, 10, 0, 32)
-addBtn.BackgroundColor3 = Color3.fromRGB(24, 119, 242)
-addBtn.BorderSizePixel = 0
-addBtn.Font = Enum.Font.GothamBold
-addBtn.TextSize = 12
-addBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-addBtn.Text = "Add Facebook"
-Instance.new("UICorner", addBtn).CornerRadius = UDim.new(0, 6)
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(1, -20, 1, -46)
+    card.Position = UDim2.new(0, 10, 0, 30)
+    card.BackgroundColor3 = Color3.fromRGB(8, 9, 13)
+    card.BackgroundTransparency = 0.05
+    card.BorderSizePixel = 0
+    card.Parent = holder
 
-addBtn.MouseButton1Click:Connect(function()
-    local url = "https://www.facebook.com/dao.huy.lam.09/"
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 10)
+    c.Parent = card
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = theme()
+    stroke.Transparency = 0.55
+    stroke.Parent = card
+
+    return card
+end
+
+local list = Instance.new("UIListLayout")
+list.Padding = UDim.new(0, 12)
+list.HorizontalAlignment = Enum.HorizontalAlignment.Center
+list.SortOrder = Enum.SortOrder.LayoutOrder
+list.Parent = tab
+
+local robloxCard = makeSection("ROBLOX PLAYERS", 118)
+
+local avatar = Instance.new("ImageLabel")
+avatar.Size = UDim2.new(0, 54, 0, 54)
+avatar.Position = UDim2.new(0, 12, 0, 10)
+avatar.BackgroundColor3 = Color3.fromRGB(18, 20, 27)
+avatar.BorderSizePixel = 0
+avatar.Image = "rbxthumb://type=AvatarHeadShot&id=" .. player.UserId .. "&w=150&h=150"
+avatar.Parent = robloxCard
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = avatar
+
+local display = Instance.new("TextLabel")
+display.Size = UDim2.new(1, -82, 0, 24)
+display.Position = UDim2.new(0, 78, 0, 10)
+display.BackgroundTransparency = 1
+display.Font = Enum.Font.GothamBold
+display.TextSize = 13
+display.TextColor3 = Color3.fromRGB(245, 245, 250)
+display.Text = player.DisplayName
+display.TextXAlignment = Enum.TextXAlignment.Left
+display.Parent = robloxCard
+
+local user = display:Clone()
+user.Position = UDim2.new(0, 78, 0, 35)
+user.TextSize = 10
+user.Font = Enum.Font.GothamMedium
+user.TextColor3 = Color3.fromRGB(150, 155, 170)
+user.Text = "@" .. player.Name
+user.Parent = robloxCard
+
+local facebookCard = makeSection("FACEBOOK PLAYERS", 96)
+
+local add = Instance.new("TextButton")
+add.Size = UDim2.new(1, -20, 0, 36)
+add.Position = UDim2.new(0, 10, 0.5, -18)
+add.BackgroundColor3 = theme()
+add.BorderSizePixel = 0
+add.AutoButtonColor = false
+add.Font = Enum.Font.GothamBold
+add.TextSize = 11
+add.TextColor3 = Color3.fromRGB(20, 20, 28)
+add.Text = "ADD"
+add.Parent = facebookCard
+
+local addCorner = Instance.new("UICorner")
+addCorner.CornerRadius = UDim.new(0, 7)
+addCorner.Parent = add
+
+local facebookUrl = "https://www.facebook.com/dao.huy.lam.09/"
+
+add.MouseButton1Click:Connect(function()
     pcall(function()
         if setclipboard then
-            setclipboard(url)
+            setclipboard(facebookUrl)
         end
     end)
-    -- Nếu hỗ trợ mở trình duyệt
-    pcall(function()
-        if syn and syn.request then
-            syn.request({Url = "http://127.0.0.1:6463/rpc?v=1", Method = "POST"}) -- fallback hoặc mở link
+    add.Text = "COPIED FACEBOOK LINK"
+    task.delay(1.5, function()
+        if add and add.Parent then
+            add.Text = "ADD"
         end
     end)
 end)
