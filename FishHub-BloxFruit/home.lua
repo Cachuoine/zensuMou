@@ -2,16 +2,22 @@ local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 local TweenService = game:GetService("TweenService")
 
-local player = Players.LocalPlayer
+local context = ...
+local player = (context and context.Player) or Players.LocalPlayer
 if not player then return end
 
-local gui = player:WaitForChild("PlayerGui", 10)
+local gui = (context and context.PlayerGui) or player:WaitForChild("PlayerGui", 10)
 if not gui then return end
 
-local fishHub = gui:FindFirstChild("FishHub")
-if not fishHub then return end
+local tab = (context and context.Tab)
+if not tab then
+    local fishHub = gui:FindFirstChild("FishHub")
+    if not fishHub then return end
+    local mainWindow = fishHub:FindFirstChild("MainWindow")
+    local contentContainer = mainWindow and mainWindow:FindFirstChild("ContentContainer")
+    tab = contentContainer and contentContainer:FindFirstChild("HomeTab", true)
+end
 
-local tab = fishHub:FindFirstChild("HomeTab")
 if not tab then return end
 
 for _, child in ipairs(tab:GetChildren()) do
@@ -19,7 +25,7 @@ for _, child in ipairs(tab:GetChildren()) do
 end
 
 local function getTheme()
-    local main = fishHub:FindFirstChild("MainWindow")
+    local main = (context and context.MainWindow) or fishHub:FindFirstChild("MainWindow")
     local stroke = main and main:FindFirstChildOfClass("UIStroke")
     return stroke and stroke.Color or Color3.fromRGB(0, 229, 255)
 end
