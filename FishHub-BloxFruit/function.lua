@@ -27,11 +27,22 @@ local function theme()
     return stroke and stroke.Color or Color3.fromRGB(105, 82, 255)
 end
 
+local scroll = Instance.new("ScrollingFrame")
+scroll.Name = "FunctionScroll"
+scroll.Size = UDim2.new(1,0,1,0)
+scroll.BackgroundTransparency = 1
+scroll.BorderSizePixel = 0
+scroll.ScrollBarThickness = 0
+scroll.ScrollBarImageTransparency = 1
+scroll.ScrollingDirection = Enum.ScrollingDirection.Y
+scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scroll.Parent = tab
+
 local root = Instance.new("Frame")
 root.Name = "FunctionContent"
 root.Size = UDim2.new(1, -10, 0, 430)
 root.BackgroundTransparency = 1
-root.Parent = tab
+root.Parent = scroll
 
 local layout = Instance.new("UIListLayout")
 layout.Padding = UDim.new(0, 12)
@@ -62,7 +73,7 @@ icon.BackgroundTransparency = 1
 icon.Font = Enum.Font.GothamBold
 icon.TextSize = 14
 icon.TextColor3 = theme()
-icon.Text = "⌕"
+icon.Text = "⌘"
 icon.Parent = searchWrap
 
 local search = Instance.new("TextBox")
