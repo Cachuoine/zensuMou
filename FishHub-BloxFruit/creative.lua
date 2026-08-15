@@ -3,7 +3,6 @@ local Players = game:GetService("Players")
 local context = ...
 local player = (context and context.Player) or Players.LocalPlayer
 if not player then return end
-
 local playerGui = (context and context.PlayerGui) or player:WaitForChild("PlayerGui", 10)
 local tab = context and context.Tab
 local main = context and context.MainWindow
@@ -15,199 +14,148 @@ if not tab then
     tab = content and content:FindFirstChild("CreativeTab", true)
     main = main or mainWindow
 end
-
 if not tab then return end
 
-for _, child in ipairs(tab:GetChildren()) do
-    child:Destroy()
-end
+for _, child in ipairs(tab:GetChildren()) do child:Destroy() end
+tab.ClipsDescendants = true
 
 local function theme()
     local stroke = main and main:FindFirstChildOfClass("UIStroke")
-    return stroke and stroke.Color or Color3.fromRGB(105, 82, 255)
+    return stroke and stroke.Color or Color3.fromRGB(104,82,255)
 end
 
-local root = Instance.new("Frame")
-root.Name = "CreativeContent"
-root.Size = UDim2.new(1, -10, 0, 300)
-root.BackgroundTransparency = 1
-root.Parent = tab
+local function corner(p,r)
+    local c=Instance.new("UICorner"); c.CornerRadius=UDim.new(0,r); c.Parent=p
+end
 
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0, 14)
-layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Parent = root
+local function txt(p,t,s,c,f)
+    local x=Instance.new("TextLabel")
+    x.BackgroundTransparency=1
+    x.Font=f or Enum.Font.GothamMedium
+    x.TextSize=s
+    x.TextColor3=c
+    x.Text=t
+    x.Parent=p
+    return x
+end
 
-local function section(titleText, height, order)
-    local holder = Instance.new("Frame")
-    holder.LayoutOrder = order
-    holder.Size = UDim2.new(1, -4, 0, height)
-    holder.BackgroundTransparency = 1
-    holder.Parent = root
+local scroll=Instance.new("ScrollingFrame")
+scroll.Size=UDim2.new(1,0,1,0)
+scroll.BackgroundTransparency=1
+scroll.BorderSizePixel=0
+scroll.ScrollBarThickness=0
+scroll.ScrollBarImageTransparency=1
+scroll.ScrollingDirection=Enum.ScrollingDirection.Y
+scroll.AutomaticCanvasSize=Enum.AutomaticSize.Y
+scroll.Parent=tab
 
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(0, 200, 0, 20)
-    title.Position = UDim2.new(0.5, -100, 0, 0)
-    title.BackgroundTransparency = 1
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 11
-    title.TextColor3 = theme()
-    title.Text = titleText
-    title.TextXAlignment = Enum.TextXAlignment.Center
-    title.Parent = holder
+local root=Instance.new("Frame")
+root.Size=UDim2.new(1,-10,0,310)
+root.BackgroundTransparency=1
+root.Parent=scroll
 
-    local line = Instance.new("Frame")
-    line.Size = UDim2.new(1, 0, 0, 1)
-    line.Position = UDim2.new(0, 0, 0, 25)
-    line.BackgroundColor3 = theme()
-    line.BorderSizePixel = 0
-    line.Parent = holder
+local list=Instance.new("UIListLayout")
+list.Padding=UDim.new(0,15)
+list.HorizontalAlignment=Enum.HorizontalAlignment.Center
+list.Parent=root
 
-    local gradient = Instance.new("UIGradient")
-    gradient.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 0.94),
-        NumberSequenceKeypoint.new(0.18, 0.6),
-        NumberSequenceKeypoint.new(0.5, 0),
-        NumberSequenceKeypoint.new(0.82, 0.6),
-        NumberSequenceKeypoint.new(1, 0.94)
+local function section(titleText,height)
+    local holder=Instance.new("Frame")
+    holder.Size=UDim2.new(1,0,0,height)
+    holder.BackgroundTransparency=1
+    holder.Parent=root
+
+    local title=txt(holder,titleText,10,theme(),Enum.Font.GothamBold)
+    title.Size=UDim2.new(0,200,0,18)
+    title.Position=UDim2.new(.5,-100,0,0)
+    title.TextXAlignment=Enum.TextXAlignment.Center
+    title.ZIndex=5
+
+    local line=Instance.new("Frame")
+    line.Size=UDim2.new(1,0,0,1)
+    line.Position=UDim2.new(0,0,0,25)
+    line.BackgroundColor3=theme()
+    line.BorderSizePixel=0
+    line.ZIndex=1
+    line.Parent=holder
+
+    local grad=Instance.new("UIGradient")
+    grad.Transparency=NumberSequence.new({
+        NumberSequenceKeypoint.new(0,.96),
+        NumberSequenceKeypoint.new(.18,.60),
+        NumberSequenceKeypoint.new(.5,0),
+        NumberSequenceKeypoint.new(.82,.60),
+        NumberSequenceKeypoint.new(1,.96)
     })
-    gradient.Parent = line
+    grad.Parent=line
 
-    local card = Instance.new("Frame")
-    card.Size = UDim2.new(1, -8, 0, height - 42)
-    card.Position = UDim2.new(0, 4, 0, 39)
-    card.BackgroundColor3 = Color3.fromRGB(7, 8, 12)
-    card.BorderSizePixel = 0
-    card.Parent = holder
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 10)
-    corner.Parent = card
-
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = theme()
-    stroke.Transparency = 0.62
-    stroke.Parent = card
-
+    local card=Instance.new("Frame")
+    card.Size=UDim2.new(1,-4,0,height-43)
+    card.Position=UDim2.new(0,2,0,39)
+    card.BackgroundColor3=Color3.fromRGB(7,8,12)
+    card.BorderSizePixel=0
+    card.Parent=holder
+    corner(card,11)
+    local s=Instance.new("UIStroke")
+    s.Color=theme(); s.Transparency=.65; s.Parent=card
     return card
 end
 
-local roblox = section("ROBLOX PLAYERS", 132, 1)
+local roblox=section("ROBLOX PLAYERS",140)
 
-local targetUsername = "thanhhuyenhuy"
-local targetUserId
-local targetDisplayName = targetUsername
+local myName="thankhuyenhuy"
+local myId
+local displayName=myName
+pcall(function() myId=Players:GetUserIdFromNameAsync(myName) end)
+if myId then pcall(function() displayName=Players:GetNameFromUserIdAsync(myId) end) end
 
-pcall(function()
-    targetUserId = Players:GetUserIdFromNameAsync(targetUsername)
-end)
+local av=Instance.new("ImageLabel")
+av.Size=UDim2.new(0,68,0,68)
+av.Position=UDim2.new(0,14,0,12)
+av.BackgroundColor3=Color3.fromRGB(14,15,22)
+av.BorderSizePixel=0
+if myId then av.Image="rbxthumb://type=AvatarHeadShot&id="..myId.."&w=150&h=150" end
+av.Parent=roblox
+corner(av,11)
 
-if targetUserId then
-    pcall(function()
-        targetDisplayName = Players:GetNameFromUserIdAsync(targetUserId)
-    end)
-end
+local nm=txt(roblox,displayName,14,Color3.fromRGB(245,246,252),Enum.Font.GothamBold)
+nm.Position=UDim2.new(0,96,0,12)
+nm.Size=UDim2.new(1,-110,0,23)
 
-local avatar = Instance.new("ImageLabel")
-avatar.Size = UDim2.new(0, 68, 0, 68)
-avatar.Position = UDim2.new(0, 14, 0, 13)
-avatar.BackgroundColor3 = Color3.fromRGB(14, 15, 22)
-avatar.BorderSizePixel = 0
-if targetUserId then
-    avatar.Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(targetUserId) .. "&w=150&h=150"
-end
-avatar.Parent = roblox
+local usr=txt(roblox,"@"..myName,10,theme(),Enum.Font.GothamBold)
+usr.Position=UDim2.new(0,96,0,38)
+usr.Size=UDim2.new(1,-110,0,19)
 
-local avatarCorner = Instance.new("UICorner")
-avatarCorner.CornerRadius = UDim.new(0, 11)
-avatarCorner.Parent = avatar
+local tag=txt(roblox,"SCRIPT CREATOR  •  ROBLOX PROFILE",8,Color3.fromRGB(100,105,120),Enum.Font.GothamBold)
+tag.Position=UDim2.new(0,14,0,93)
+tag.Size=UDim2.new(1,-28,0,18)
 
-local name = Instance.new("TextLabel")
-name.Size = UDim2.new(1, -100, 0, 24)
-name.Position = UDim2.new(0, 96, 0, 14)
-name.BackgroundTransparency = 1
-name.Font = Enum.Font.GothamBold
-name.TextSize = 14
-name.TextColor3 = Color3.fromRGB(245, 246, 252)
-name.Text = targetDisplayName
-name.TextXAlignment = Enum.TextXAlignment.Left
-name.Parent = roblox
+local facebook=section("FACEBOOK PLAYERS",120)
 
-local username = Instance.new("TextLabel")
-username.Size = UDim2.new(1, -100, 0, 22)
-username.Position = UDim2.new(0, 96, 0, 40)
-username.BackgroundTransparency = 1
-username.Font = Enum.Font.GothamBold
-username.TextSize = 10
-username.TextColor3 = theme()
-username.Text = "@" .. targetUsername
-username.TextXAlignment = Enum.TextXAlignment.Left
-username.Parent = roblox
+local title=txt(facebook,"Facebook profile",10,Color3.fromRGB(230,232,240),Enum.Font.GothamBold)
+title.Position=UDim2.new(0,14,0,9)
+title.Size=UDim2.new(1,-28,0,20)
 
-local ownerTag = Instance.new("TextLabel")
-ownerTag.Size = UDim2.new(1, -28, 0, 20)
-ownerTag.Position = UDim2.new(0, 14, 0, 88)
-ownerTag.BackgroundTransparency = 1
-ownerTag.Font = Enum.Font.GothamMedium
-ownerTag.TextSize = 8
-ownerTag.TextColor3 = Color3.fromRGB(105, 110, 125)
-ownerTag.Text = "ROBLOX PROFILE • @" .. targetUsername
-ownerTag.TextXAlignment = Enum.TextXAlignment.Left
-ownerTag.Parent = roblox
+local add=Instance.new("TextButton")
+add.Size=UDim2.new(1,-28,0,38)
+add.Position=UDim2.new(0,14,0,38)
+add.BackgroundColor3=theme()
+add.BorderSizePixel=0
+add.AutoButtonColor=false
+add.Font=Enum.Font.GothamBold
+add.TextSize=10
+add.TextColor3=Color3.fromRGB(18,18,25)
+add.Text="ADD  •  FACEBOOK"
+add.Parent=facebook
+corner(add,8)
 
-local facebook = section("FACEBOOK PLAYERS", 116, 2)
+local link=txt(facebook,"dao.huy.lam.09",8,Color3.fromRGB(100,105,120),Enum.Font.GothamMedium)
+link.Position=UDim2.new(0,14,0,82)
+link.Size=UDim2.new(1,-28,0,18)
 
-local fbTitle = Instance.new("TextLabel")
-fbTitle.Size = UDim2.new(1, -28, 0, 22)
-fbTitle.Position = UDim2.new(0, 14, 0, 9)
-fbTitle.BackgroundTransparency = 1
-fbTitle.Font = Enum.Font.GothamBold
-fbTitle.TextSize = 10
-fbTitle.TextColor3 = Color3.fromRGB(230, 232, 240)
-fbTitle.Text = "Facebook profile"
-fbTitle.TextXAlignment = Enum.TextXAlignment.Left
-fbTitle.Parent = facebook
-
-local fbUrl = "https://www.facebook.com/dao.huy.lam.09/"
-
-local add = Instance.new("TextButton")
-add.Size = UDim2.new(1, -28, 0, 38)
-add.Position = UDim2.new(0, 14, 0, 39)
-add.BackgroundColor3 = theme()
-add.BorderSizePixel = 0
-add.AutoButtonColor = false
-add.Font = Enum.Font.GothamBold
-add.TextSize = 10
-add.TextColor3 = Color3.fromRGB(18, 18, 25)
-add.Text = "ADD  •  FACEBOOK"
-add.Parent = facebook
-
-local addCorner = Instance.new("UICorner")
-addCorner.CornerRadius = UDim.new(0, 8)
-addCorner.Parent = add
-
-local link = Instance.new("TextLabel")
-link.Size = UDim2.new(1, -28, 0, 18)
-link.Position = UDim2.new(0, 14, 0, 81)
-link.BackgroundTransparency = 1
-link.Font = Enum.Font.GothamMedium
-link.TextSize = 8
-link.TextColor3 = Color3.fromRGB(105, 110, 125)
-link.Text = "dao.huy.lam.09"
-link.TextXAlignment = Enum.TextXAlignment.Left
-link.Parent = facebook
-
+local fbUrl="https://www.facebook.com/dao.huy.lam.09/"
 add.MouseButton1Click:Connect(function()
-    pcall(function()
-        if setclipboard then
-            setclipboard(fbUrl)
-        end
-    end)
-    add.Text = "COPIED  •  FACEBOOK LINK"
-    task.delay(1.6, function()
-        if add.Parent then
-            add.Text = "ADD  •  FACEBOOK"
-        end
-    end)
+    pcall(function() if setclipboard then setclipboard(fbUrl) end end)
+    add.Text="COPIED  •  FACEBOOK LINK"
+    task.delay(1.5,function() if add.Parent then add.Text="ADD  •  FACEBOOK" end end)
 end)
