@@ -1,5 +1,7 @@
 return function(ctx)
-    assert(type(ctx) == "table", "FishHub setting.lua: context table is required")
+    if type(ctx) ~= "table" then
+        error("FishHub setting.lua: context table is required")
+    end
 
     local Players = ctx.Players
     local UserInputService = ctx.UserInputService
@@ -49,9 +51,11 @@ return function(ctx)
 
     local gearBtn = ctx.gearBtn
 
-    if not gearBtn then
-        error("FishHub setting.lua: Main did not provide Gear button")
-    end
+    if not gui then error("FishHub setting.lua: missing gui") end
+    if not main then error("FishHub setting.lua: missing main") end
+    if not mainScale then error("FishHub setting.lua: missing mainScale") end
+    if not Config then error("FishHub setting.lua: missing Config") end
+    if not gearBtn then error("FishHub setting.lua: Main did not provide Gear button") end
 
     -- State that used to live in Main alongside the Gear code.
     local isRainbowRunning = false
