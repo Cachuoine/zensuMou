@@ -1,18 +1,65 @@
--- FishHub external Settings / Gear module
 return function(ctx)
-    local Players=ctx.Players
-    local TweenService=ctx.TweenService
-    local UserInputService=ctx.UserInputService
-    local gui=ctx.gui
-    local main=ctx.main
-    local mainScale=ctx.mainScale
-    local gearBtn=ctx.gearBtn
-    local Config=ctx.Config
-    local allHubStrokes=ctx.allHubStrokes
-    local allHubLines=ctx.allHubLines
-    local allThemeTexts=ctx.allThemeTexts
-    local AddHoverGlow=ctx.AddHoverGlow
-    local ShowNotification=ctx.ShowNotification
+    assert(type(ctx) == "table", "FishHub setting.lua: context table is required")
+
+    local Players = ctx.Players
+    local UserInputService = ctx.UserInputService
+    local TweenService = ctx.TweenService
+
+    local gui = ctx.gui
+    local main = ctx.main
+    local mainScale = ctx.mainScale
+    local Config = ctx.Config
+
+    local allHubStrokes = ctx.allHubStrokes
+    local allHubLines = ctx.allHubLines
+    local allThemeTexts = ctx.allThemeTexts
+
+    local mainStroke = ctx.mainStroke
+    local glowBorder = ctx.glowBorder
+    local openStroke = ctx.openStroke
+    local openGlow = ctx.openGlow
+    local openAccent = ctx.openAccent
+    local openStatus = ctx.openStatus
+    local openIcon = ctx.openIcon
+    local lineStroke = ctx.lineStroke
+
+    local contentHoverRegistry = ctx.contentHoverRegistry
+    local tabButtons = ctx.tabButtons
+    local CONTENT_BORDER_COLOR = ctx.CONTENT_BORDER_COLOR
+    local getActiveTabName = ctx.getActiveTabName
+
+    local loadingScreen = ctx.loadingScreen
+    local progressFill = ctx.progressFill
+    local loadingStatus = ctx.loadingStatus
+    local THEME_LOADING_APPLY_DELAY = ctx.THEME_LOADING_APPLY_DELAY
+
+    local PlayAdvancedThemeLoading = ctx.PlayAdvancedThemeLoading
+    local StopLoadingAnimation = ctx.StopLoadingAnimation
+    local RestoreUIAfterThemeLoading = ctx.RestoreUIAfterThemeLoading
+    local FinishAdvancedThemeLoading = ctx.FinishAdvancedThemeLoading
+    local UpdateLoadingTheme = ctx.UpdateLoadingTheme
+    local ShowNotification = ctx.ShowNotification
+    local isThemeLoading = ctx.isThemeLoading
+    local getLoadingAnimationToken = ctx.getLoadingAnimationToken
+    local setThemeLoading = ctx.setThemeLoading
+
+    local debugSidebarFrame = ctx.debugSidebarFrame
+    local keyStatusSidebarFrame = ctx.keyStatusSidebarFrame
+    local debugDividerBetween = ctx.debugDividerBetween
+
+    local gearBtn = ctx.gearBtn
+
+    if not gearBtn then
+        error("FishHub setting.lua: Main did not provide Gear button")
+    end
+
+    -- State that used to live in Main alongside the Gear code.
+    local isRainbowRunning = false
+    local rainbowTransitionActive = false
+    local rainbowTransitionSerial = 0
+    local staticThemeColor = Config.ThemeColor
+    local rainbowHue = select(1, Config.ThemeColor:ToHSV())
+
 
 local settingsWindow = Instance.new("Frame")
 settingsWindow.Name = "SettingsWindow"
@@ -269,21 +316,22 @@ local pickerDragging=nil
 local function StopRainbowForManualColor()
 isRainbowRunning=false
 rainbowTransitionActive=false
-if ctx.onManualColorChanged then
-    ctx.onManualColorChanged(selectedThemeColor)
+rainbowTransitionSerial=rainbowTransitionSerial+1
+if rainbowToggle then
+rainbowToggle.Text="RAINBOW CONTINUOUS"
 end
 end
 svButton.MouseButton1Down:Connect(function()
 StopRainbowForManualColor()
 pickerDragging="SV"
 UpdateSVFromPosition(GetMousePosition())
-if ctx.onManualColorChanged then ctx.onManualColorChanged(selectedThemeColor) end
+ApplyGlobalTheme(selectedThemeColor)
 end)
 hueButton.MouseButton1Down:Connect(function()
 StopRainbowForManualColor()
 pickerDragging="HUE"
 UpdateHueFromPosition(GetMousePosition())
-if ctx.onManualColorChanged then ctx.onManualColorChanged(selectedThemeColor) end
+ApplyGlobalTheme(selectedThemeColor)
 end)
 UserInputService.InputChanged:Connect(function(input)
 if input.UserInputType~=Enum.UserInputType.MouseMovement or not pickerDragging then return end
@@ -293,8 +341,8 @@ UpdateSVFromPosition(pos)
 else
 UpdateHueFromPosition(pos)
 end
-if not isRainbowRunning and typeof(selectedThemeColor)=="Color3" and ctx.onManualColorChanged then
-ctx.onManualColorChanged(selectedThemeColor)
+if not isRainbowRunning and typeof(selectedThemeColor)=="Color3" then
+ApplyGlobalTheme(selectedThemeColor)
 end
 end)
 UserInputService.InputEnded:Connect(function(input)
@@ -581,88 +629,358 @@ hotkeyButtonBox.MouseButton1Click:Connect(function()
         end
     end)
 end)
-
-    -- Gear is created by MainWindow.
-    -- This module only binds Settings behavior to that existing button.
-    if not gearBtn then
-        error("setting.lua: gearBtn was not supplied by Main")
+local function ApplyGlobalTheme(newColor)
+    Config.ThemeColor = newColor
+    if not isRainbowRunning and not rainbowTransitionActive then
+        staticThemeColor = newColor
     end
-    local gearStroke=gearBtn:FindFirstChildOfClass("UIStroke")
+    mainStroke.Color = newColor
+    glowBorder.Color = newColor
+    settingsStroke.Color = newColor
+    if openStroke then openStroke.Color = newColor end
+    if openGlow then openGlow.Color = newColor end
+    if openAccent then openAccent.BackgroundColor3 = newColor end
+    if openStatus then openStatus.TextColor3 = newColor end
+    if openIcon then openIcon.TextColor3 = newColor end
+    if lineStroke then lineStroke.Color = newColor end
+    if applyThemeBtn then applyThemeBtn.BackgroundColor3 = newColor end
+    for _, txtObj in ipairs(allThemeTexts) do
+        if txtObj and txtObj.Parent then
+            txtObj.TextColor3 = newColor
+        end
+    end
+    for _, lineObj in ipairs(allHubLines) do
+        if lineObj and lineObj.Parent then
+            lineObj.BackgroundColor3 = newColor
+        end
+    end
+end
+local function UpdateToggleIndicators(accentColor)
+    accentColor = accentColor or Config.ThemeColor
+    rainbowToggleStroke.Color = accentColor
+    rainbowToggleCircle.BackgroundColor3 = accentColor
+    rainbowToggleCircle.Visible = isRainbowRunning
+    debugToggleStroke.Color = accentColor
+    debugToggleCircle.BackgroundColor3 = accentColor
+    debugToggleCircle.Visible = Config.ShowDebug
+end
+UpdateToggleIndicators(Config.ThemeColor)
+task.spawn(function()
+    while gui and gui.Parent do
+        if isRainbowRunning and not rainbowTransitionActive and not isThemeLoading() then
+            rainbowHue = (rainbowHue + (0.0025 * (Config.RainbowSpeedPercent / 100))) % 1
+            local rainbowColor = Color3.fromHSV(rainbowHue, 1, 1)
+            ApplyGlobalTheme(rainbowColor)
+            UpdateToggleIndicators(rainbowColor)
+            pickerHue = rainbowHue
+            UpdateThemePicker()
+            palettePreview.BackgroundColor3 = rainbowColor
+            local rr, gg, bb = rainbowColor.R * 255, rainbowColor.G * 255, rainbowColor.B * 255
+            paletteValue.Text = string.format("#%02X%02X%02X", math.floor(rr + 0.5), math.floor(gg + 0.5), math.floor(bb + 0.5))
+            for _, strokeObj in ipairs(allHubStrokes) do
+                if strokeObj and strokeObj.Parent and not contentHoverRegistry[strokeObj] then
+                    strokeObj.Color = rainbowColor
+                end
+            end
+            for strokeObj, state in pairs(contentHoverRegistry) do
+                if strokeObj and strokeObj.Parent then
+                    if state.hovered then
+                        strokeObj.Color = rainbowColor
+                        state.glow.BackgroundColor3 = rainbowColor
+                    else
+                        strokeObj.Color = CONTENT_BORDER_COLOR
+                    end
+                end
+            end
+            local currentActiveTab = getActiveTabName()
+            for name, btn in pairs(tabButtons) do
+                local stroke = btn:FindFirstChildOfClass("UIStroke")
+                local glow = btn:FindFirstChild("TabGlow")
+                if glow then glow.BackgroundColor3 = staticThemeColor end
+                if name == currentActiveTab then
+                    btn.BackgroundColor3 = rainbowColor
+                    btn.TextColor3 = Color3.fromRGB(30, 30, 40)
+                    if stroke then
+                        stroke.Color = rainbowColor
+                    end
+                else
+                    btn.BackgroundColor3 = Color3.fromRGB(55, 55, 65)
+                    btn.TextColor3 = rainbowColor
+                    if stroke then
+                        stroke.Color = rainbowColor
+                    end
+                end
+            end
+        elseif not isRainbowRunning and not rainbowTransitionActive and not isThemeLoading() then
+            ApplyGlobalTheme(staticThemeColor)
+            UpdateToggleIndicators(staticThemeColor)
+            for _, strokeObj in ipairs(allHubStrokes) do
+                if strokeObj and strokeObj.Parent and not contentHoverRegistry[strokeObj] then
+                    strokeObj.Color = staticThemeColor
+                end
+            end
+            for strokeObj, state in pairs(contentHoverRegistry) do
+                if strokeObj and strokeObj.Parent then
+                    if state.hovered then
+                        strokeObj.Color = staticThemeColor
+                        state.glow.BackgroundColor3 = staticThemeColor
+                    else
+                        strokeObj.Color = CONTENT_BORDER_COLOR
+                    end
+                end
+            end
+            local currentActiveTab = getActiveTabName()
+            for name, btn in pairs(tabButtons) do
+                local stroke = btn:FindFirstChildOfClass("UIStroke")
+                if name == currentActiveTab then
+                    btn.BackgroundColor3 = staticThemeColor
+                    btn.TextColor3 = Color3.fromRGB(30, 30, 40)
+                    if stroke then
+                        stroke.Color = staticThemeColor
+                    end
+                else
+                    btn.BackgroundColor3 = Color3.fromRGB(55, 55, 65)
+                    btn.TextColor3 = Color3.fromRGB(230, 230, 240)
+                    if stroke then
+                        stroke.Color = staticThemeColor
+                    end
+                end
+            end
+        end
+        task.wait(0.03)
+    end
+end)
+rainbowClickArea.MouseButton1Click:Connect(function()
+    if isThemeLoading() or rainbowTransitionActive then
+        return
+    end
+    local enableRainbow = not isRainbowRunning
+    rainbowTransitionActive = true
+    if enableRainbow then
+        staticThemeColor = Config.ThemeColor
+        rainbowHue = select(1, staticThemeColor:ToHSV())
+        local firstRainbowColor = Color3.fromHSV(rainbowHue, 1, 1)
+        if not PlayAdvancedThemeLoading(firstRainbowColor, "RAINBOW MODE", "Starting Rainbow Continuous") then
+            rainbowTransitionActive = false
+            return
+        end
+        task.spawn(function()
+            local token = getLoadingAnimationToken()
+            task.wait(THEME_LOADING_APPLY_DELAY)
+            if token ~= getLoadingAnimationToken() or not isThemeLoading() or not loadingScreen.Parent then
+                rainbowTransitionActive = false
+                setThemeLoading(false)
+                StopLoadingAnimation()
+                RestoreUIAfterThemeLoading()
+                return
+            end
+            isRainbowRunning = true
+            rainbowTransitionActive = false
+            Config.ThemeColor = firstRainbowColor
+            UpdateLoadingTheme()
+            local ok = pcall(function()
+                ApplyGlobalTheme(firstRainbowColor)
+            end)
+            if not ok then
+                Config.ThemeColor = firstRainbowColor
+                UpdateLoadingTheme()
+            end
+            selectedThemeColor = firstRainbowColor
+            palettePreview.BackgroundColor3 = firstRainbowColor
+            local fr, fg, fb = firstRainbowColor.R * 255, firstRainbowColor.G * 255, firstRainbowColor.B * 255
+            paletteValue.Text = string.format("#%02X%02X%02X", math.floor(fr + 0.5), math.floor(fg + 0.5), math.floor(fb + 0.5))
+            UpdateToggleIndicators(firstRainbowColor)
+            loadingStatus.Text = "RAINBOW ACTIVE"
+            TweenService:Create(progressFill, TweenInfo.new(0.28, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+            task.delay(0.35, function()
+                if isThemeLoading() then
+                    FinishAdvancedThemeLoading()
+                end
+            end)
+        end)
+        ShowNotification("Rainbow Continuous Loading...")
+    else
+        local restoreColor = staticThemeColor
+        isRainbowRunning = false
+        if not PlayAdvancedThemeLoading(restoreColor, "RAINBOW MODE", "Returning To Static Theme") then
+            rainbowTransitionActive = false
+            return
+        end
+        task.spawn(function()
+            local token = getLoadingAnimationToken()
+            task.wait(THEME_LOADING_APPLY_DELAY)
+            if token ~= getLoadingAnimationToken() or not isThemeLoading() or not loadingScreen.Parent then
+                rainbowTransitionActive = false
+                setThemeLoading(false)
+                StopLoadingAnimation()
+                RestoreUIAfterThemeLoading()
+                return
+            end
+            Config.ThemeColor = restoreColor
+            local ok = pcall(function()
+                ApplyGlobalTheme(restoreColor)
+            end)
+            if not ok then
+                Config.ThemeColor = restoreColor
+                UpdateLoadingTheme()
+            end
+            pickerHue, pickerSaturation, pickerValue = restoreColor:ToHSV()
+            selectedThemeColor = restoreColor
+            rainbowTransitionActive = false
+            UpdateLoadingTheme()
+            UpdateToggleIndicators(restoreColor)
+            loadingStatus.Text = "THEME RESTORED"
+            TweenService:Create(progressFill, TweenInfo.new(0.28, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+            task.delay(0.35, function()
+                if isThemeLoading() then
+                    FinishAdvancedThemeLoading()
+                end
+            end)
+        end)
+        ShowNotification("Rainbow Continuous Stopping...")
+    end
+end)
 
-    local rainbowRunning=false
-    local debugEnabled=Config.ShowDebug==true
-    local destroyed=false
+local function SetDebugVisibility(enabled)
+    Config.ShowDebug = enabled == true
+    if debugToggleCircle then
+        debugToggleCircle.Visible = Config.ShowDebug
+    end
+    if debugSidebarFrame then
+        debugSidebarFrame.Visible = Config.ShowDebug
+    end
+    if keyStatusSidebarFrame then
+        keyStatusSidebarFrame.Visible = Config.ShowDebug
+    end
+    if debugDividerBetween then
+        debugDividerBetween.Visible = Config.ShowDebug
+    end
+    UpdateToggleIndicators(Config.ThemeColor)
+end
 
-    local function setVisible(value,animate)
-        if destroyed then return end
-        value=value==true
-        if value and not main.Visible then return end
-        if settingsWindow.Visible==value then return end
-        settingsWindow.Visible=value
-        if value and animate and Config.GUIAnimation then
-            settingsScale.Scale=0.88
-            TweenService:Create(settingsScale,TweenInfo.new(0.22,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Scale=1}):Play()
-        else
-            settingsScale.Scale=1
+debugClickArea.Active = true
+debugClickArea.AutoButtonColor = false
+debugClickArea.Activated:Connect(function()
+    SetDebugVisibility(not Config.ShowDebug)
+    if Config.ShowDebug then
+        ShowNotification("Debug Info Enabled!")
+    else
+        ShowNotification("Debug Info Disabled!")
+    end
+end)
+
+applyThemeBtn.MouseButton1Click:Connect(function()
+    if isThemeLoading() or rainbowTransitionActive then return end
+    local targetColor = selectedThemeColor
+    if typeof(targetColor) ~= "Color3" then return end
+    isRainbowRunning = false
+    rainbowTransitionActive = true
+    staticThemeColor = targetColor
+    local started = PlayAdvancedThemeLoading(targetColor, "FISHHUB", "Applying Theme & Reloading UI")
+    if not started then rainbowTransitionActive = false return end
+    ShowNotification("Applying theme...")
+    task.spawn(function()
+        task.wait(THEME_LOADING_APPLY_DELAY)
+        if not isThemeLoading() or not loadingScreen.Parent then
+            rainbowTransitionActive = false
+            setThemeLoading(false)
+            RestoreUIAfterThemeLoading()
+            return
+        end
+        local ok = pcall(ApplyGlobalTheme, targetColor)
+        if not ok then
+            Config.ThemeColor = targetColor
+            UpdateLoadingTheme()
+        end
+        selectedThemeColor = targetColor
+        loadingStatus.Text = ok and "THEME APPLIED" or "THEME APPLIED WITH SAFE RECOVERY"
+        TweenService:Create(progressFill, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+        task.delay(0.5, function()
+            rainbowTransitionActive = false
+            if isThemeLoading() then FinishAdvancedThemeLoading() end
+        end)
+        ShowNotification("Theme applied successfully to UI & Lines!")
+    end)
+end)
+
+    local destroyed = false
+
+    local function CloseSettings()
+        if settingsWindow and settingsWindow.Parent then
+            settingsWindow.Visible = false
         end
     end
 
-    -- MainWindow owns the Gear click handler.
-    -- This module only exposes Toggle/Open/Close for Main to call.
+    local function ToggleSettings()
+        if destroyed then return end
+        if settingsWindow.Visible then
+            settingsWindow.Visible = false
+        else
+            settingsWindow.Visible = true
+        end
+    end
 
-    rainbowClickArea.MouseButton1Click:Connect(function()
-        if ctx.isBusy and ctx.isBusy() then return end
-        rainbowRunning=not rainbowRunning
-        rainbowToggleCircle.Visible=rainbowRunning
-        if ctx.onRainbowChanged then ctx.onRainbowChanged(rainbowRunning) end
+    local function GetCurrentAccentColor()
+        if isRainbowRunning and not rainbowTransitionActive and not isThemeLoading() then
+            return Color3.fromHSV(rainbowHue, 1, 1)
+        end
+        return Config.ThemeColor
+    end
+
+    -- Main owns the Gear click connection.
+    -- This module only exposes ToggleSettings() to Main.
+
+    -- Settings must follow Main visibility.
+    main:GetPropertyChangedSignal("Visible"):Connect(function()
+        if not main.Visible then
+            CloseSettings()
+        end
     end)
 
-    debugClickArea.Active=true
-    debugClickArea.AutoButtonColor=false
-    debugClickArea.Activated:Connect(function()
-        debugEnabled=not debugEnabled
-        Config.ShowDebug=debugEnabled
-        debugToggleCircle.Visible=debugEnabled
-        if ctx.onDebugChanged then ctx.onDebugChanged(debugEnabled) end
-        ShowNotification(debugEnabled and "Debug Info Enabled!" or "Debug Info Disabled!")
-    end)
-
-    applyThemeBtn.MouseButton1Click:Connect(function()
-        if ctx.isBusy and ctx.isBusy() then return end
-        if typeof(selectedThemeColor)~="Color3" then return end
-        if ctx.onApplyTheme then ctx.onApplyTheme(selectedThemeColor) end
+    -- Keep the Settings panel attached to the right side of Main.
+    task.spawn(function()
+        while gui and gui.Parent and not destroyed do
+            if main.Visible and settingsWindow and settingsWindow.Parent then
+                local scale = mainScale.Scale
+                local scaledMainHalfWidth = (Config.MainWidth * scale) / 2
+                settingsWindow.Position = UDim2.new(
+                    0.5,
+                    scaledMainHalfWidth + 10,
+                    0.5,
+                    0
+                )
+            end
+            task.wait()
+        end
     end)
 
     return {
-        Toggle=function() setVisible(not settingsWindow.Visible,true) end,
-        Open=function() setVisible(true,true) end,
-        Close=function() setVisible(false,false) end,
-        IsVisible=function() return settingsWindow.Visible end,
-        IsListeningKey=function() return listeningKey==true end,
-        SetVisible=function(_,v,animate) setVisible(v,animate) end,
-        SetRainbowState=function(_,v) rainbowRunning=v==true; rainbowToggleCircle.Visible=rainbowRunning end,
-        SetDebugState=function(_,v) debugEnabled=v==true; debugToggleCircle.Visible=debugEnabled end,
-        SetThemeColor=function(_,color)
-            if typeof(color)~="Color3" then return end
-            selectedThemeColor=color
-            pickerHue,pickerSaturation,pickerValue=color:ToHSV()
-            UpdateThemePicker()
+        Toggle = ToggleSettings,
+        Open = function()
+            if settingsWindow then settingsWindow.Visible = true end
         end,
-        ApplyAccent=function(_,color)
-            if typeof(color)~="Color3" then return end
-            gearStroke.Color=color
-            settingsStroke.Color=color
-            applyThemeBtn.BackgroundColor3=color
-            rainbowToggleStroke.Color=color
-            rainbowToggleCircle.BackgroundColor3=color
-            debugToggleStroke.Color=color
-            debugToggleCircle.BackgroundColor3=color
-            hotkeyButtonBox.TextColor3=color
+        Close = CloseSettings,
+        IsOpen = function()
+            return settingsWindow and settingsWindow.Visible == true
         end,
-        Destroy=function()
-            destroyed=true
-            if settingsWindow then settingsWindow:Destroy() end
-            -- Gear is owned by MainWindow, so it stays with Main.
+        IsRainbowRunning = function()
+            return isRainbowRunning
+        end,
+        IsListeningKey = function()
+            return listeningKey == true
+        end,
+        IsRainbowTransitioning = function()
+            return rainbowTransitionActive
+        end,
+        GetCurrentAccentColor = GetCurrentAccentColor,
+        ApplyTheme = ApplyGlobalTheme,
+        SetDebugVisibility = SetDebugVisibility,
+        Destroy = function()
+            destroyed = true
+            CloseSettings()
+            if settingsWindow then
+                settingsWindow:Destroy()
+            end
         end,
     }
 end
