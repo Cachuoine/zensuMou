@@ -99,7 +99,7 @@ local wt = label(welcome, "FISHHUB", 20, Color3.fromRGB(245,246,252), Enum.Font.
 wt.Position = UDim2.new(0, 30, 0, 14)
 wt.Size = UDim2.new(1, -45, 0, 25)
 
-local ws = label(welcome, "READY TO EXPERIENCE", 10, Color3.fromRGB(145,150,165), Enum.Font.GothamMedium)
+local ws = label(welcome, "Welcome to your control panel", 10, Color3.fromRGB(145,150,165), Enum.Font.GothamMedium)
 ws.Position = UDim2.new(0, 31, 0, 42)
 ws.Size = UDim2.new(1, -45, 0, 18)
 
@@ -290,16 +290,16 @@ avatar.Parent = info
 corner(avatar, 10)
 
 local dn = label(info, player.DisplayName, 14, Color3.fromRGB(245,246,252), Enum.Font.GothamBold)
-dn.Position = UDim2.new(0, 84, 0, 11)
-dn.Size = UDim2.new(1, -98, 0, 21)
+dn.Position = UDim2.new(0, 91, 0, 11)
+dn.Size = UDim2.new(1, -105, 0, 21)
 
 local un = label(info, "@"..player.Name, 10, theme(), Enum.Font.GothamBold)
-un.Position = UDim2.new(0, 84, 0, 34)
-un.Size = UDim2.new(1, -98, 0, 18)
+un.Position = UDim2.new(0, 91, 0, 34)
+un.Size = UDim2.new(1, -105, 0, 18)
 
 local uid = label(info, "USER ID  •  "..player.UserId, 9, Color3.fromRGB(135,140,155), Enum.Font.GothamMedium)
-uid.Position = UDim2.new(0, 84, 0, 54)
-uid.Size = UDim2.new(1, -98, 0, 17)
+uid.Position = UDim2.new(0, 91, 0, 54)
+uid.Size = UDim2.new(1, -105, 0, 17)
 
 local executorName = "Unknown"
 pcall(function()
@@ -312,8 +312,8 @@ pcall(function()
 end)
 
 local ex = label(info, "EXECUTOR  •  "..executorName, 9, Color3.fromRGB(135,140,155), Enum.Font.GothamMedium)
-ex.Position = UDim2.new(0, 84, 0, 74)
-ex.Size = UDim2.new(1, -98, 0, 17)
+ex.Position = UDim2.new(0, 91, 0, 74)
+ex.Size = UDim2.new(1, -105, 0, 17)
 
 local sep = Instance.new("Frame")
 sep.Size = UDim2.new(1, -26, 0, 1)
