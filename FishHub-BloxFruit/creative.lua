@@ -1,161 +1,159 @@
-local Players = game:GetService("Players")
+--// FishHub - Creative.lua
+local Players=game:GetService("Players")
+local LocalPlayer=Players.LocalPlayer
+local Creative={}
 
-local context = ...
-local player = (context and context.Player) or Players.LocalPlayer
-if not player then return end
-local playerGui = (context and context.PlayerGui) or player:WaitForChild("PlayerGui", 10)
-local tab = context and context.Tab
-local main = context and context.MainWindow
+local FACEBOOK_URL="https://www.facebook.com/dao.huy.lam.09/"
 
-if not tab then
-    local fishHub = playerGui and playerGui:FindFirstChild("FishHub")
-    local mainWindow = fishHub and fishHub:FindFirstChild("MainWindow")
-    local content = mainWindow and mainWindow:FindFirstChild("ContentContainer")
-    tab = content and content:FindFirstChild("CreativeTab", true)
-    main = main or mainWindow
-end
-if not tab then return end
-
-for _, child in ipairs(tab:GetChildren()) do child:Destroy() end
-tab.ClipsDescendants = true
-
-local function theme()
-    local stroke = main and main:FindFirstChildOfClass("UIStroke")
-    return stroke and stroke.Color or Color3.fromRGB(104,82,255)
+local function clear(p)
+    for _,c in ipairs(p:GetChildren()) do c:Destroy() end
 end
 
 local function corner(p,r)
-    local c=Instance.new("UICorner"); c.CornerRadius=UDim.new(0,r); c.Parent=p
+    local c=Instance.new("UICorner")
+    c.CornerRadius=UDim.new(0,r or 8)
+    c.Parent=p
 end
 
-local function txt(p,t,s,c,f)
-    local x=Instance.new("TextLabel")
-    x.BackgroundTransparency=1
-    x.Font=f or Enum.Font.GothamMedium
-    x.TextSize=s
-    x.TextColor3=c
-    x.Text=t
-    x.Parent=p
-    return x
-end
-
-local scroll=Instance.new("ScrollingFrame")
-scroll.Size=UDim2.new(1,0,1,0)
-scroll.BackgroundTransparency=1
-scroll.BorderSizePixel=0
-scroll.ScrollBarThickness=0
-scroll.ScrollBarImageTransparency=1
-scroll.ScrollingDirection=Enum.ScrollingDirection.Y
-scroll.AutomaticCanvasSize=Enum.AutomaticSize.Y
-scroll.Parent=tab
-
-local root=Instance.new("Frame")
-root.Size=UDim2.new(1,-10,0,310)
-root.BackgroundTransparency=1
-root.Parent=scroll
-
-local list=Instance.new("UIListLayout")
-list.Padding=UDim.new(0,15)
-list.HorizontalAlignment=Enum.HorizontalAlignment.Center
-list.Parent=root
-
-local function section(titleText,height)
-    local holder=Instance.new("Frame")
-    holder.Size=UDim2.new(1,0,0,height)
-    holder.BackgroundTransparency=1
-    holder.Parent=root
-
-    local title=txt(holder,titleText,10,theme(),Enum.Font.GothamBold)
-    title.Size=UDim2.new(0,200,0,18)
-    title.Position=UDim2.new(.5,-100,0,0)
-    title.TextXAlignment=Enum.TextXAlignment.Center
-    title.ZIndex=5
-
-    local line=Instance.new("Frame")
-    line.Size=UDim2.new(1,0,0,1)
-    line.Position=UDim2.new(0,0,0,25)
-    line.BackgroundColor3=theme()
-    line.BorderSizePixel=0
-    line.ZIndex=1
-    line.Parent=holder
-
-    local grad=Instance.new("UIGradient")
-    grad.Transparency=NumberSequence.new({
-        NumberSequenceKeypoint.new(0,.96),
-        NumberSequenceKeypoint.new(.18,.60),
-        NumberSequenceKeypoint.new(.5,0),
-        NumberSequenceKeypoint.new(.82,.60),
-        NumberSequenceKeypoint.new(1,.96)
-    })
-    grad.Parent=line
-
-    local card=Instance.new("Frame")
-    card.Size=UDim2.new(1,-4,0,height-43)
-    card.Position=UDim2.new(0,2,0,39)
-    card.BackgroundColor3=Color3.fromRGB(7,8,12)
-    card.BorderSizePixel=0
-    card.Parent=holder
-    corner(card,11)
+local function stroke(p,color)
     local s=Instance.new("UIStroke")
-    s.Color=theme(); s.Transparency=.65; s.Parent=card
-    return card
+    s.Color=color
+    s.Thickness=1
+    s.Transparency=.25
+    s.Parent=p
 end
 
-local roblox=section("ROBLOX PLAYERS",140)
+local function divider(parent,title)
+    local h=Instance.new("Frame")
+    h.Size=UDim2.new(1,-12,0,32)
+    h.BackgroundTransparency=1
+    h.Parent=parent
 
-local myName="thankhuyenhuy"
-local myId
-local displayName=myName
-pcall(function() myId=Players:GetUserIdFromNameAsync(myName) end)
-if myId then pcall(function() displayName=Players:GetNameFromUserIdAsync(myId) end) end
+    for _,x in ipairs({.18,.82}) do
+        local line=Instance.new("Frame")
+        line.Size=UDim2.new(.36,0,0,1)
+        line.Position=UDim2.new(x,0,.5,0)
+        line.AnchorPoint=Vector2.new(.5,.5)
+        line.BackgroundColor3=Color3.fromRGB(100,100,115)
+        line.BorderSizePixel=0
+        line.Parent=h
 
-local av=Instance.new("ImageLabel")
-av.Size=UDim2.new(0,68,0,68)
-av.Position=UDim2.new(0,14,0,12)
-av.BackgroundColor3=Color3.fromRGB(14,15,22)
-av.BorderSizePixel=0
-if myId then av.Image="rbxthumb://type=AvatarHeadShot&id="..myId.."&w=150&h=150" end
-av.Parent=roblox
-corner(av,11)
+        local g=Instance.new("UIGradient")
+        g.Transparency=NumberSequence.new({
+            NumberSequenceKeypoint.new(0,1),
+            NumberSequenceKeypoint.new(.5,0),
+            NumberSequenceKeypoint.new(1,1)
+        })
+        g.Parent=line
+    end
 
-local nm=txt(roblox,displayName,14,Color3.fromRGB(245,246,252),Enum.Font.GothamBold)
-nm.Position=UDim2.new(0,96,0,12)
-nm.Size=UDim2.new(1,-110,0,23)
+    local t=Instance.new("TextLabel")
+    t.Size=UDim2.new(0,160,0,24)
+    t.Position=UDim2.new(.5,0,.5,0)
+    t.AnchorPoint=Vector2.new(.5,.5)
+    t.BackgroundColor3=Color3.fromRGB(5,5,8)
+    t.Text=title
+    t.TextColor3=Color3.fromRGB(225,225,235)
+    t.Font=Enum.Font.GothamBold
+    t.TextSize=11
+    t.Parent=h
+    corner(t,5)
+end
 
-local usr=txt(roblox,"@"..myName,10,theme(),Enum.Font.GothamBold)
-usr.Position=UDim2.new(0,96,0,38)
-usr.Size=UDim2.new(1,-110,0,19)
+function Creative:Load(tabFrame,themeColor)
+    if not tabFrame then return end
+    clear(tabFrame)
+    themeColor=themeColor or Color3.fromRGB(0,200,255)
 
-local tag=txt(roblox,"SCRIPT CREATOR  •  ROBLOX PROFILE",8,Color3.fromRGB(100,105,120),Enum.Font.GothamBold)
-tag.Position=UDim2.new(0,14,0,93)
-tag.Size=UDim2.new(1,-28,0,18)
+    local root=Instance.new("Frame")
+    root.Size=UDim2.new(1,0,0,330)
+    root.BackgroundTransparency=1
+    root.Parent=tabFrame
 
-local facebook=section("FACEBOOK PLAYERS",120)
+    local list=Instance.new("UIListLayout")
+    list.Padding=UDim.new(0,8)
+    list.HorizontalAlignment=Enum.HorizontalAlignment.Center
+    list.Parent=root
 
-local title=txt(facebook,"Facebook profile",10,Color3.fromRGB(230,232,240),Enum.Font.GothamBold)
-title.Position=UDim2.new(0,14,0,9)
-title.Size=UDim2.new(1,-28,0,20)
+    divider(root,"ROBLOX PLAYERS")
 
-local add=Instance.new("TextButton")
-add.Size=UDim2.new(1,-28,0,38)
-add.Position=UDim2.new(0,14,0,38)
-add.BackgroundColor3=theme()
-add.BorderSizePixel=0
-add.AutoButtonColor=false
-add.Font=Enum.Font.GothamBold
-add.TextSize=10
-add.TextColor3=Color3.fromRGB(18,18,25)
-add.Text="ADD  •  FACEBOOK"
-add.Parent=facebook
-corner(add,8)
+    local roblox=Instance.new("Frame")
+    roblox.Size=UDim2.new(1,-12,0,105)
+    roblox.BackgroundColor3=Color3.fromRGB(5,5,8)
+    roblox.BorderSizePixel=0
+    roblox.Parent=root
+    corner(roblox,9)
+    stroke(roblox,themeColor)
 
-local link=txt(facebook,"dao.huy.lam.09",8,Color3.fromRGB(100,105,120),Enum.Font.GothamMedium)
-link.Position=UDim2.new(0,14,0,82)
-link.Size=UDim2.new(1,-28,0,18)
+    local avatar=Instance.new("ImageLabel")
+    avatar.Size=UDim2.new(0,64,0,64)
+    avatar.Position=UDim2.new(0,12,.5,0)
+    avatar.AnchorPoint=Vector2.new(0,.5)
+    avatar.BackgroundColor3=Color3.fromRGB(20,20,26)
+    avatar.BorderSizePixel=0
+    avatar.Parent=roblox
+    corner(avatar,32)
 
-local fbUrl="https://www.facebook.com/dao.huy.lam.09/"
-add.MouseButton1Click:Connect(function()
-    pcall(function() if setclipboard then setclipboard(fbUrl) end end)
-    add.Text="COPIED  •  FACEBOOK LINK"
-    task.delay(1.5,function() if add.Parent then add.Text="ADD  •  FACEBOOK" end end)
-end)
+    pcall(function()
+        avatar.Image=Players:GetUserThumbnailAsync(
+            LocalPlayer.UserId,
+            Enum.ThumbnailType.HeadShot,
+            Enum.ThumbnailSize.Size100x100
+        )
+    end)
+
+    local n=Instance.new("TextLabel")
+    n.Size=UDim2.new(1,-100,0,25)
+    n.Position=UDim2.new(0,90,0,25)
+    n.BackgroundTransparency=1
+    n.Text="thankhuyenhuy"
+    n.TextColor3=Color3.fromRGB(235,235,245)
+    n.Font=Enum.Font.GothamBold
+    n.TextSize=13
+    n.TextXAlignment=Enum.TextXAlignment.Left
+    n.Parent=roblox
+
+    local u=n:Clone()
+    u.Position=UDim2.new(0,90,0,52)
+    u.Text="@thankhuyenhuy"
+    u.TextColor3=themeColor
+    u.Font=Enum.Font.GothamMedium
+    u.TextSize=10
+    u.Parent=roblox
+
+    divider(root,"FACEBOOK PLAYERS")
+
+    local facebook=Instance.new("Frame")
+    facebook.Size=UDim2.new(1,-12,0,100)
+    facebook.BackgroundColor3=Color3.fromRGB(5,5,8)
+    facebook.BorderSizePixel=0
+    facebook.Parent=root
+    corner(facebook,9)
+    stroke(facebook,themeColor)
+
+    local add=Instance.new("TextButton")
+    add.Size=UDim2.new(1,-20,0,42)
+    add.Position=UDim2.new(0,10,0,29)
+    add.BackgroundColor3=themeColor
+    add.BorderSizePixel=0
+    add.AutoButtonColor=false
+    add.Text="ADD"
+    add.TextColor3=Color3.fromRGB(10,10,14)
+    add.Font=Enum.Font.GothamBold
+    add.TextSize=12
+    add.Parent=facebook
+    corner(add,7)
+
+    add.MouseButton1Click:Connect(function()
+        pcall(function()
+            if setclipboard then setclipboard(FACEBOOK_URL) end
+        end)
+        pcall(function()
+            if syn and syn.request then
+                syn.request({Url=FACEBOOK_URL,Method="GET"})
+            end
+        end)
+    end)
+end
+
+return Creative
