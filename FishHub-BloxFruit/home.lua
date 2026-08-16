@@ -1,343 +1,336 @@
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
+local TweenService = game:GetService("TweenService")
 
 local context = ...
 local player = (context and context.Player) or Players.LocalPlayer
 if not player then return end
-local playerGui = (context and context.PlayerGui) or player:WaitForChild("PlayerGui", 10)
-local tab = context and context.Tab
-local main = context and context.MainWindow
 
+local gui = (context and context.PlayerGui) or player:WaitForChild("PlayerGui", 10)
+if not gui then return end
+
+local tab = (context and context.Tab)
 if not tab then
-    local fishHub = playerGui and playerGui:FindFirstChild("FishHub")
-    local mainWindow = fishHub and fishHub:FindFirstChild("MainWindow")
-    local content = mainWindow and mainWindow:FindFirstChild("ContentContainer")
-    tab = content and content:FindFirstChild("HomeTab", true)
-    main = main or mainWindow
+    local fishHub = gui:FindFirstChild("FishHub")
+    if not fishHub then return end
+    local mainWindow = fishHub:FindFirstChild("MainWindow")
+    local contentContainer = mainWindow and mainWindow:FindFirstChild("ContentContainer")
+    tab = contentContainer and contentContainer:FindFirstChild("HomeTab", true)
 end
+
 if not tab then return end
 
-for _, child in ipairs(tab:GetChildren()) do child:Destroy() end
-tab.ClipsDescendants = true
+for _, child in ipairs(tab:GetChildren()) do
+    child:Destroy()
+end
 
-local function theme()
+local function getTheme()
+    local main = (context and context.MainWindow) or fishHub:FindFirstChild("MainWindow")
     local stroke = main and main:FindFirstChildOfClass("UIStroke")
-    return stroke and stroke.Color or Color3.fromRGB(104, 82, 255)
+    return stroke and stroke.Color or Color3.fromRGB(0, 229, 255)
 end
 
-local function corner(p, r)
+local function corner(parent, radius)
     local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0, r)
-    c.Parent = p
+    c.CornerRadius = UDim.new(0, radius or 10)
+    c.Parent = parent
 end
 
-local function stroke(p, t)
-    local s = Instance.new("UIStroke")
-    s.Color = theme()
-    s.Thickness = 1
-    s.Transparency = t or .55
-    s.Parent = p
-end
-
-local function label(p, text, size, color, font)
-    local x = Instance.new("TextLabel")
-    x.BackgroundTransparency = 1
-    x.Font = font or Enum.Font.GothamMedium
-    x.TextSize = size
-    x.TextColor3 = color
-    x.Text = text
-    x.Parent = p
-    return x
-end
-
-local scroll = Instance.new("ScrollingFrame")
-scroll.Name = "HomeScroll"
-scroll.Size = UDim2.new(1, 0, 1, 0)
-scroll.BackgroundTransparency = 1
-scroll.BorderSizePixel = 0
-scroll.ScrollBarThickness = 0
-scroll.ScrollBarImageTransparency = 1
-scroll.ScrollingDirection = Enum.ScrollingDirection.Y
-scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-scroll.CanvasSize = UDim2.new()
-scroll.Parent = tab
-
-local pad = Instance.new("UIPadding")
-pad.PaddingLeft = UDim.new(0, 5)
-pad.PaddingRight = UDim.new(0, 5)
-pad.PaddingTop = UDim.new(0, 4)
-pad.PaddingBottom = UDim.new(0, 14)
-pad.Parent = scroll
-
-local root = Instance.new("Frame")
-root.Size = UDim2.new(1, -10, 0, 590)
-root.BackgroundTransparency = 1
-root.Parent = scroll
-
-local list = Instance.new("UIListLayout")
-list.Padding = UDim.new(0, 15)
-list.HorizontalAlignment = Enum.HorizontalAlignment.Center
-list.Parent = root
-
-local welcome = Instance.new("Frame")
-welcome.Size = UDim2.new(1, 0, 0, 104)
-welcome.BackgroundColor3 = Color3.fromRGB(7, 8, 12)
-welcome.BorderSizePixel = 0
-welcome.Parent = root
-corner(welcome, 12)
-stroke(welcome, .42)
-
-local accent = Instance.new("Frame")
-accent.Size = UDim2.new(0, 4, 1, -28)
-accent.Position = UDim2.new(0, 13, 0, 14)
-accent.BackgroundColor3 = theme()
-accent.BorderSizePixel = 0
-accent.Parent = welcome
-corner(accent, 3)
-
-local wt = label(welcome, "FISHHUB", 20, Color3.fromRGB(245,246,252), Enum.Font.GothamBlack)
-wt.Position = UDim2.new(0, 30, 0, 14)
-wt.Size = UDim2.new(1, -45, 0, 25)
-
-local ws = label(welcome, "Welcome to your control panel", 10, Color3.fromRGB(145,150,165), Enum.Font.GothamMedium)
-ws.Position = UDim2.new(0, 31, 0, 42)
-ws.Size = UDim2.new(1, -45, 0, 18)
-
-local gameName = "Roblox"
-pcall(function()
-    local info = MarketplaceService:GetProductInfo(game.PlaceId)
-    if info and info.Name then gameName = info.Name end
-end)
-
-local gameTag = label(welcome, "●  " .. gameName, 9, theme(), Enum.Font.GothamBold)
-gameTag.Position = UDim2.new(0, 31, 0, 70)
-gameTag.Size = UDim2.new(1, -45, 0, 18)
-
-local function section(titleText, height)
+local function section(parent, title, height)
     local holder = Instance.new("Frame")
-    holder.Size = UDim2.new(1, 0, 0, height)
+    holder.Size = UDim2.new(1, -8, 0, height)
     holder.BackgroundTransparency = 1
-    holder.Parent = root
+    holder.BorderSizePixel = 0
+    holder.Parent = parent
 
-    local title = label(holder, titleText, 10, theme(), Enum.Font.GothamBold)
-    title.Size = UDim2.new(0, 170, 0, 18)
-    title.Position = UDim2.new(.5, -85, 0, 0)
-    title.TextXAlignment = Enum.TextXAlignment.Center
-    title.ZIndex = 3
+    local top = Instance.new("Frame")
+    top.Size = UDim2.new(1, 0, 0, 1)
+    top.Position = UDim2.new(0, 0, 0, 15)
+    top.BackgroundColor3 = getTheme()
+    top.BorderSizePixel = 0
+    top.Parent = holder
 
-    local line = Instance.new("Frame")
-    line.Size = UDim2.new(1, 0, 0, 1)
-    line.Position = UDim2.new(0, 0, 0, 24)
-    line.BackgroundColor3 = theme()
-    line.BorderSizePixel = 0
-    line.ZIndex = 1
-    line.Parent = holder
-
-    local g = Instance.new("UIGradient")
-    g.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, .96),
-        NumberSequenceKeypoint.new(.18, .60),
-        NumberSequenceKeypoint.new(.5, 0),
-        NumberSequenceKeypoint.new(.82, .60),
-        NumberSequenceKeypoint.new(1, .96)
+    local topGradient = Instance.new("UIGradient")
+    topGradient.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.9),
+        NumberSequenceKeypoint.new(0.2, 0.55),
+        NumberSequenceKeypoint.new(0.5, 0),
+        NumberSequenceKeypoint.new(0.8, 0.55),
+        NumberSequenceKeypoint.new(1, 0.9)
     })
-    g.Parent = line
+    topGradient.Parent = top
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0, 180, 0, 30)
+    label.Position = UDim2.new(0.5, -90, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 12
+    label.TextColor3 = getTheme()
+    label.Text = title
+    label.TextXAlignment = Enum.TextXAlignment.Center
+    label.Parent = holder
+
+    local bottom = top:Clone()
+    bottom.Position = UDim2.new(0, 0, 1, -1)
+    bottom.Parent = holder
 
     local card = Instance.new("Frame")
-    card.Size = UDim2.new(1, -4, 0, height - 43)
-    card.Position = UDim2.new(0, 2, 0, 39)
-    card.BackgroundColor3 = Color3.fromRGB(7,8,12)
+    card.Size = UDim2.new(1, -20, 1, -46)
+    card.Position = UDim2.new(0, 10, 0, 30)
+    card.BackgroundColor3 = Color3.fromRGB(8, 9, 13)
+    card.BackgroundTransparency = 0.08
     card.BorderSizePixel = 0
     card.Parent = holder
-    corner(card, 11)
-    stroke(card, .65)
-    return card
+    corner(card, 10)
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = getTheme()
+    stroke.Transparency = 0.65
+    stroke.Thickness = 1
+    stroke.Parent = card
+
+    return holder, card
 end
 
-local status = section("PLAYER STATUS", 136, 2)
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 12)
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Parent = tab
 
-local function findValue(...)
-    local names = {...}
-    local containers = {
-        player:FindFirstChild("leaderstats"),
-        player:FindFirstChild("Data"),
-        player:FindFirstChild("data")
-    }
+local welcome = Instance.new("Frame")
+welcome.Size = UDim2.new(1, -8, 0, 78)
+welcome.BackgroundColor3 = Color3.fromRGB(8, 9, 13)
+welcome.BackgroundTransparency = 0.08
+welcome.BorderSizePixel = 0
+welcome.Parent = tab
+corner(welcome, 10)
 
-    for _, container in ipairs(containers) do
-        if container then
-            for _, name in ipairs(names) do
-                local value = container:FindFirstChild(name)
-                if value then
-                    return value
-                end
-            end
-        end
+local welcomeStroke = Instance.new("UIStroke")
+welcomeStroke.Color = getTheme()
+welcomeStroke.Transparency = 0.55
+welcomeStroke.Parent = welcome
+
+local gameName = "Roblox Game"
+pcall(function()
+    local info = MarketplaceService:GetProductInfo(game.PlaceId)
+    if info and info.Name then
+        gameName = info.Name
     end
+end)
 
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -24, 0, 28)
+title.Position = UDim2.new(0, 12, 0, 9)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.TextSize = 17
+title.TextColor3 = getTheme()
+title.Text = "WELCOME TO FISHHUB"
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = welcome
+
+local subtitle = Instance.new("TextLabel")
+subtitle.Size = UDim2.new(1, -24, 0, 28)
+subtitle.Position = UDim2.new(0, 12, 0, 39)
+subtitle.BackgroundTransparency = 1
+subtitle.Font = Enum.Font.GothamMedium
+subtitle.TextSize = 11
+subtitle.TextColor3 = Color3.fromRGB(180, 185, 200)
+subtitle.Text = "READY TO EXPERIENCE  •  " .. gameName
+subtitle.TextXAlignment = Enum.TextXAlignment.Left
+subtitle.Parent = welcome
+
+local statusHolder, statusCard = section(tab, "PLAYER STATUS", 125)
+statusHolder.LayoutOrder = 2
+
+local infoHolder, infoCard = section(tab, "INFORMATION", 150)
+infoHolder.LayoutOrder = 3
+
+local function findStat(...)
+    local names = {...}
+    local leaderstats = player:FindFirstChild("leaderstats")
+    if not leaderstats then return nil end
     for _, name in ipairs(names) do
-        local value = player:FindFirstChild(name)
+        local value = leaderstats:FindFirstChild(name)
         if value then
             return value
         end
     end
+    return nil
+end
+
+local function valueText(...)
+    local obj = findStat(...)
+    return obj and tostring(obj.Value) or "0"
 end
 
 local function formatNumber(value)
-    if not value then
-        return "0"
-    end
-
-    local raw = value.Value
-    local n = tonumber(raw)
-
-    if not n then
-        return tostring(raw or 0)
-    end
-
+    local n = tonumber(value)
+    if not n then return tostring(value) end
     local s = tostring(math.floor(n))
     local sign = ""
-
-    if s:sub(1, 1) == "-" then
+    if s:sub(1,1) == "-" then
         sign = "-"
         s = s:sub(2)
     end
-
     while true do
         local replaced, count = s:gsub("^(%d+)(%d%d%d)", "%1,%2")
         s = replaced
-        if count == 0 then
-            break
-        end
+        if count == 0 then break end
     end
-
     return sign .. s
 end
 
-local function createStat(titleText, valueText, x, y)
-    local card = Instance.new("Frame")
-    card.Size = UDim2.new(0.5, -9, 0, 34)
-    card.Position = UDim2.new(x, 4, 0, y)
-    card.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
-    card.BorderSizePixel = 0
-    card.Parent = status
-    corner(card, 7)
+local function addStatusRow(parent, x, y, labelText, valueTextValue)
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(0.5, -8, 0, 30)
+    row.Position = UDim2.new(x, 4, 0, y)
+    row.BackgroundTransparency = 1
+    row.Parent = parent
 
-    local title = label(card, titleText, 8, Color3.fromRGB(115, 120, 135), Enum.Font.GothamBold)
-    title.Size = UDim2.new(0.58, 0, 1, 0)
-    title.Position = UDim2.new(0, 8, 0, 0)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.48, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamMedium
+    label.TextSize = 10
+    label.TextColor3 = Color3.fromRGB(140, 145, 160)
+    label.Text = labelText
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = row
 
-    local value = label(card, valueText, 9, Color3.fromRGB(240, 242, 248), Enum.Font.GothamBold)
-    value.Size = UDim2.new(0.42, -8, 1, 0)
-    value.Position = UDim2.new(0.58, 0, 0, 0)
+    local value = Instance.new("TextLabel")
+    value.Size = UDim2.new(0.52, 0, 1, 0)
+    value.Position = UDim2.new(0.48, 0, 0, 0)
+    value.BackgroundTransparency = 1
+    value.Font = Enum.Font.GothamBold
+    value.TextSize = 11
+    value.TextColor3 = Color3.fromRGB(240, 242, 248)
+    value.Text = valueTextValue
     value.TextXAlignment = Enum.TextXAlignment.Right
+    value.Parent = row
 
-    return title, value
+    return value
 end
 
-local levelValue = findValue("Level", "level")
-local beliValue = findValue("Beli", "Money", "money")
-local fragmentsValue = findValue("Fragments", "Fragment", "fragments")
+local levelLabel = addStatusRow(statusCard, 0, 8, "LEVEL", formatNumber(valueText("Level", "level")))
+local beliLabel = addStatusRow(statusCard, 0.5, 8, "BELI", formatNumber(valueText("Beli", "Money", "money")))
+local fragmentLabel = addStatusRow(statusCard, 0, 42, "FRAGMENTS", formatNumber(valueText("Fragments", "Fragment", "fragments")))
+local factionTitleLabel = addStatusRow(statusCard, 0.5, 42, "BOUNTY", "0")
 
-local levelTitle, level = createStat("LEVEL", formatNumber(levelValue), 0, 7)
-local beliTitle, beli = createStat("BELI", formatNumber(beliValue), 0.5, 7)
-local fragmentTitle, fragments = createStat("FRAGMENTS", formatNumber(fragmentsValue), 0, 48)
-local reputationTitle, reputation = createStat("BOUNTY", "0", 0.5, 48)
-
-local function getTeamKind()
-    local team = player.Team
-    if not team then
-        return "Unknown"
+local function findDescendantValue(root, names)
+    if not root then return nil end
+    for _, obj in ipairs(root:GetDescendants()) do
+        if obj:IsA("IntValue") or obj:IsA("NumberValue") or obj:IsA("StringValue") then
+            local n = string.lower(obj.Name)
+            for _, wanted in ipairs(names) do
+                if n == string.lower(wanted) then
+                    return obj
+                end
+            end
+        end
     end
+end
 
+local function findReputation(kind)
+    local wanted = kind == "Marines" and {"Honor", "honor"} or {"Bounty", "bounty"}
+    local containers = {
+        player:FindFirstChild("leaderstats"),
+        player:FindFirstChild("Data"),
+        player:FindFirstChild("data"),
+        player
+    }
+    for _, container in ipairs(containers) do
+        local value = findDescendantValue(container, wanted)
+        if value then return value end
+    end
+end
+
+local function getFaction()
+    local team = player.Team
+    if not team then return "Unknown" end
     local name = string.lower(team.Name)
-
     if string.find(name, "pirate", 1, true) or string.find(name, "pira", 1, true) then
         return "Pirates"
     end
-
     if string.find(name, "marine", 1, true) or string.find(name, "mari", 1, true) then
         return "Marines"
     end
-
-    return team.Name
+    return "Unknown"
 end
 
 local function refreshReputation()
-    local kind = getTeamKind()
-
-    if kind == "Pirates" then
-        reputationTitle.Text = "BOUNTY"
-        reputation.Text = formatNumber(findValue("Bounty", "bounty"))
-    elseif kind == "Marines" then
-        reputationTitle.Text = "HONOR"
-        reputation.Text = formatNumber(findValue("Honor", "honor"))
+    local faction = getFaction()
+    local stat = findReputation(faction)
+    if faction == "Marines" then
+        factionTitleLabel.Parent:FindFirstChildWhichIsA("TextLabel").Text = "HONOR"
     else
-        reputationTitle.Text = "BOUNTY"
-        reputation.Text = formatNumber(findValue("Bounty", "bounty"))
+        factionTitleLabel.Parent:FindFirstChildWhichIsA("TextLabel").Text = "BOUNTY"
     end
+    factionTitleLabel.Text = stat and formatNumber(stat.Value) or "0"
 end
 
-local info = section("INFORMATION", 142)
-
 local avatar = Instance.new("ImageLabel")
-avatar.Size = UDim2.new(0, 64, 0, 64)
-avatar.Position = UDim2.new(0, 13, 0, 12)
-avatar.BackgroundColor3 = Color3.fromRGB(14,15,22)
+avatar.Size = UDim2.new(0, 58, 0, 58)
+avatar.Position = UDim2.new(0, 12, 0, 11)
+avatar.BackgroundColor3 = Color3.fromRGB(18, 20, 27)
 avatar.BorderSizePixel = 0
-avatar.Image = "rbxthumb://type=AvatarHeadShot&id="..player.UserId.."&w=150&h=150"
-avatar.Parent = info
+avatar.Image = "rbxthumb://type=AvatarHeadShot&id=" .. player.UserId .. "&w=150&h=150"
+avatar.Parent = infoCard
 corner(avatar, 10)
 
-local dn = label(info, player.DisplayName, 14, Color3.fromRGB(245,246,252), Enum.Font.GothamBold)
-dn.Position = UDim2.new(0, 91, 0, 11)
-dn.Size = UDim2.new(1, -105, 0, 21)
+local nameLabel = Instance.new("TextLabel")
+nameLabel.Size = UDim2.new(1, -88, 0, 22)
+nameLabel.Position = UDim2.new(0, 72, 0, 10)
+nameLabel.BackgroundTransparency = 1
+nameLabel.Font = Enum.Font.GothamBold
+nameLabel.TextSize = 13
+nameLabel.TextColor3 = Color3.fromRGB(245, 245, 250)
+nameLabel.Text = player.DisplayName
+nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+nameLabel.Parent = infoCard
 
-local un = label(info, "@"..player.Name, 10, theme(), Enum.Font.GothamBold)
-un.Position = UDim2.new(0, 91, 0, 34)
-un.Size = UDim2.new(1, -105, 0, 18)
+local usernameLabel = nameLabel:Clone()
+usernameLabel.Position = UDim2.new(0, 72, 0, 32)
+usernameLabel.TextSize = 10
+usernameLabel.Font = Enum.Font.GothamMedium
+usernameLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
+usernameLabel.Text = "@" .. player.Name
+usernameLabel.Parent = infoCard
 
-local uid = label(info, "USER ID  •  "..player.UserId, 9, Color3.fromRGB(135,140,155), Enum.Font.GothamMedium)
-uid.Position = UDim2.new(0, 91, 0, 54)
-uid.Size = UDim2.new(1, -105, 0, 17)
+local useridLabel = nameLabel:Clone()
+useridLabel.Position = UDim2.new(0, 72, 0, 54)
+useridLabel.TextSize = 10
+useridLabel.TextColor3 = Color3.fromRGB(170, 175, 190)
+useridLabel.Text = "UserId: " .. tostring(player.UserId)
+useridLabel.Parent = infoCard
 
-local executorName = "Unknown"
+local executor = "Unknown"
 pcall(function()
     if identifyexecutor then
-        local a,b = identifyexecutor()
-        executorName = tostring(a or b or "Unknown")
+        local a, b = identifyexecutor()
+        executor = tostring(a or b or "Unknown")
     elseif getexecutorname then
-        executorName = tostring(getexecutorname())
+        executor = tostring(getexecutorname())
     end
 end)
 
-local ex = label(info, "EXECUTOR  •  "..executorName, 9, Color3.fromRGB(135,140,155), Enum.Font.GothamMedium)
-ex.Position = UDim2.new(0, 91, 0, 74)
-ex.Size = UDim2.new(1, -105, 0, 17)
+local executorLabel = useridLabel:Clone()
+executorLabel.Position = UDim2.new(0, 72, 0, 76)
+executorLabel.Text = "Executor: " .. executor
+executorLabel.Parent = infoCard
 
-local sep = Instance.new("Frame")
-sep.Size = UDim2.new(1, -26, 0, 1)
-sep.Position = UDim2.new(0, 13, 0, 98)
-sep.BackgroundColor3 = Color3.fromRGB(30,31,40)
-sep.BorderSizePixel = 0
-sep.Parent = info
-
-local hint = label(info, "CURRENT SESSION", 8, Color3.fromRGB(95,100,115), Enum.Font.GothamBold)
-hint.Position = UDim2.new(0, 13, 0, 109)
-hint.Size = UDim2.new(1, -26, 0, 17)
+local function refresh()
+    levelLabel.Text = formatNumber(valueText("Level", "level"))
+    beliLabel.Text = formatNumber(valueText("Beli", "Money", "money"))
+    fragmentLabel.Text = formatNumber(valueText("Fragments", "Fragment", "fragments"))
+    refreshReputation()
+end
 
 task.spawn(function()
     while tab.Parent do
-        levelValue = findValue("Level", "level")
-        beliValue = findValue("Beli", "Money", "money")
-        fragmentsValue = findValue("Fragments", "Fragment", "fragments")
-
-        level.Text = formatNumber(levelValue)
-        beli.Text = formatNumber(beliValue)
-        fragments.Text = formatNumber(fragmentsValue)
-
-        refreshReputation()
-
-        task.wait(0.5)
+        refresh()
+        task.wait(1)
     end
 end)
