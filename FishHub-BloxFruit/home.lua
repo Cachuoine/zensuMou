@@ -1,343 +1,245 @@
-local Players = game:GetService("Players")
-local MarketplaceService = game:GetService("MarketplaceService")
+local C = ...
+local Tab = C.Tab
+local Player = C.Player
+local TweenService = C.TweenService
+local MarketplaceService = C.MarketplaceService
 
-local context = ...
-local player = (context and context.Player) or Players.LocalPlayer
-if not player then return end
-local playerGui = (context and context.PlayerGui) or player:WaitForChild("PlayerGui", 10)
-local tab = context and context.Tab
-local main = context and context.MainWindow
+Tab:ClearAllChildren()
+Tab.ScrollBarThickness = 0
+Tab.AutomaticCanvasSize = Enum.AutomaticSize.Y
+Tab.CanvasSize = UDim2.new(0,0,0,0)
 
-if not tab then
-    local fishHub = playerGui and playerGui:FindFirstChild("FishHub")
-    local mainWindow = fishHub and fishHub:FindFirstChild("MainWindow")
-    local content = mainWindow and mainWindow:FindFirstChild("ContentContainer")
-    tab = content and content:FindFirstChild("HomeTab", true)
-    main = main or mainWindow
-end
-if not tab then return end
-
-for _, child in ipairs(tab:GetChildren()) do child:Destroy() end
-tab.ClipsDescendants = true
-
-local function theme()
-    local stroke = main and main:FindFirstChildOfClass("UIStroke")
-    return stroke and stroke.Color or Color3.fromRGB(104, 82, 255)
+local Theme = function()
+    return C.GetThemeColor()
 end
 
-local function corner(p, r)
-    local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0, r)
-    c.Parent = p
+local function Corner(o,r)
+    local c=Instance.new("UICorner")
+    c.CornerRadius=UDim.new(0,r or 10)
+    c.Parent=o
 end
 
-local function stroke(p, t)
-    local s = Instance.new("UIStroke")
-    s.Color = theme()
-    s.Thickness = 1
-    s.Transparency = t or .55
-    s.Parent = p
+local function Stroke(o)
+    local s=Instance.new("UIStroke")
+    s.Color=Theme()
+    s.Thickness=1
+    s.Transparency=0.2
+    s.Parent=o
+    return s
 end
 
-local function label(p, text, size, color, font)
-    local x = Instance.new("TextLabel")
-    x.BackgroundTransparency = 1
-    x.Font = font or Enum.Font.GothamMedium
-    x.TextSize = size
-    x.TextColor3 = color
-    x.Text = text
-    x.Parent = p
-    return x
+local function Text(parent,text,size,bold,color)
+    local l=Instance.new("TextLabel")
+    l.Parent=parent
+    l.BackgroundTransparency=1
+    l.Text=text
+    l.TextSize=size or 12
+    l.Font=bold and Enum.Font.GothamBold or Enum.Font.GothamMedium
+    l.TextColor3=color or Color3.fromRGB(235,235,242)
+    l.TextWrapped=true
+    return l
 end
 
-local scroll = Instance.new("ScrollingFrame")
-scroll.Name = "HomeScroll"
-scroll.Size = UDim2.new(1, 0, 1, 0)
-scroll.BackgroundTransparency = 1
-scroll.BorderSizePixel = 0
-scroll.ScrollBarThickness = 0
-scroll.ScrollBarImageTransparency = 1
-scroll.ScrollingDirection = Enum.ScrollingDirection.Y
-scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-scroll.CanvasSize = UDim2.new()
-scroll.Parent = tab
+local Root=Instance.new("Frame")
+Root.Parent=Tab
+Root.Size=UDim2.new(1,-8,0,0)
+Root.AutomaticSize=Enum.AutomaticSize.Y
+Root.BackgroundTransparency=1
 
-local pad = Instance.new("UIPadding")
-pad.PaddingLeft = UDim.new(0, 5)
-pad.PaddingRight = UDim.new(0, 5)
-pad.PaddingTop = UDim.new(0, 4)
-pad.PaddingBottom = UDim.new(0, 14)
-pad.Parent = scroll
+local Layout=Instance.new("UIListLayout")
+Layout.Parent=Root
+Layout.Padding=UDim.new(0,12)
+Layout.HorizontalAlignment=Enum.HorizontalAlignment.Center
+Layout.SortOrder=Enum.SortOrder.LayoutOrder
 
-local root = Instance.new("Frame")
-root.Size = UDim2.new(1, -10, 0, 590)
-root.BackgroundTransparency = 1
-root.Parent = scroll
+local function Divider(title,order)
+    local holder=Instance.new("Frame")
+    holder.Parent=Root
+    holder.Size=UDim2.new(1,-12,0,28)
+    holder.BackgroundTransparency=1
+    holder.LayoutOrder=order
+    local label=Text(holder,title,12,true,Theme())
+    label.Size=UDim2.new(0,0,0,18)
+    label.AutomaticSize=Enum.AutomaticSize.X
+    label.Position=UDim2.new(0.5,0,0,0)
+    label.AnchorPoint=Vector2.new(0.5,0)
+    label.ZIndex=3
+    local line=Instance.new("Frame")
+    line.Parent=holder
+    line.Size=UDim2.new(1,0,0,2)
+    line.Position=UDim2.new(0,0,0,20)
+    line.BackgroundColor3=Theme()
+    line.BorderSizePixel=0
+    Corner(line,2)
+    local g=Instance.new("UIGradient")
+    g.Parent=line
+    g.Transparency=NumberSequence.new({
+        NumberSequenceKeypoint.new(0,0.92),
+        NumberSequenceKeypoint.new(0.2,0.55),
+        NumberSequenceKeypoint.new(0.4,0.12),
+        NumberSequenceKeypoint.new(0.5,0),
+        NumberSequenceKeypoint.new(0.6,0.12),
+        NumberSequenceKeypoint.new(0.8,0.55),
+        NumberSequenceKeypoint.new(1,0.92)
+    })
+    return holder
+end
 
-local list = Instance.new("UIListLayout")
-list.Padding = UDim.new(0, 15)
-list.HorizontalAlignment = Enum.HorizontalAlignment.Center
-list.Parent = root
+local function Card(order,height)
+    local f=Instance.new("Frame")
+    f.Parent=Root
+    f.Size=UDim2.new(1,-12,0,height)
+    f.BackgroundColor3=Color3.fromRGB(7,8,12)
+    f.BackgroundTransparency=0.08
+    f.BorderSizePixel=0
+    f.LayoutOrder=order
+    Corner(f,10)
+    Stroke(f)
+    return f
+end
 
-local welcome = Instance.new("Frame")
-welcome.Size = UDim2.new(1, 0, 0, 104)
-welcome.BackgroundColor3 = Color3.fromRGB(7, 8, 12)
-welcome.BorderSizePixel = 0
-welcome.Parent = root
-corner(welcome, 12)
-stroke(welcome, .42)
-
-local accent = Instance.new("Frame")
-accent.Size = UDim2.new(0, 4, 1, -28)
-accent.Position = UDim2.new(0, 13, 0, 14)
-accent.BackgroundColor3 = theme()
-accent.BorderSizePixel = 0
-accent.Parent = welcome
-corner(accent, 3)
-
-local wt = label(welcome, "FISHHUB", 20, Color3.fromRGB(245,246,252), Enum.Font.GothamBlack)
-wt.Position = UDim2.new(0, 30, 0, 14)
-wt.Size = UDim2.new(1, -45, 0, 25)
-
-local ws = label(welcome, "Welcome to your control panel", 10, Color3.fromRGB(145,150,165), Enum.Font.GothamMedium)
-ws.Position = UDim2.new(0, 31, 0, 42)
-ws.Size = UDim2.new(1, -45, 0, 18)
-
-local gameName = "Roblox"
+local gameName="Roblox"
 pcall(function()
-    local info = MarketplaceService:GetProductInfo(game.PlaceId)
-    if info and info.Name then gameName = info.Name end
+    local info=MarketplaceService:GetProductInfo(game.PlaceId)
+    if info and info.Name then gameName=info.Name end
 end)
 
-local gameTag = label(welcome, "●  " .. gameName, 9, theme(), Enum.Font.GothamBold)
-gameTag.Position = UDim2.new(0, 31, 0, 70)
-gameTag.Size = UDim2.new(1, -45, 0, 18)
+local welcome=Card(1,72)
+local welcomeTitle=Text(welcome,"WELCOME TO FISHHUB",16,true,Theme())
+welcomeTitle.Size=UDim2.new(1,-24,0,24)
+welcomeTitle.Position=UDim2.new(0,12,0,8)
+welcomeTitle.TextXAlignment=Enum.TextXAlignment.Left
+local welcomeSub=Text(welcome,"Script interface ready for "..gameName..". Current place: "..tostring(game.PlaceId),10,false,Color3.fromRGB(165,170,185))
+welcomeSub.Size=UDim2.new(1,-24,0,30)
+welcomeSub.Position=UDim2.new(0,12,0,34)
+welcomeSub.TextXAlignment=Enum.TextXAlignment.Left
 
-local function section(titleText, height)
-    local holder = Instance.new("Frame")
-    holder.Size = UDim2.new(1, 0, 0, height)
-    holder.BackgroundTransparency = 1
-    holder.Parent = root
+Divider("PLAYER STATUS",2)
 
-    local title = label(holder, titleText, 10, theme(), Enum.Font.GothamBold)
-    title.Size = UDim2.new(0, 170, 0, 18)
-    title.Position = UDim2.new(.5, -85, 0, 0)
-    title.TextXAlignment = Enum.TextXAlignment.Center
-    title.ZIndex = 3
+local status=Card(3,112)
+local statusGrid=Instance.new("UIGridLayout")
+statusGrid.Parent=status
+statusGrid.CellSize=UDim2.new(0.5,-10,0,42)
+statusGrid.CellPadding=UDim2.new(0,8,0,6)
+statusGrid.HorizontalAlignment=Enum.HorizontalAlignment.Center
+statusGrid.VerticalAlignment=Enum.VerticalAlignment.Center
 
-    local line = Instance.new("Frame")
-    line.Size = UDim2.new(1, 0, 0, 1)
-    line.Position = UDim2.new(0, 0, 0, 24)
-    line.BackgroundColor3 = theme()
-    line.BorderSizePixel = 0
-    line.ZIndex = 1
-    line.Parent = holder
-
-    local g = Instance.new("UIGradient")
-    g.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, .96),
-        NumberSequenceKeypoint.new(.18, .60),
-        NumberSequenceKeypoint.new(.5, 0),
-        NumberSequenceKeypoint.new(.82, .60),
-        NumberSequenceKeypoint.new(1, .96)
-    })
-    g.Parent = line
-
-    local card = Instance.new("Frame")
-    card.Size = UDim2.new(1, -4, 0, height - 43)
-    card.Position = UDim2.new(0, 2, 0, 39)
-    card.BackgroundColor3 = Color3.fromRGB(7,8,12)
-    card.BorderSizePixel = 0
-    card.Parent = holder
-    corner(card, 11)
-    stroke(card, .65)
-    return card
+local function ValueCard(title,value)
+    local box=Instance.new("Frame")
+    box.BackgroundColor3=Color3.fromRGB(15,16,22)
+    box.BorderSizePixel=0
+    Corner(box,7)
+    local t=Text(box,title,9,true,Color3.fromRGB(145,150,165))
+    t.Size=UDim2.new(1,-12,0,15)
+    t.Position=UDim2.new(0,6,0,4)
+    t.TextXAlignment=Enum.TextXAlignment.Left
+    local v=Text(box,value,12,true,Color3.fromRGB(245,245,250))
+    v.Name="Value"
+    v.Size=UDim2.new(1,-12,0,18)
+    v.Position=UDim2.new(0,6,0,20)
+    v.TextXAlignment=Enum.TextXAlignment.Left
+    return box,v
 end
 
-local status = section("PLAYER STATUS", 136, 2)
-
-local function findValue(...)
-    local names = {...}
-    local containers = {
-        player:FindFirstChild("leaderstats"),
-        player:FindFirstChild("Data"),
-        player:FindFirstChild("data")
-    }
-
-    for _, container in ipairs(containers) do
-        if container then
-            for _, name in ipairs(names) do
-                local value = container:FindFirstChild(name)
-                if value then
-                    return value
-                end
+local stats={}
+local function FindStat(names,default)
+    local leader=Player:FindFirstChild("leaderstats")
+    if leader then
+        for _,name in ipairs(names) do
+            local obj=leader:FindFirstChild(name)
+            if obj and (obj:IsA("IntValue") or obj:IsA("NumberValue") or obj:IsA("StringValue")) then
+                return obj
             end
         end
     end
-
-    for _, name in ipairs(names) do
-        local value = player:FindFirstChild(name)
-        if value then
-            return value
-        end
-    end
+    return default
 end
 
-local function formatNumber(value)
-    if not value then
-        return "0"
-    end
+local levelObj=FindStat({"Level","level"},0)
+local beliObj=FindStat({"Beli","Money","Cash"},0)
+local fragObj=FindStat({"Fragments","Fragment","fragments"},0)
+local teamObj=Player.Team
 
-    local raw = value.Value
-    local n = tonumber(raw)
+local a,av=ValueCard("LEVEL",tostring(levelObj.Value or 0))
+local b,bv=ValueCard("TEAM",teamObj and teamObj.Name or "Unknown")
+local c,cv=ValueCard("BELI",tostring(beliObj.Value or 0))
+local d,dv=ValueCard("FRAGMENTS",tostring(fragObj.Value or 0))
+stats={{levelObj,av},{beliObj,cv},{fragObj,dv}}
 
-    if not n then
-        return tostring(raw or 0)
-    end
+local teamLast=teamObj
+local function UpdateStatus()
+    if levelObj and levelObj.Parent then av.Text=tostring(levelObj.Value) end
+    if beliObj and beliObj.Parent then cv.Text=tostring(beliObj.Value) end
+    if fragObj and fragObj.Parent then dv.Text=tostring(fragObj.Value) end
+    if Player.Team then bv.Text=Player.Team.Name end
+end
+if levelObj.Changed then levelObj.Changed:Connect(UpdateStatus) end
+if beliObj.Changed then beliObj.Changed:Connect(UpdateStatus) end
+if fragObj.Changed then fragObj.Changed:Connect(UpdateStatus) end
+Player:GetPropertyChangedSignal("Team"):Connect(UpdateStatus)
+UpdateStatus()
 
-    local s = tostring(math.floor(n))
-    local sign = ""
+Divider("INFORMATION",4)
 
-    if s:sub(1, 1) == "-" then
-        sign = "-"
-        s = s:sub(2)
-    end
+local info=Card(5,116)
+local avatar=Instance.new("ImageLabel")
+avatar.Parent=info
+avatar.Size=UDim2.new(0,78,0,78)
+avatar.Position=UDim2.new(0,12,0.5,-39)
+avatar.BackgroundColor3=Color3.fromRGB(18,19,26)
+avatar.BorderSizePixel=0
+avatar.Image="rbxthumb://type=AvatarHeadShot&id="..Player.UserId.."&w=150&h=150"
+avatar.ScaleType=Enum.ScaleType.Crop
+Corner(avatar,10)
+Stroke(avatar)
 
-    while true do
-        local replaced, count = s:gsub("^(%d+)(%d%d%d)", "%1,%2")
-        s = replaced
-        if count == 0 then
-            break
-        end
-    end
+local infoText=Instance.new("Frame")
+infoText.Parent=info
+infoText.Size=UDim2.new(1,-108,1,-16)
+infoText.Position=UDim2.new(0,102,0,8)
+infoText.BackgroundTransparency=1
 
-    return sign .. s
+local il=Instance.new("UIListLayout")
+il.Parent=infoText
+il.Padding=UDim.new(0,2)
+il.VerticalAlignment=Enum.VerticalAlignment.Center
+
+local function InfoLine(label,value)
+    local row=Instance.new("Frame")
+    row.Parent=infoText
+    row.Size=UDim2.new(1,0,0,18)
+    row.BackgroundTransparency=1
+    local l=Text(row,label,9,true,Color3.fromRGB(145,150,165))
+    l.Size=UDim2.new(0,62,1,0)
+    l.TextXAlignment=Enum.TextXAlignment.Left
+    local v=Text(row,value,10,true,Color3.fromRGB(238,238,245))
+    v.Size=UDim2.new(1,-68,1,0)
+    v.Position=UDim2.new(0,68,0,0)
+    v.TextXAlignment=Enum.TextXAlignment.Left
+    v.TextTruncate=Enum.TextTruncate.AtEnd
+    return v
 end
 
-local function createStat(titleText, valueText, x, y)
-    local card = Instance.new("Frame")
-    card.Size = UDim2.new(0.5, -9, 0, 34)
-    card.Position = UDim2.new(x, 4, 0, y)
-    card.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
-    card.BorderSizePixel = 0
-    card.Parent = status
-    corner(card, 7)
-
-    local title = label(card, titleText, 8, Color3.fromRGB(115, 120, 135), Enum.Font.GothamBold)
-    title.Size = UDim2.new(0.58, 0, 1, 0)
-    title.Position = UDim2.new(0, 8, 0, 0)
-
-    local value = label(card, valueText, 9, Color3.fromRGB(240, 242, 248), Enum.Font.GothamBold)
-    value.Size = UDim2.new(0.42, -8, 1, 0)
-    value.Position = UDim2.new(0.58, 0, 0, 0)
-    value.TextXAlignment = Enum.TextXAlignment.Right
-
-    return title, value
-end
-
-local levelValue = findValue("Level", "level")
-local beliValue = findValue("Beli", "Money", "money")
-local fragmentsValue = findValue("Fragments", "Fragment", "fragments")
-
-local levelTitle, level = createStat("LEVEL", formatNumber(levelValue), 0, 7)
-local beliTitle, beli = createStat("BELI", formatNumber(beliValue), 0.5, 7)
-local fragmentTitle, fragments = createStat("FRAGMENTS", formatNumber(fragmentsValue), 0, 48)
-local reputationTitle, reputation = createStat("BOUNTY", "0", 0.5, 48)
-
-local function getTeamKind()
-    local team = player.Team
-    if not team then
-        return "Unknown"
-    end
-
-    local name = string.lower(team.Name)
-
-    if string.find(name, "pirate", 1, true) or string.find(name, "pira", 1, true) then
-        return "Pirates"
-    end
-
-    if string.find(name, "marine", 1, true) or string.find(name, "mari", 1, true) then
-        return "Marines"
-    end
-
-    return team.Name
-end
-
-local function refreshReputation()
-    local kind = getTeamKind()
-
-    if kind == "Pirates" then
-        reputationTitle.Text = "BOUNTY"
-        reputation.Text = formatNumber(findValue("Bounty", "bounty"))
-    elseif kind == "Marines" then
-        reputationTitle.Text = "HONOR"
-        reputation.Text = formatNumber(findValue("Honor", "honor"))
-    else
-        reputationTitle.Text = "BOUNTY"
-        reputation.Text = formatNumber(findValue("Bounty", "bounty"))
-    end
-end
-
-local info = section("INFORMATION", 142)
-
-local avatar = Instance.new("ImageLabel")
-avatar.Size = UDim2.new(0, 64, 0, 64)
-avatar.Position = UDim2.new(0, 13, 0, 12)
-avatar.BackgroundColor3 = Color3.fromRGB(14,15,22)
-avatar.BorderSizePixel = 0
-avatar.Image = "rbxthumb://type=AvatarHeadShot&id="..player.UserId.."&w=150&h=150"
-avatar.Parent = info
-corner(avatar, 10)
-
-local dn = label(info, player.DisplayName, 14, Color3.fromRGB(245,246,252), Enum.Font.GothamBold)
-dn.Position = UDim2.new(0, 91, 0, 11)
-dn.Size = UDim2.new(1, -105, 0, 21)
-
-local un = label(info, "@"..player.Name, 10, theme(), Enum.Font.GothamBold)
-un.Position = UDim2.new(0, 91, 0, 34)
-un.Size = UDim2.new(1, -105, 0, 18)
-
-local uid = label(info, "USER ID  •  "..player.UserId, 9, Color3.fromRGB(135,140,155), Enum.Font.GothamMedium)
-uid.Position = UDim2.new(0, 91, 0, 54)
-uid.Size = UDim2.new(1, -105, 0, 17)
-
-local executorName = "Unknown"
+InfoLine("NAME",Player.DisplayName)
+InfoLine("@NAME","@"..Player.Name)
+InfoLine("USERID",tostring(Player.UserId))
+local executor="Unknown"
 pcall(function()
     if identifyexecutor then
-        local a,b = identifyexecutor()
-        executorName = tostring(a or b or "Unknown")
+        executor=identifyexecutor()
     elseif getexecutorname then
-        executorName = tostring(getexecutorname())
+        executor=getexecutorname()
     end
 end)
-
-local ex = label(info, "EXECUTOR  •  "..executorName, 9, Color3.fromRGB(135,140,155), Enum.Font.GothamMedium)
-ex.Position = UDim2.new(0, 91, 0, 74)
-ex.Size = UDim2.new(1, -105, 0, 17)
-
-local sep = Instance.new("Frame")
-sep.Size = UDim2.new(1, -26, 0, 1)
-sep.Position = UDim2.new(0, 13, 0, 98)
-sep.BackgroundColor3 = Color3.fromRGB(30,31,40)
-sep.BorderSizePixel = 0
-sep.Parent = info
-
-local hint = label(info, "CURRENT SESSION", 8, Color3.fromRGB(95,100,115), Enum.Font.GothamBold)
-hint.Position = UDim2.new(0, 13, 0, 109)
-hint.Size = UDim2.new(1, -26, 0, 17)
+InfoLine("EXECUTOR",executor)
 
 task.spawn(function()
-    while tab.Parent do
-        levelValue = findValue("Level", "level")
-        beliValue = findValue("Beli", "Money", "money")
-        fragmentsValue = findValue("Fragments", "Fragment", "fragments")
-
-        level.Text = formatNumber(levelValue)
-        beli.Text = formatNumber(beliValue)
-        fragments.Text = formatNumber(fragmentsValue)
-
-        refreshReputation()
-
+    while Tab.Parent and Root.Parent do
+        local color=Theme()
+        for _,obj in ipairs(Root:GetDescendants()) do
+            if obj:IsA("UIStroke") then obj.Color=color end
+        end
+        welcomeTitle.TextColor3=color
         task.wait(0.5)
     end
 end)
