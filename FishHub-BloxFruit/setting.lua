@@ -6,6 +6,7 @@ return function(ctx)
     local gui=ctx.gui
     local main=ctx.main
     local mainScale=ctx.mainScale
+    local gearBtn=ctx.gearBtn
     local Config=ctx.Config
     local allHubStrokes=ctx.allHubStrokes
     local allHubLines=ctx.allHubLines
@@ -581,27 +582,12 @@ hotkeyButtonBox.MouseButton1Click:Connect(function()
     end)
 end)
 
-    -- Gear lives inside MainWindow so it disappears whenever MainWindow is hidden.
-    local gearBtn=Instance.new("TextButton")
-    gearBtn.Name="GearButton"
-    gearBtn.Parent=main
-    gearBtn.Size=UDim2.new(0,26,0,26)
-    gearBtn.AnchorPoint=Vector2.new(1,0)
-    gearBtn.Position=UDim2.new(1,-76,0,8)
-    gearBtn.BackgroundColor3=Color3.fromRGB(45,45,55)
-    gearBtn.BorderSizePixel=0
-    gearBtn.AutoButtonColor=false
-    gearBtn.Text="⚙"
-    gearBtn.Font=Enum.Font.GothamBold
-    gearBtn.TextSize=12
-    gearBtn.TextColor3=Color3.fromRGB(230,230,240)
-    Instance.new("UICorner",gearBtn).CornerRadius=UDim.new(0,6)
-    local gearStroke=Instance.new("UIStroke")
-    gearStroke.Parent=gearBtn
-    gearStroke.Color=Config.ThemeColor
-    gearStroke.Thickness=1
-    table.insert(allHubStrokes,gearStroke)
-    AddHoverGlow(gearBtn,gearStroke)
+    -- Gear is created by MainWindow.
+    -- This module only binds Settings behavior to that existing button.
+    if not gearBtn then
+        error("setting.lua: gearBtn was not supplied by Main")
+    end
+    local gearStroke=gearBtn:FindFirstChildOfClass("UIStroke")
 
     local rainbowRunning=false
     local debugEnabled=Config.ShowDebug==true
@@ -675,7 +661,7 @@ end)
         Destroy=function()
             destroyed=true
             if settingsWindow then settingsWindow:Destroy() end
-            if gearBtn then gearBtn:Destroy() end
+            -- Gear is owned by MainWindow, so it stays with Main.
         end,
     }
 end
