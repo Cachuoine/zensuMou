@@ -7,7 +7,6 @@ local Players = game:GetService("Players")
 
 if not gui or not main then return end
 
--- Kiểm tra nếu bảng Setting đã tồn tại thì bật/tắt (toggle), nếu chưa thì tạo mới
 local settingsWindow = gui:FindFirstChild("SettingsWindow")
 if settingsWindow then
     settingsWindow.Visible = not settingsWindow.Visible
@@ -99,7 +98,6 @@ local function CreateSectionDivider(title, order)
     label.TextColor3 = Config.ThemeColor
     label.Text = title
     label.AutomaticSize = Enum.AutomaticSize.X
-    label.ZIndex = 2
     table.insert(allThemeTexts, label)
     
     local line = Instance.new("Frame")
@@ -172,8 +170,7 @@ svWhite.Parent = svArea
 svWhite.Size = UDim2.fromScale(1, 1)
 svWhite.BackgroundColor3 = Color3.new(1, 1, 1)
 svWhite.BorderSizePixel = 0
-local whiteGradient = Instance.new("UIGradient")
-whiteGradient.Parent = svWhite
+local whiteGradient = Instance.new("UIGradient", svWhite)
 whiteGradient.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1)})
 
 local svBlack = Instance.new("Frame")
@@ -181,8 +178,7 @@ svBlack.Parent = svArea
 svBlack.Size = UDim2.fromScale(1, 1)
 svBlack.BackgroundColor3 = Color3.new(0, 0, 0)
 svBlack.BorderSizePixel = 0
-local blackGradient = Instance.new("UIGradient")
-blackGradient.Parent = svBlack
+local blackGradient = Instance.new("UIGradient", svBlack)
 blackGradient.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0)})
 blackGradient.Rotation = 90
 
@@ -191,8 +187,6 @@ svButton.Parent = svArea
 svButton.Size = UDim2.fromScale(1, 1)
 svButton.BackgroundTransparency = 1
 svButton.Text = ""
-svButton.AutoButtonColor = false
-svButton.ZIndex = 5
 
 local svCursor = Instance.new("Frame")
 svCursor.Parent = svArea
@@ -200,10 +194,8 @@ svCursor.Size = UDim2.new(0, 12, 0, 12)
 svCursor.AnchorPoint = Vector2.new(0.5, 0.5)
 svCursor.BackgroundColor3 = Color3.new(1, 1, 1)
 svCursor.BorderSizePixel = 0
-svCursor.ZIndex = 7
 Instance.new("UICorner", svCursor).CornerRadius = UDim.new(1, 0)
-local svCursorStroke = Instance.new("UIStroke")
-svCursorStroke.Parent = svCursor
+local svCursorStroke = Instance.new("UIStroke", svCursor)
 svCursorStroke.Thickness = 2
 svCursorStroke.Color = Color3.new(0, 0, 0)
 
@@ -213,11 +205,9 @@ hueBar.Size = UDim2.new(0, 18, 0, 118)
 hueBar.Position = UDim2.new(1, -32, 0, 34)
 hueBar.BackgroundColor3 = Color3.new(1, 1, 1)
 hueBar.BorderSizePixel = 0
-hueBar.ZIndex = 4
 Instance.new("UICorner", hueBar).CornerRadius = UDim.new(1, 0)
 
-local hueGradient = Instance.new("UIGradient")
-hueGradient.Parent = hueBar
+local hueGradient = Instance.new("UIGradient", hueBar)
 hueGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
     ColorSequenceKeypoint.new(0.1667, Color3.fromRGB(255, 255, 0)),
@@ -234,8 +224,6 @@ hueButton.Parent = hueBar
 hueButton.Size = UDim2.fromScale(1, 1)
 hueButton.BackgroundTransparency = 1
 hueButton.Text = ""
-hueButton.AutoButtonColor = false
-hueButton.ZIndex = 5
 
 local hueCursor = Instance.new("Frame")
 hueCursor.Parent = hueBar
@@ -243,11 +231,7 @@ hueCursor.Size = UDim2.new(1, 0, 0, 4)
 hueCursor.AnchorPoint = Vector2.new(0, 0.5)
 hueCursor.BackgroundColor3 = Color3.new(1, 1, 1)
 hueCursor.BorderSizePixel = 0
-hueCursor.ZIndex = 7
-local hueCursorStroke = Instance.new("UIStroke")
-hueCursorStroke.Parent = hueCursor
-hueCursorStroke.Thickness = 1
-hueCursorStroke.Color = Color3.new(0, 0, 0)
+Instance.new("UIStroke", hueCursor).Thickness = 1
 
 local selectedThemeColor = Config.ThemeColor
 local pickerHue, pickerSaturation, pickerValue = Config.ThemeColor:ToHSV()
@@ -301,20 +285,12 @@ end)
 UserInputService.InputChanged:Connect(function(input)
     if input.UserInputType ~= Enum.UserInputType.MouseMovement or not pickerDragging then return end
     local pos = GetMousePosition()
-    if pickerDragging == "SV" then
-        UpdateSVFromPosition(pos)
-    else
-        UpdateHueFromPosition(pos)
-    end
-    if ApplyGlobalTheme and typeof(selectedThemeColor) == "Color3" then
-        ApplyGlobalTheme(selectedThemeColor)
-    end
+    if pickerDragging == "SV" then UpdateSVFromPosition(pos) else UpdateHueFromPosition(pos) end
+    if ApplyGlobalTheme then ApplyGlobalTheme(selectedThemeColor) end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        pickerDragging = nil
-    end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then pickerDragging = nil end
 end)
 
 UpdateThemePicker()
@@ -334,16 +310,11 @@ Instance.new("UICorner", applyThemeBtn).CornerRadius = UDim.new(0, 6)
 
 applyThemeBtn.MouseButton1Click:Connect(function()
     local targetColor = selectedThemeColor
-    if typeof(targetColor) ~= "Color3" then return end
-    if PlayAdvancedThemeLoading then
-        PlayAdvancedThemeLoading(targetColor, "FISHHUB", "Applying Theme & Reloading UI")
-    end
+    if PlayAdvancedThemeLoading then PlayAdvancedThemeLoading(targetColor, "FISHHUB", "Applying Theme & Reloading UI") end
     if ShowNotification then ShowNotification("Applying theme...") end
     task.spawn(function()
         task.wait(2.15)
-        local ok = pcall(function()
-            if ApplyGlobalTheme then ApplyGlobalTheme(targetColor) end
-        end)
+        if ApplyGlobalTheme then ApplyGlobalTheme(targetColor) end
         if ShowNotification then ShowNotification("Theme applied successfully!") end
         if FinishAdvancedThemeLoading then FinishAdvancedThemeLoading() end
     end)
@@ -391,17 +362,14 @@ hotkeyButtonBox.MouseButton1Click:Connect(function()
     hotkeyButtonBox.Text = "Press Key..."
     hotkeyButtonBox.TextColor3 = Color3.fromRGB(255, 215, 0)
     local connection
-    connection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    connection = UserInputService.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.Keyboard then
             Config.ToggleKey = input.KeyCode
             hotkeyButtonBox.Text = tostring(input.KeyCode.Name)
             hotkeyButtonBox.TextColor3 = Config.ThemeColor
             listeningKey = false
             if ShowNotification then ShowNotification("Hotkey changed to: " .. tostring(input.KeyCode.Name)) end
-            if connection then
-                connection:Disconnect()
-                connection = nil
-            end
+            if connection then connection:Disconnect() end
         end
     end)
 end)
