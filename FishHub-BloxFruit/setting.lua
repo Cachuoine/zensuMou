@@ -607,7 +607,8 @@ end)
         end
     end
 
-    gearBtn.MouseButton1Click:Connect(function() setVisible(not settingsWindow.Visible,true) end)
+    -- MainWindow owns the Gear click handler.
+    -- This module only exposes Toggle/Open/Close for Main to call.
 
     rainbowClickArea.MouseButton1Click:Connect(function()
         if ctx.isBusy and ctx.isBusy() then return end
