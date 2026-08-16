@@ -1,198 +1,120 @@
-local Players = game:GetService("Players")
+--// FishHub - Function.lua
+local Function = {}
 
-local context = ...
-local player = (context and context.Player) or Players.LocalPlayer
-if not player then return end
-
-local playerGui = (context and context.PlayerGui) or player:WaitForChild("PlayerGui", 10)
-local tab = context and context.Tab
-local main = context and context.MainWindow
-
-if not tab then
-    local fishHub = playerGui and playerGui:FindFirstChild("FishHub")
-    local mainWindow = fishHub and fishHub:FindFirstChild("MainWindow")
-    local content = mainWindow and mainWindow:FindFirstChild("ContentContainer")
-    tab = content and content:FindFirstChild("FunctionTab", true)
-    main = main or mainWindow
+local function clear(p)
+    for _,c in ipairs(p:GetChildren()) do c:Destroy() end
 end
 
-if not tab then return end
-
-for _, child in ipairs(tab:GetChildren()) do
-    child:Destroy()
+local function corner(p,r)
+    local c=Instance.new("UICorner")
+    c.CornerRadius=UDim.new(0,r or 8)
+    c.Parent=p
 end
 
-local function theme()
-    local stroke = main and main:FindFirstChildOfClass("UIStroke")
-    return stroke and stroke.Color or Color3.fromRGB(105, 82, 255)
+local function stroke(p,color)
+    local s=Instance.new("UIStroke")
+    s.Color=color
+    s.Thickness=1
+    s.Transparency=.25
+    s.Parent=p
 end
 
-local scroll = Instance.new("ScrollingFrame")
-scroll.Name = "FunctionScroll"
-scroll.Size = UDim2.new(1,0,1,0)
-scroll.BackgroundTransparency = 1
-scroll.BorderSizePixel = 0
-scroll.ScrollBarThickness = 0
-scroll.ScrollBarImageTransparency = 1
-scroll.ScrollingDirection = Enum.ScrollingDirection.Y
-scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-scroll.Parent = tab
+function Function:Load(tabFrame,themeColor)
+    if not tabFrame then return end
+    clear(tabFrame)
+    themeColor=themeColor or Color3.fromRGB(0,200,255)
 
-local root = Instance.new("Frame")
-root.Name = "FunctionContent"
-root.Size = UDim2.new(1, -10, 0, 430)
-root.BackgroundTransparency = 1
-root.Parent = scroll
+    local root=Instance.new("Frame")
+    root.Size=UDim2.new(1,0,0,520)
+    root.BackgroundTransparency=1
+    root.Parent=tabFrame
 
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0, 12)
-layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Parent = root
+    local search=Instance.new("TextBox")
+    search.Size=UDim2.new(1,-12,0,38)
+    search.Position=UDim2.new(0,6,0,5)
+    search.BackgroundColor3=Color3.fromRGB(5,5,8)
+    search.BorderSizePixel=0
+    search.PlaceholderText="search..."
+    search.PlaceholderColor3=Color3.fromRGB(105,105,120)
+    search.Text=""
+    search.TextColor3=Color3.fromRGB(235,235,245)
+    search.Font=Enum.Font.GothamMedium
+    search.TextSize=11
+    search.ClearTextOnFocus=false
+    search.Parent=root
+    corner(search,8)
+    stroke(search,themeColor)
 
-local searchWrap = Instance.new("Frame")
-searchWrap.LayoutOrder = 1
-searchWrap.Size = UDim2.new(1, -4, 0, 48)
-searchWrap.BackgroundColor3 = Color3.fromRGB(7, 8, 12)
-searchWrap.BorderSizePixel = 0
-searchWrap.Parent = root
+    local grid=Instance.new("Frame")
+    grid.Size=UDim2.new(1,-12,0,450)
+    grid.Position=UDim2.new(0,6,0,52)
+    grid.BackgroundTransparency=1
+    grid.Parent=root
 
-local c = Instance.new("UICorner")
-c.CornerRadius = UDim.new(0, 10)
-c.Parent = searchWrap
+    local layout=Instance.new("UIGridLayout")
+    layout.CellSize=UDim2.new(.48,0,0,108)
+    layout.CellPadding=UDim2.new(.04,0,0,10)
+    layout.HorizontalAlignment=Enum.HorizontalAlignment.Center
+    layout.Parent=grid
 
-local s = Instance.new("UIStroke")
-s.Color = theme()
-s.Transparency = 0.55
-s.Parent = searchWrap
+    local names={"Shop","Setting Farm","Farm","Item & Quest","Island","Fruit","Setting"}
+    local cards={}
 
-local icon = Instance.new("TextLabel")
-icon.Size = UDim2.new(0, 34, 1, 0)
-icon.Position = UDim2.new(0, 7, 0, 0)
-icon.BackgroundTransparency = 1
-icon.Font = Enum.Font.GothamBold
-icon.TextSize = 14
-icon.TextColor3 = theme()
-icon.Text = "⌘"
-icon.Parent = searchWrap
+    for _,name in ipairs(names) do
+        local b=Instance.new("TextButton")
+        b.Name=name:gsub("%s+","")
+        b.BackgroundColor3=Color3.fromRGB(5,5,8)
+        b.BorderSizePixel=0
+        b.AutoButtonColor=false
+        b.Text=""
+        b.Parent=grid
+        corner(b,10)
+        stroke(b,Color3.fromRGB(55,55,68))
 
-local search = Instance.new("TextBox")
-search.Size = UDim2.new(1, -52, 1, 0)
-search.Position = UDim2.new(0, 45, 0, 0)
-search.BackgroundTransparency = 1
-search.BorderSizePixel = 0
-search.Font = Enum.Font.GothamMedium
-search.TextSize = 11
-search.TextColor3 = Color3.fromRGB(235, 238, 245)
-search.PlaceholderColor3 = Color3.fromRGB(105, 110, 125)
-search.PlaceholderText = "search..."
-search.Text = ""
-search.ClearTextOnFocus = false
-search.TextXAlignment = Enum.TextXAlignment.Left
-search.Parent = searchWrap
+        local title=Instance.new("TextLabel")
+        title.Size=UDim2.new(1,-18,0,24)
+        title.Position=UDim2.new(0,9,0,14)
+        title.BackgroundTransparency=1
+        title.Text=name
+        title.TextColor3=Color3.fromRGB(225,225,235)
+        title.Font=Enum.Font.GothamBold
+        title.TextSize=12
+        title.TextXAlignment=Enum.TextXAlignment.Left
+        title.Parent=b
 
-local gridHolder = Instance.new("Frame")
-gridHolder.LayoutOrder = 2
-gridHolder.Size = UDim2.new(1, -4, 0, 360)
-gridHolder.BackgroundTransparency = 1
-gridHolder.Parent = root
+        local state=Instance.new("TextLabel")
+        state.Size=UDim2.new(1,-18,0,20)
+        state.Position=UDim2.new(0,9,0,43)
+        state.BackgroundTransparency=1
+        state.Text="Ready"
+        state.TextColor3=Color3.fromRGB(110,110,125)
+        state.Font=Enum.Font.GothamMedium
+        state.TextSize=9
+        state.TextXAlignment=Enum.TextXAlignment.Left
+        state.Parent=b
 
-local grid = Instance.new("UIGridLayout")
-grid.CellSize = UDim2.new(0.5, -6, 0, 82)
-grid.CellPadding = UDim2.new(0, 10, 0, 10)
-grid.SortOrder = Enum.SortOrder.LayoutOrder
-grid.Parent = gridHolder
-
-local names = {
-    "shop",
-    "setting farm",
-    "farm",
-    "item & quest",
-    "island",
-    "fruit",
-    "setiing"
-}
-
-local cards = {}
-
-local function createCard(name, order)
-    local card = Instance.new("TextButton")
-    card.LayoutOrder = order
-    card.BackgroundColor3 = Color3.fromRGB(7, 8, 12)
-    card.BorderSizePixel = 0
-    card.AutoButtonColor = false
-    card.Text = ""
-    card.Parent = gridHolder
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 10)
-    corner.Parent = card
-
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = theme()
-    stroke.Transparency = 0.6
-    stroke.Parent = card
-
-    local number = Instance.new("TextLabel")
-    number.Size = UDim2.new(0, 30, 0, 24)
-    number.Position = UDim2.new(0, 11, 0, 9)
-    number.BackgroundColor3 = Color3.fromRGB(14, 15, 22)
-    number.BorderSizePixel = 0
-    number.Font = Enum.Font.GothamBold
-    number.TextSize = 8
-    number.TextColor3 = theme()
-    number.Text = string.format("%02d", order)
-    number.Parent = card
-
-    local nc = Instance.new("UICorner")
-    nc.CornerRadius = UDim.new(0, 6)
-    nc.Parent = number
-
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, -56, 0, 24)
-    title.Position = UDim2.new(0, 50, 0, 9)
-    title.BackgroundTransparency = 1
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 11
-    title.TextColor3 = Color3.fromRGB(240, 242, 248)
-    title.Text = name
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = card
-
-    local sub = Instance.new("TextLabel")
-    sub.Size = UDim2.new(1, -20, 0, 20)
-    sub.Position = UDim2.new(0, 10, 0, 43)
-    sub.BackgroundTransparency = 1
-    sub.Font = Enum.Font.GothamMedium
-    sub.TextSize = 8
-    sub.TextColor3 = Color3.fromRGB(105, 110, 125)
-    sub.Text = "FUNCTION • READY"
-    sub.TextXAlignment = Enum.TextXAlignment.Left
-    sub.Parent = card
-
-    card.MouseEnter:Connect(function()
-        card.BackgroundColor3 = Color3.fromRGB(13, 14, 21)
-        stroke.Transparency = 0.18
-    end)
-
-    card.MouseLeave:Connect(function()
-        card.BackgroundColor3 = Color3.fromRGB(7, 8, 12)
-        stroke.Transparency = 0.6
-    end)
-
-    cards[#cards + 1] = {
-        button = card,
-        name = string.lower(name)
-    }
-end
-
-for i, name in ipairs(names) do
-    createCard(name, i)
-end
-
-search:GetPropertyChangedSignal("Text"):Connect(function()
-    local query = string.lower(search.Text)
-    for _, item in ipairs(cards) do
-        item.button.Visible = query == "" or string.find(item.name, query, 1, true) ~= nil
+        cards[#cards+1]={Button=b,Name=name}
     end
-end)
+
+    local function refresh(q)
+        q=string.lower(q or "")
+        for _,item in ipairs(cards) do
+            item.Button.Visible=q=="" or string.find(string.lower(item.Name),q,1,true)~=nil
+        end
+    end
+
+    search:GetPropertyChangedSignal("Text"):Connect(function()
+        refresh(search.Text)
+    end)
+
+    for _,item in ipairs(cards) do
+        item.Button.MouseEnter:Connect(function()
+            item.Button.BackgroundColor3=Color3.fromRGB(12,12,18)
+        end)
+        item.Button.MouseLeave:Connect(function()
+            item.Button.BackgroundColor3=Color3.fromRGB(5,5,8)
+        end)
+    end
+end
+
+return Function
