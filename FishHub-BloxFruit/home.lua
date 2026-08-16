@@ -1,235 +1,183 @@
---// FishHub - Home.lua
-local Players = game:GetService("Players")
-local MarketplaceService = game:GetService("MarketplaceService")
-local LocalPlayer = Players.LocalPlayer
+-- FishHub | Decorated Home Module
+-- UI-only: Welcome / Script Information / Current Game / Player
 
-local Home = {}
+return function(ctx)
+    local container = ctx.Container
+    local TweenService = ctx.TweenService
+    local Players = ctx.Players
+    local player = Players.LocalPlayer
+    local theme = ctx.ThemeColor()
+    local MarketplaceService = game:GetService("MarketplaceService")
 
-local function clear(parent)
-    for _, child in ipairs(parent:GetChildren()) do child:Destroy() end
-end
+    for _, child in ipairs(container:GetChildren()) do child:Destroy() end
 
-local function formatNumber(value)
-    value = tonumber(value) or 0
-    local negative = value < 0
-    value = math.abs(value)
-    local s = tostring(math.floor(value))
-    while true do
-        local n, c = s:gsub("^(-?%d+)(%d%d%d)", "%1,%2")
-        s = n
-        if c == 0 then break end
-    end
-    return (negative and "-" or "") .. s
-end
+    local layout = Instance.new("UIListLayout")
+    layout.Parent = container
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 10)
 
-local function corner(p, r)
-    local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0, r or 8)
-    c.Parent = p
-end
+    local padding = Instance.new("UIPadding")
+    padding.Parent = container
+    padding.PaddingTop = UDim.new(0, 5)
+    padding.PaddingBottom = UDim.new(0, 16)
+    padding.PaddingLeft = UDim.new(0, 5)
+    padding.PaddingRight = UDim.new(0, 5)
 
-local function stroke(p, color, transparency)
-    local s = Instance.new("UIStroke")
-    s.Color = color
-    s.Thickness = 1
-    s.Transparency = transparency or 0
-    s.Parent = p
-end
-
-local function divider(parent, title)
-    local h = Instance.new("Frame")
-    h.Size = UDim2.new(1, -12, 0, 32)
-    h.BackgroundTransparency = 1
-    h.Parent = parent
-
-    for _, x in ipairs({0.18, 0.82}) do
-        local line = Instance.new("Frame")
-        line.Size = UDim2.new(0.36, 0, 0, 1)
-        line.Position = UDim2.new(x, 0, .5, 0)
-        line.AnchorPoint = Vector2.new(.5, .5)
-        line.BackgroundColor3 = Color3.fromRGB(100,100,115)
-        line.BorderSizePixel = 0
-        line.Parent = h
-
-        local g = Instance.new("UIGradient")
-        g.Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0,1),
-            NumberSequenceKeypoint.new(.5,0),
-            NumberSequenceKeypoint.new(1,1)
-        })
-        g.Parent = line
+    local function corner(p, r)
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(0, r or 10)
+        c.Parent = p
     end
 
-    local t = Instance.new("TextLabel")
-    t.Size = UDim2.new(0,160,0,24)
-    t.Position = UDim2.new(.5,0,.5,0)
-    t.AnchorPoint = Vector2.new(.5,.5)
-    t.BackgroundColor3 = Color3.fromRGB(5,5,8)
-    t.Text = title
-    t.TextColor3 = Color3.fromRGB(225,225,235)
-    t.Font = Enum.Font.GothamBold
-    t.TextSize = 11
-    t.Parent = h
-    corner(t,5)
-end
+    local function makeStroke(p, transparency, thickness)
+        local s = Instance.new("UIStroke")
+        s.Color = theme
+        s.Transparency = transparency or .7
+        s.Thickness = thickness or 1
+        s.Parent = p
+    end
 
-local function card(parent, height)
-    local f = Instance.new("Frame")
-    f.Size = UDim2.new(1,-12,0,height)
-    f.BackgroundColor3 = Color3.fromRGB(5,5,8)
-    f.BorderSizePixel = 0
-    f.Parent = parent
-    corner(f,9)
-    stroke(f,Color3.fromRGB(55,55,68),.25)
-    return f
-end
+    local function text(p, value, size, pos, font, ts, color)
+        local l = Instance.new("TextLabel")
+        l.BackgroundTransparency = 1
+        l.Text = value
+        l.Size = size
+        l.Position = pos
+        l.Font = font or Enum.Font.GothamMedium
+        l.TextSize = ts or 11
+        l.TextColor3 = color or Color3.fromRGB(220,223,235)
+        l.TextXAlignment = Enum.TextXAlignment.Left
+        l.Parent = p
+        return l
+    end
 
-function Home:Load(tabFrame, themeColor)
-    if not tabFrame then return end
-    clear(tabFrame)
-    themeColor = themeColor or Color3.fromRGB(0,200,255)
-    tabFrame.ScrollBarThickness = 0
+    local function card(height, order)
+        local f = Instance.new("Frame")
+        f.Size = UDim2.new(1, -10, 0, height)
+        f.BackgroundColor3 = Color3.fromRGB(15,17,24)
+        f.BorderSizePixel = 0
+        f.LayoutOrder = order
+        f.Parent = container
+        corner(f, 12)
+        makeStroke(f)
+        return f
+    end
 
-    local root = Instance.new("Frame")
-    root.Size = UDim2.new(1,0,0,520)
-    root.BackgroundTransparency = 1
-    root.Parent = tabFrame
-
-    local list = Instance.new("UIListLayout")
-    list.Padding = UDim.new(0,8)
-    list.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    list.Parent = root
-
-    local welcome = card(root,72)
-    local wt = Instance.new("TextLabel")
-    wt.Size = UDim2.new(1,-20,0,28)
-    wt.Position = UDim2.new(0,10,0,7)
-    wt.BackgroundTransparency = 1
-    wt.Text = "WELCOME, "..string.upper(LocalPlayer.DisplayName)
-    wt.TextColor3 = themeColor
-    wt.Font = Enum.Font.GothamBold
-    wt.TextSize = 15
-    wt.TextXAlignment = Enum.TextXAlignment.Left
-    wt.Parent = welcome
-
-    local gameName = "Roblox"
+    local gameName, creatorName, description = "Unknown Game", "Unknown Creator", "No game description available."
     pcall(function()
-        local info = MarketplaceService:GetProductInfo(game.PlaceId)
-        if info and info.Name then gameName = info.Name end
+        local info = MarketplaceService:GetProductInfo(game.PlaceId, Enum.InfoType.Asset)
+        if info then
+            gameName = info.Name or gameName
+            description = info.Description or description
+            if info.Creator and info.Creator.Name then creatorName = info.Creator.Name end
+        end
     end)
 
-    local wi = Instance.new("TextLabel")
-    wi.Size = UDim2.new(1,-20,0,22)
-    wi.Position = UDim2.new(0,10,0,38)
-    wi.BackgroundTransparency = 1
-    wi.Text = "FishHub  •  "..gameName.."  •  @"..LocalPlayer.Name
-    wi.TextColor3 = Color3.fromRGB(155,155,170)
-    wi.Font = Enum.Font.GothamMedium
-    wi.TextSize = 10
-    wi.TextXAlignment = Enum.TextXAlignment.Left
-    wi.Parent = welcome
+    -- Welcome
+    local hero = card(130, 1)
+    local bar = Instance.new("Frame")
+    bar.Size = UDim2.new(0,4,1,-24)
+    bar.Position = UDim2.fromOffset(10,12)
+    bar.BackgroundColor3 = theme
+    bar.BorderSizePixel = 0
+    bar.Parent = hero
+    corner(bar,3)
 
-    divider(root,"PLAYER STATUS")
-    local status = card(root,154)
-    local data = LocalPlayer:FindFirstChild("Data")
+    text(hero,"WELCOME BACK",UDim2.new(1,-42,0,28),UDim2.fromOffset(26,14),Enum.Font.GothamBlack,20,Color3.fromRGB(242,244,250))
+    local fish = text(hero,"FISHHUB",UDim2.new(0,100,0,22),UDim2.new(1,-112,0,17),Enum.Font.GothamBlack,11,theme)
+    fish.TextXAlignment = Enum.TextXAlignment.Right
+    text(hero,"Hello, "..tostring(player.DisplayName).."  @"..tostring(player.Name),UDim2.new(1,-42,0,20),UDim2.fromOffset(26,47),Enum.Font.GothamBold,11,theme)
+    text(hero,"A clean modular hub for your current Roblox experience.",UDim2.new(1,-42,0,20),UDim2.fromOffset(26,72),Enum.Font.GothamMedium,10,Color3.fromRGB(155,160,175))
 
-    local function get(name, fallback)
-        local v = data and data:FindFirstChild(name)
-        return v and v.Value or fallback
+    local line = Instance.new("Frame")
+    line.Size = UDim2.new(1,-52,0,1)
+    line.Position = UDim2.fromOffset(26,99)
+    line.BackgroundColor3 = theme
+    line.BackgroundTransparency = .72
+    line.BorderSizePixel = 0
+    line.Parent = hero
+    text(hero,"HOME  •  SCRIPT  •  GAME",UDim2.new(1,-42,0,15),UDim2.fromOffset(26,106),Enum.Font.GothamBold,8,Color3.fromRGB(110,115,135))
+
+    -- Script information
+    local scriptCard = card(145, 2)
+    text(scriptCard,"SCRIPT INFORMATION",UDim2.new(1,-28,0,20),UDim2.fromOffset(14,10),Enum.Font.GothamBold,12,theme)
+    text(scriptCard,"FishHub",UDim2.new(.5,0,0,24),UDim2.fromOffset(14,37),Enum.Font.GothamBlack,17,Color3.fromRGB(238,240,248))
+    local modular = text(scriptCard,"MODULAR BUILD",UDim2.new(.5,-14,0,18),UDim2.new(.5,0,0,41),Enum.Font.GothamBold,8,theme)
+    modular.TextXAlignment = Enum.TextXAlignment.Right
+    local desc = text(scriptCard,"Home / Function / Creative are separated into independent UI modules for a cleaner layout.",UDim2.new(1,-28,0,35),UDim2.fromOffset(14,67),Enum.Font.GothamMedium,9,Color3.fromRGB(150,155,170))
+    desc.TextWrapped = true
+    text(scriptCard,"STATUS     READY",UDim2.new(.5,-14,0,18),UDim2.fromOffset(14,116),Enum.Font.Code,9,Color3.fromRGB(110,235,165))
+    local build = text(scriptCard,"UI MODULE",UDim2.new(.5,-14,0,18),UDim2.new(.5,0,0,116),Enum.Font.Code,9,Color3.fromRGB(115,120,140))
+    build.TextXAlignment = Enum.TextXAlignment.Right
+
+    -- Current game
+    local gameCard = card(174, 3)
+    text(gameCard,"CURRENT GAME",UDim2.new(1,-28,0,20),UDim2.fromOffset(14,10),Enum.Font.GothamBold,12,theme)
+
+    local thumb = Instance.new("ImageLabel")
+    thumb.Size = UDim2.fromOffset(80,80)
+    thumb.Position = UDim2.fromOffset(14,40)
+    thumb.BackgroundColor3 = Color3.fromRGB(27,30,40)
+    thumb.BorderSizePixel = 0
+    thumb.Image = "https://www.roblox.com/asset-thumbnail/image?assetId="..tostring(game.PlaceId).."&width=420&height=420&format=png"
+    thumb.ScaleType = Enum.ScaleType.Crop
+    thumb.Parent = gameCard
+    corner(thumb,10)
+    makeStroke(thumb,.45,1)
+
+    local gn = text(gameCard,gameName,UDim2.new(1,-110,0,25),UDim2.fromOffset(106,41),Enum.Font.GothamBlack,14,Color3.fromRGB(238,240,248))
+    gn.TextTruncate = Enum.TextTruncate.AtEnd
+    local cr = text(gameCard,"By  "..creatorName,UDim2.new(1,-110,0,18),UDim2.fromOffset(106,69),Enum.Font.GothamMedium,9,theme)
+    cr.TextTruncate = Enum.TextTruncate.AtEnd
+    text(gameCard,"PLACE ID  "..tostring(game.PlaceId),UDim2.new(1,-110,0,18),UDim2.fromOffset(106,90),Enum.Font.Code,8,Color3.fromRGB(120,125,140))
+
+    local sep = Instance.new("Frame")
+    sep.Size = UDim2.new(1,-28,0,1)
+    sep.Position = UDim2.fromOffset(14,128)
+    sep.BackgroundColor3 = theme
+    sep.BackgroundTransparency = .82
+    sep.BorderSizePixel = 0
+    sep.Parent = gameCard
+
+    local gd = text(gameCard,description ~= "" and description or "No description available.",UDim2.new(1,-28,0,34),UDim2.fromOffset(14,137),Enum.Font.GothamMedium,8,Color3.fromRGB(135,140,155))
+    gd.TextWrapped = true
+    gd.TextTruncate = Enum.TextTruncate.AtEnd
+
+    -- Player
+    local playerCard = card(86, 4)
+    text(playerCard,"PLAYER",UDim2.new(.5,-20,0,18),UDim2.fromOffset(14,10),Enum.Font.GothamBold,10,theme)
+    text(playerCard,tostring(player.DisplayName),UDim2.new(.5,-20,0,22),UDim2.fromOffset(14,33),Enum.Font.GothamBlack,13,Color3.fromRGB(235,238,247))
+    local pid = text(playerCard,"@"..tostring(player.Name).."  •  UserId: "..tostring(player.UserId),UDim2.new(1,-28,0,16),UDim2.fromOffset(14,59),Enum.Font.Code,8,Color3.fromRGB(120,125,140))
+    pid.TextTruncate = Enum.TextTruncate.AtEnd
+    local online = text(playerCard,"● ONLINE",UDim2.new(.5,-20,0,20),UDim2.new(.5,0,0,31),Enum.Font.GothamBold,9,Color3.fromRGB(110,235,165))
+    online.TextXAlignment = Enum.TextXAlignment.Right
+
+    -- Entrance animation
+    local cards = {}
+    for _, child in ipairs(container:GetChildren()) do
+        if child:IsA("GuiObject") then table.insert(cards, child) end
+    end
+    for i, item in ipairs(cards) do
+        local original = item.Position
+        local transparency = item.BackgroundTransparency
+        item.Position = UDim2.new(0,18,original.Y.Scale,original.Y.Offset)
+        item.BackgroundTransparency = 1
+        task.delay((i-1)*.055,function()
+            if item and item.Parent then
+                TweenService:Create(item,TweenInfo.new(.34,Enum.EasingStyle.Quint,Enum.EasingDirection.Out),{
+                    Position=original, BackgroundTransparency=transparency
+                }):Play()
+            end
+        end)
     end
 
-    local stats = {
-        {"LEVEL",get("Level",0)}, {"TEAM",LocalPlayer.Team and LocalPlayer.Team.Name or "None"},
-        {"BOUNTY",get("Bounty",0)}, {"HONOR",get("Honor",0)},
-        {"BELI",get("Beli",0)}, {"FRAGMENTS",get("Fragments",0)}
-    }
-
-    for i, item in ipairs(stats) do
-        local col = ((i-1)%2)*.5+.02
-        local row = math.floor((i-1)/2)
-        local b = Instance.new("Frame")
-        b.Size = UDim2.new(.46,0,0,36)
-        b.Position = UDim2.new(col,0,0,10+row*42)
-        b.BackgroundColor3 = Color3.fromRGB(16,16,21)
-        b.BorderSizePixel = 0
-        b.Parent = status
-        corner(b,6)
-
-        local l = Instance.new("TextLabel")
-        l.Size = UDim2.new(.48,0,1,0)
-        l.Position = UDim2.new(0,10,0,0)
-        l.BackgroundTransparency = 1
-        l.Text = item[1]
-        l.TextColor3 = Color3.fromRGB(145,145,160)
-        l.Font = Enum.Font.GothamMedium
-        l.TextSize = 10
-        l.TextXAlignment = Enum.TextXAlignment.Left
-        l.Parent = b
-
-        local v = Instance.new("TextLabel")
-        v.Size = UDim2.new(.48,-8,1,0)
-        v.Position = UDim2.new(.48,0,0,0)
-        v.BackgroundTransparency = 1
-        v.Text = (item[1]=="TEAM") and tostring(item[2]) or formatNumber(item[2])
-        v.TextColor3 = Color3.fromRGB(235,235,245)
-        v.Font = Enum.Font.GothamBold
-        v.TextSize = 10
-        v.TextXAlignment = Enum.TextXAlignment.Right
-        v.Parent = b
-    end
-
-    divider(root,"INFORMATION")
-    local info = card(root,126)
-
-    local avatar = Instance.new("ImageLabel")
-    avatar.Size = UDim2.new(0,70,0,70)
-    avatar.Position = UDim2.new(0,12,.5,0)
-    avatar.AnchorPoint = Vector2.new(0,.5)
-    avatar.BackgroundColor3 = Color3.fromRGB(20,20,26)
-    avatar.BorderSizePixel = 0
-    avatar.Parent = info
-    corner(avatar,35)
-
-    pcall(function()
-        avatar.Image = Players:GetUserThumbnailAsync(
-            LocalPlayer.UserId,
-            Enum.ThumbnailType.HeadShot,
-            Enum.ThumbnailSize.Size100x100
-        )
+    task.spawn(function()
+        while container.Parent do
+            TweenService:Create(bar,TweenInfo.new(1.15,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut),{BackgroundTransparency=.35}):Play()
+            task.wait(1.15)
+            if not container.Parent then break end
+            TweenService:Create(bar,TweenInfo.new(1.15,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut),{BackgroundTransparency=0}):Play()
+            task.wait(1.15)
+        end
     end)
-
-    local executor = "Unknown"
-    if identifyexecutor then pcall(function() executor = identifyexecutor() end) end
-
-    local rows = {
-        {"NAME",LocalPlayer.DisplayName},
-        {"@NAME","@"..LocalPlayer.Name},
-        {"USERID",LocalPlayer.UserId},
-        {"EXECUTOR",executor}
-    }
-
-    for i,row in ipairs(rows) do
-        local y = 8+(i-1)*25
-        local l = Instance.new("TextLabel")
-        l.Size = UDim2.new(0,70,0,20)
-        l.Position = UDim2.new(0,94,0,y)
-        l.BackgroundTransparency = 1
-        l.Text = row[1]
-        l.TextColor3 = Color3.fromRGB(125,125,140)
-        l.Font = Enum.Font.GothamMedium
-        l.TextSize = 9
-        l.TextXAlignment = Enum.TextXAlignment.Left
-        l.Parent = info
-
-        local v = l:Clone()
-        v.Position = UDim2.new(0,164,0,y)
-        v.Size = UDim2.new(1,-174,0,20)
-        v.Text = tostring(row[2])
-        v.TextColor3 = Color3.fromRGB(230,230,240)
-        v.Font = Enum.Font.GothamBold
-        v.TextTruncate = Enum.TextTruncate.AtEnd
-        v.Parent = info
-    end
 end
-
-return Home
