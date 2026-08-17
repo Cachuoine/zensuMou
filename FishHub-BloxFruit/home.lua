@@ -80,7 +80,7 @@ local function createStat(titleText,valueText,x,y)
     local value=label(card,valueText,9,Color3.fromRGB(240,242,248),Enum.Font.GothamBold); value.Size=UDim2.new(.42,-8,1,0); value.Position=UDim2.new(.58,0,0,0); value.TextXAlignment=Enum.TextXAlignment.Right
     return title,value
 end
-local levelValue=findValue("Level","level"); local beliValue=findValue("Beli","Money","money"); local fragmentsValue=findValue("Fragments","Fragment","fragments")
+local levelValue=findValue("Level","level"); local beliValue=findValue("Beli","Money","money"); local fragmentsValue=findValue("Fragments","Fragment","fragments"); local bountyHonorValue=findValue("Bounty/Honor","BountyHonor","Bounty","bounty","Honor","honor")
 local levelTitle,level=createStat("LEVEL",formatNumber(levelValue),0,7); local _,beli=createStat("BELI",formatNumber(beliValue),.5,7); local _,fragments=createStat("FRAGMENTS",formatNumber(fragmentsValue),0,48); local reputationTitle,reputation=createStat("BOUNTY","0",.5,48)
 
 local function getTeamKind()
@@ -92,9 +92,9 @@ local function getTeamKind()
 end
 local function refreshReputation()
     local kind=getTeamKind()
-    if kind=="Pirates" then reputationTitle.Text="BOUNTY"; reputation.Text=formatNumber(findValue("Bounty","bounty"))
-    elseif kind=="Marines" then reputationTitle.Text="HONOR"; reputation.Text=formatNumber(findValue("Honor","honor"))
-    else reputationTitle.Text="BOUNTY"; reputation.Text=formatNumber(findValue("Bounty","bounty")) end
+    bountyHonorValue=findValue("Bounty/Honor","BountyHonor","Bounty","bounty","Honor","honor")
+    reputationTitle.Text=(kind=="Marines" and "HONOR" or "BOUNTY")
+    reputation.Text=formatNumber(bountyHonorValue)
 end
 
 local info=section("INFORMATION",142)
@@ -118,7 +118,7 @@ end)
 
 task.spawn(function()
     while tab.Parent do
-        levelValue=findValue("Level","level"); beliValue=findValue("Beli","Money","money"); fragmentsValue=findValue("Fragments","Fragment","fragments")
+        levelValue=findValue("Level","level"); beliValue=findValue("Beli","Money","money"); fragmentsValue=findValue("Fragments","Fragment","fragments"); bountyHonorValue=findValue("Bounty/Honor","BountyHonor","Bounty","bounty","Honor","honor")
         level.Text=formatNumber(levelValue); beli.Text=formatNumber(beliValue); fragments.Text=formatNumber(fragmentsValue); refreshReputation()
         task.wait(.35)
     end
