@@ -22,7 +22,7 @@ local ringStroke=Instance.new("UIStroke"); ringStroke.Color=theme(); ringStroke.
 local rc=Instance.new("UICorner"); rc.CornerRadius=UDim.new(1,0); rc.Parent=ring
 local handle=Instance.new("Frame"); handle.Size=UDim2.fromOffset(7,2); handle.Position=UDim2.fromOffset(9,10); handle.Rotation=45; handle.BackgroundColor3=theme(); handle.BorderSizePixel=0; handle.Parent=glass
 local search=Instance.new("TextBox"); search.Size=UDim2.new(1,-52,1,0); search.Position=UDim2.new(0,45,0,0); search.BackgroundTransparency=1; search.BorderSizePixel=0; search.Font=Enum.Font.GothamMedium; search.TextSize=11; search.TextColor3=Color3.fromRGB(235,238,245); search.PlaceholderColor3=Color3.fromRGB(105,110,125); search.PlaceholderText="SEARCH..."; search.Text=""; search.ClearTextOnFocus=false; search.TextXAlignment=Enum.TextXAlignment.Left; search.Parent=searchWrap
-local gridHolder=Instance.new("Frame"); gridHolder.LayoutOrder=2; gridHolder.Size=UDim2.new(1,-4,0,360); gridHolder.BackgroundTransparency=1; gridHolder.Parent=root
+local gridHolder=Instance.new("Frame"); gridHolder.LayoutOrder=2; gridHolder.Size=UDim2.new(1,-4,0,0); gridHolder.AutomaticSize=Enum.AutomaticSize.Y; gridHolder.BackgroundTransparency=1; gridHolder.Parent=root
 local grid=Instance.new("UIGridLayout"); grid.CellSize=UDim2.new(.5,-6,0,82); grid.CellPadding=UDim2.new(0,10,0,10); grid.SortOrder=Enum.SortOrder.LayoutOrder; grid.Parent=gridHolder
 local names={"SHOP","SETTINGFARM","FARM","ITEAM&QUEST","ISLAND","FRUIT","SETTING"}
 local cards={}
@@ -38,3 +38,10 @@ end
 for i,name in ipairs(names) do createCard(name,i) end
 search:GetPropertyChangedSignal("Text"):Connect(function() local q=string.lower(search.Text); for _,item in ipairs(cards) do item.button.Visible=q=="" or string.find(item.name,q,1,true)~=nil end end)
 task.spawn(function() while tab.Parent do local c=theme(); s.Color=c; ringStroke.Color=c; handle.BackgroundColor3=c; for _,item in ipairs(cards) do item.stroke.Color=c; item.number.TextColor3=c end; task.wait(.08) end end)
+
+task.spawn(function()
+    while tab.Parent do
+        gridHolder.Size = UDim2.new(1,-4,0,grid.AbsoluteContentSize.Y)
+        task.wait(0.05)
+    end
+end)
