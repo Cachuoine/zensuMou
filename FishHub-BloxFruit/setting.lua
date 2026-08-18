@@ -318,12 +318,25 @@ UpdateThemePicker()
 end
 local pickerDragging=nil
 local function StopRainbowForManualColor()
-isRainbowRunning=false
-rainbowTransitionActive=false
-rainbowTransitionSerial=rainbowTransitionSerial+1
-if rainbowToggle then
-rainbowToggle.Text="RAINBOW CONTINUOUS"
-end
+    if isRainbowRunning or rainbowTransitionActive then
+        isRainbowRunning = false
+        rainbowTransitionActive = false
+        rainbowTransitionSerial = rainbowTransitionSerial + 1
+
+        -- Any direct color-picker input is an explicit manual-color action.
+        -- Kill Rainbow immediately and make the picked color the static theme.
+        if typeof(selectedThemeColor) == "Color3" then
+            staticThemeColor = selectedThemeColor
+            Config.ThemeColor = selectedThemeColor
+        end
+
+        if rainbowToggleCircle then
+            rainbowToggleCircle.Visible = false
+        end
+
+        UpdateToggleIndicators(Config.ThemeColor)
+        UpdateLoadingTheme()
+    end
 end
 svButton.MouseButton1Down:Connect(function()
 StopRainbowForManualColor()
