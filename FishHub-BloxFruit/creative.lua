@@ -191,7 +191,7 @@ local _, discordCard = makeSection("SERVER DISCORD", 2)
 
 discordCard.BackgroundColor3 = Color3.fromRGB(9, 11, 18)
 
-local discordIcon = label(discordCard, "◈", 20, accent(), Enum.Font.GothamBold)
+local discordIcon = label(discordCard, "◈", 20, Color3.fromRGB(210, 214, 224), Enum.Font.GothamBold)
 discordIcon.Size = UDim2.fromOffset(42, 42)
 discordIcon.Position = UDim2.new(0, 14, 0.5, -21)
 
@@ -238,7 +238,7 @@ end)
 -- 3. FACEBOOK
 local _, facebookCard = makeSection("FACEBOOK PLAYER", 3)
 
-local facebookIcon = label(facebookCard, "f", 22, accent(), Enum.Font.GothamBold)
+local facebookIcon = label(facebookCard, "f", 22, Color3.fromRGB(210, 214, 224), Enum.Font.GothamBold)
 facebookIcon.Size = UDim2.fromOffset(42, 42)
 facebookIcon.Position = UDim2.new(0, 14, 0.5, -21)
 
@@ -287,8 +287,9 @@ task.spawn(function()
     while tab.Parent do
         local c = accent()
         username.TextColor3 = c
-        discordIcon.TextColor3 = c
-        facebookIcon.TextColor3 = c
+        -- Logo icons stay neutral; the Main theme is intentionally not applied to them.
+        discordIcon.TextColor3 = Color3.fromRGB(210, 214, 224)
+        facebookIcon.TextColor3 = Color3.fromRGB(210, 214, 224)
         discordButton.BackgroundColor3 = c
         facebookButton.BackgroundColor3 = c
         discordStroke.Color = c
