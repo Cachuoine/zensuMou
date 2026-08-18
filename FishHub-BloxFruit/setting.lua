@@ -304,6 +304,29 @@ local hueCursorStroke=Instance.new("UIStroke")
 hueCursorStroke.Parent=hueCursor
 hueCursorStroke.Thickness=1
 hueCursorStroke.Color=Color3.new(0,0,0)
+
+local applyThemeBtn
+
+-- Invisible interaction shield used while Rainbow is active/loading.
+local pickerLockOverlay=Instance.new("TextButton")
+pickerLockOverlay.Parent=colorPalette
+pickerLockOverlay.Size=UDim2.new(1,-20,0,118)
+pickerLockOverlay.Position=UDim2.new(0,10,0,34)
+pickerLockOverlay.BackgroundColor3=Color3.fromRGB(8,10,16)
+pickerLockOverlay.BackgroundTransparency=1
+pickerLockOverlay.BorderSizePixel=0
+pickerLockOverlay.Text=""
+pickerLockOverlay.AutoButtonColor=false
+pickerLockOverlay.Active=true
+pickerLockOverlay.ZIndex=9
+local function RefreshPickerLock()
+    local locked = isRainbowRunning or rainbowTransitionActive or isThemeLoading()
+    pickerLockOverlay.Visible = locked
+    svButton.Active = not locked
+    hueButton.Active = not locked
+    applyThemeBtn.Active = not locked
+    pickerLockOverlay.BackgroundTransparency = 1
+end
 local selectedThemeColor=Config.ThemeColor
 local pickerHue,pickerSaturation,pickerValue=Config.ThemeColor:ToHSV()
 local function UpdateThemePicker()
@@ -341,50 +364,36 @@ local pickerDragging=nil
 -- Without this, picker callbacks can resolve ApplyGlobalTheme as nil/global.
 local ApplyGlobalTheme
 
-local function StopRainbowForManualColor()
-    if isRainbowRunning or rainbowTransitionActive then
-        isRainbowRunning = false
-        rainbowTransitionActive = false
-        rainbowTransitionSerial = rainbowTransitionSerial + 1
-
-        -- Any direct color-picker input is an explicit manual-color action.
-        -- Kill Rainbow immediately and make the picked color the static theme.
-        if typeof(selectedThemeColor) == "Color3" then
-            staticThemeColor = selectedThemeColor
-            Config.ThemeColor = selectedThemeColor
-        end
-
-        if rainbowToggleCircle then
-            rainbowToggleCircle.Visible = false
-        end
-
-        UpdateToggleIndicators(Config.ThemeColor)
-        UpdateLoadingTheme()
-    end
+-- Manual picker input only changes the preview. The actual UI theme is changed
+-- only after the user presses APPLY THEME. Rainbow mode completely locks the picker.
+local function IsPickerLocked()
+    return isRainbowRunning or rainbowTransitionActive or isThemeLoading()
 end
+
 svButton.MouseButton1Down:Connect(function()
-StopRainbowForManualColor()
-pickerDragging="SV"
-UpdateSVFromPosition(GetMousePosition())
-ApplyGlobalTheme(selectedThemeColor)
+    if IsPickerLocked() then return end
+    pickerDragging="SV"
+    UpdateSVFromPosition(GetMousePosition())
 end)
+
 hueButton.MouseButton1Down:Connect(function()
-StopRainbowForManualColor()
-pickerDragging="HUE"
-UpdateHueFromPosition(GetMousePosition())
-ApplyGlobalTheme(selectedThemeColor)
+    if IsPickerLocked() then return end
+    pickerDragging="HUE"
+    UpdateHueFromPosition(GetMousePosition())
 end)
+
 UserInputService.InputChanged:Connect(function(input)
-if input.UserInputType~=Enum.UserInputType.MouseMovement or not pickerDragging then return end
-local pos=GetMousePosition()
-if pickerDragging=="SV" then
-UpdateSVFromPosition(pos)
-else
-UpdateHueFromPosition(pos)
-end
-if not isRainbowRunning and typeof(selectedThemeColor)=="Color3" then
-ApplyGlobalTheme(selectedThemeColor)
-end
+    if input.UserInputType ~= Enum.UserInputType.MouseMovement or not pickerDragging then return end
+    if IsPickerLocked() then
+        pickerDragging = nil
+        return
+    end
+    local pos=GetMousePosition()
+    if pickerDragging=="SV" then
+        UpdateSVFromPosition(pos)
+    else
+        UpdateHueFromPosition(pos)
+    end
 end)
 UserInputService.InputEnded:Connect(function(input)
 if input.UserInputType==Enum.UserInputType.MouseButton1 then
@@ -392,7 +401,7 @@ pickerDragging=nil
 end
 end)
 UpdateThemePicker()
-local applyThemeBtn = Instance.new("TextButton")
+applyThemeBtn = Instance.new("TextButton")
 applyThemeBtn.Parent = settingsScroll
 applyThemeBtn.Size = UDim2.new(1, -10, 0, 32)
 applyThemeBtn.BackgroundColor3 = Config.ThemeColor
@@ -404,6 +413,7 @@ applyThemeBtn.TextColor3 = Color3.fromRGB(30, 30, 40)
 applyThemeBtn.Text = "APPLY THEME"
 applyThemeBtn.LayoutOrder = 3
 Instance.new("UICorner", applyThemeBtn).CornerRadius = UDim.new(0, 6)
+RefreshPickerLock()
 local rainbowToggleCard = Instance.new("Frame")
 rainbowToggleCard.Parent = settingsScroll
 rainbowToggleCard.Size = UDim2.new(1, -10, 0, 42)
@@ -706,6 +716,7 @@ local function UpdateToggleIndicators(accentColor)
     debugToggleCircle.Visible = Config.ShowDebug
 end
 UpdateToggleIndicators(Config.ThemeColor)
+RefreshPickerLock()
 task.spawn(function()
     while gui and gui.Parent do
         if isRainbowRunning and not rainbowTransitionActive and not isThemeLoading() then
@@ -799,12 +810,14 @@ rainbowClickArea.MouseButton1Click:Connect(function()
     rainbowTransitionSerial = rainbowTransitionSerial + 1
     local transitionSerial = rainbowTransitionSerial
     rainbowTransitionActive = true
+    RefreshPickerLock()
     if enableRainbow then
         staticThemeColor = Config.ThemeColor
         rainbowHue = select(1, staticThemeColor:ToHSV())
         local firstRainbowColor = Color3.fromHSV(rainbowHue, 1, 1)
         if not PlayAdvancedThemeLoading(firstRainbowColor, "RAINBOW MODE", "Starting Rainbow Continuous") then
             rainbowTransitionActive = false
+            RefreshPickerLock()
             return
         end
         task.spawn(function()
@@ -812,6 +825,7 @@ rainbowClickArea.MouseButton1Click:Connect(function()
             task.wait(THEME_LOADING_APPLY_DELAY)
             if transitionSerial ~= rainbowTransitionSerial or token ~= getLoadingAnimationToken() or not isThemeLoading() or not loadingScreen.Parent then
                 rainbowTransitionActive = false
+                RefreshPickerLock()
                 setThemeLoading(false)
                 StopLoadingAnimation()
                 RestoreUIAfterThemeLoading()
@@ -819,6 +833,7 @@ rainbowClickArea.MouseButton1Click:Connect(function()
             end
             isRainbowRunning = true
             rainbowTransitionActive = false
+            RefreshPickerLock()
             Config.ThemeColor = firstRainbowColor
             UpdateLoadingTheme()
             local ok = pcall(function()
@@ -845,8 +860,10 @@ rainbowClickArea.MouseButton1Click:Connect(function()
     else
         local restoreColor = staticThemeColor
         isRainbowRunning = false
+        RefreshPickerLock()
         if not PlayAdvancedThemeLoading(restoreColor, "RAINBOW MODE", "Returning To Static Theme") then
             rainbowTransitionActive = false
+            RefreshPickerLock()
             return
         end
         task.spawn(function()
@@ -854,6 +871,7 @@ rainbowClickArea.MouseButton1Click:Connect(function()
             task.wait(THEME_LOADING_APPLY_DELAY)
             if transitionSerial ~= rainbowTransitionSerial or token ~= getLoadingAnimationToken() or not isThemeLoading() or not loadingScreen.Parent then
                 rainbowTransitionActive = false
+                RefreshPickerLock()
                 setThemeLoading(false)
                 StopLoadingAnimation()
                 RestoreUIAfterThemeLoading()
@@ -870,6 +888,7 @@ rainbowClickArea.MouseButton1Click:Connect(function()
             pickerHue, pickerSaturation, pickerValue = restoreColor:ToHSV()
             selectedThemeColor = restoreColor
             rainbowTransitionActive = false
+            RefreshPickerLock()
             UpdateLoadingTheme()
             UpdateToggleIndicators(restoreColor)
             loadingStatus.Text = "THEME RESTORED"
@@ -919,9 +938,10 @@ applyThemeBtn.MouseButton1Click:Connect(function()
     rainbowTransitionSerial = rainbowTransitionSerial + 1
     isRainbowRunning = false
     rainbowTransitionActive = true
+    RefreshPickerLock()
     staticThemeColor = targetColor
     local started = PlayAdvancedThemeLoading(targetColor, "FISHHUB", "Applying Theme & Reloading UI")
-    if not started then rainbowTransitionActive = false return end
+    if not started then rainbowTransitionActive = false RefreshPickerLock() return end
     ShowNotification("Applying theme...")
     task.spawn(function()
         task.wait(THEME_LOADING_APPLY_DELAY)
