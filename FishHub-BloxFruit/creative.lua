@@ -42,7 +42,6 @@ tab.ScrollingDirection = Enum.ScrollingDirection.Y
 
 local DISCORD_URL = "https://discord.gg/zFN6Nd99fC"
 local FACEBOOK_URL = "https://www.facebook.com/dao.huy.lam.09/"
-local ROBLOX_USERNAME = "thankhuyenhuy"
 
 local function accent()
     if Config and typeof(Config.ThemeColor) == "Color3" then
@@ -113,7 +112,7 @@ local function makeSection(titleText, order)
     holder.BackgroundTransparency = 1
     holder.LayoutOrder = order
 
-    local title = label(holder, titleText, 10, Color3.fromRGB(190, 195, 208), Enum.Font.GothamBold)
+    local title = label(holder, titleText, 10, accent(), Enum.Font.GothamBold)
     title.Size = UDim2.new(0, 260, 0, 18)
     title.Position = UDim2.new(0.5, -130, 0, 0)
     title.ZIndex = 3
@@ -151,19 +150,13 @@ local function makeSection(titleText, order)
     content.BorderSizePixel = 0
     content.ZIndex = 2
     corner(content, 11)
-    local contentStroke = stroke(content, Color3.fromRGB(48, 52, 64), 1, 0.55)
+    local contentStroke = stroke(content, accent(), 1, 0.62)
 
     return holder, content, title, line, contentStroke
 end
 
 -- 1. ROBLOX PLAYER
 local _, robloxCard = makeSection("ROBLOX PLAYER", 1)
-
-local targetUserId = nil
-pcall(function()
-    targetUserId = Players:GetUserIdFromNameAsync(ROBLOX_USERNAME)
-end)
-targetUserId = targetUserId or player.UserId
 
 local avatar = Instance.new("ImageLabel")
 avatar.Parent = robloxCard
@@ -173,17 +166,17 @@ avatar.AnchorPoint = Vector2.new(0, 0.5)
 avatar.BackgroundColor3 = Color3.fromRGB(18, 20, 29)
 avatar.BorderSizePixel = 0
 avatar.ScaleType = Enum.ScaleType.Crop
-avatar.Image = string.format("rbxthumb://type=AvatarHeadShot&id=%d&w=150&h=150", targetUserId)
+avatar.Image = string.format("rbxthumb://type=AvatarHeadShot&id=%d&w=150&h=150", player.UserId)
 corner(avatar, 10)
 
-local displayName = label(robloxCard, ROBLOX_USERNAME, 13, Color3.fromRGB(245, 247, 252), Enum.Font.GothamBold)
+local displayName = label(robloxCard, player.DisplayName, 13, Color3.fromRGB(245, 247, 252), Enum.Font.GothamBold)
 displayName.Size = UDim2.new(0.45, 0, 0, 22)
 displayName.Position = UDim2.new(0, 78, 0, 12)
 displayName.TextXAlignment = Enum.TextXAlignment.Left
 
 displayName.TextTruncate = Enum.TextTruncate.AtEnd
 
-local username = label(robloxCard, "@" .. ROBLOX_USERNAME, 10, Color3.fromRGB(160, 166, 180), Enum.Font.GothamBold)
+local username = label(robloxCard, "@" .. player.Name, 10, accent(), Enum.Font.GothamBold)
 username.Size = UDim2.new(0.45, 0, 0, 18)
 username.Position = UDim2.new(0, 78, 0, 37)
 username.TextXAlignment = Enum.TextXAlignment.Left
@@ -198,7 +191,7 @@ local _, discordCard = makeSection("SERVER DISCORD", 2)
 
 discordCard.BackgroundColor3 = Color3.fromRGB(9, 11, 18)
 
-local discordIcon = label(discordCard, "◈", 20, Color3.fromRGB(210, 214, 224), Enum.Font.GothamBold)
+local discordIcon = label(discordCard, "◈", 20, accent(), Enum.Font.GothamBold)
 discordIcon.Size = UDim2.fromOffset(42, 42)
 discordIcon.Position = UDim2.new(0, 14, 0.5, -21)
 
@@ -216,7 +209,7 @@ local discordButton = Instance.new("TextButton")
 discordButton.Parent = discordCard
 discordButton.Size = UDim2.new(0, 112, 0, 30)
 discordButton.Position = UDim2.new(1, -126, 0.5, -15)
-discordButton.BackgroundColor3 = Color3.fromRGB(55, 59, 72)
+discordButton.BackgroundColor3 = accent()
 discordButton.BorderSizePixel = 0
 discordButton.AutoButtonColor = false
 discordButton.Text = "JOIN SERVER"
@@ -225,13 +218,13 @@ discordButton.TextSize = 10
 discordButton.TextColor3 = Color3.fromRGB(24, 27, 34)
 discordButton.ZIndex = 5
 corner(discordButton, 7)
-local discordStroke = stroke(discordButton, Color3.fromRGB(70, 74, 88), 1, 0.15)
+local discordStroke = stroke(discordButton, accent(), 1, 0.1)
 
 discordButton.MouseEnter:Connect(function()
-    discordButton.BackgroundColor3 = Color3.fromRGB(55, 59, 72):Lerp(Color3.new(1, 1, 1), 0.10)
+    discordButton.BackgroundColor3 = accent():Lerp(Color3.new(1, 1, 1), 0.10)
 end)
 discordButton.MouseLeave:Connect(function()
-    discordButton.BackgroundColor3 = Color3.fromRGB(55, 59, 72)
+    discordButton.BackgroundColor3 = accent()
 end)
 discordButton.Activated:Connect(function()
     pcall(function()
@@ -245,7 +238,7 @@ end)
 -- 3. FACEBOOK
 local _, facebookCard = makeSection("FACEBOOK PLAYER", 3)
 
-local facebookIcon = label(facebookCard, "f", 22, Color3.fromRGB(210, 214, 224), Enum.Font.GothamBold)
+local facebookIcon = label(facebookCard, "f", 22, accent(), Enum.Font.GothamBold)
 facebookIcon.Size = UDim2.fromOffset(42, 42)
 facebookIcon.Position = UDim2.new(0, 14, 0.5, -21)
 
@@ -263,7 +256,7 @@ local facebookButton = Instance.new("TextButton")
 facebookButton.Parent = facebookCard
 facebookButton.Size = UDim2.new(0, 112, 0, 30)
 facebookButton.Position = UDim2.new(1, -126, 0.5, -15)
-facebookButton.BackgroundColor3 = Color3.fromRGB(55, 59, 72)
+facebookButton.BackgroundColor3 = accent()
 facebookButton.BorderSizePixel = 0
 facebookButton.AutoButtonColor = false
 facebookButton.Text = "ADD FACEBOOK"
@@ -272,13 +265,13 @@ facebookButton.TextSize = 10
 facebookButton.TextColor3 = Color3.fromRGB(24, 27, 34)
 facebookButton.ZIndex = 5
 corner(facebookButton, 7)
-local facebookStroke = stroke(facebookButton, Color3.fromRGB(70, 74, 88), 1, 0.15)
+local facebookStroke = stroke(facebookButton, accent(), 1, 0.1)
 
 facebookButton.MouseEnter:Connect(function()
-    facebookButton.BackgroundColor3 = Color3.fromRGB(55, 59, 72):Lerp(Color3.new(1, 1, 1), 0.10)
+    facebookButton.BackgroundColor3 = accent():Lerp(Color3.new(1, 1, 1), 0.10)
 end)
 facebookButton.MouseLeave:Connect(function()
-    facebookButton.BackgroundColor3 = Color3.fromRGB(55, 59, 72)
+    facebookButton.BackgroundColor3 = accent()
 end)
 facebookButton.Activated:Connect(function()
     pcall(function()
@@ -293,27 +286,13 @@ end)
 task.spawn(function()
     while tab.Parent do
         local c = accent()
-        -- Theme / Rainbow is intentionally applied ONLY to the three horizontal divider lines.
-        for _, section in ipairs({
-            tab:FindFirstChild("CreativeRoot") and tab.CreativeRoot:FindFirstChild("ROBLOXPLAYERSection"),
-            tab:FindFirstChild("CreativeRoot") and tab.CreativeRoot:FindFirstChild("SERVERDISCORDSection"),
-            tab:FindFirstChild("CreativeRoot") and tab.CreativeRoot:FindFirstChild("FACEBOOKPLAYERSection"),
-        }) do
-            if section then
-                local line = section:FindFirstChild("CenterFadeLine")
-                if line then
-                    line.BackgroundColor3 = c
-                end
-            end
-        end
-        -- Keep all labels, avatars, logos, cards and buttons independent from theme/rainbow.
-        username.TextColor3 = Color3.fromRGB(160, 166, 180)
-        discordIcon.TextColor3 = Color3.fromRGB(210, 214, 224)
-        facebookIcon.TextColor3 = Color3.fromRGB(210, 214, 224)
-        discordButton.BackgroundColor3 = Color3.fromRGB(55, 59, 72)
-        facebookButton.BackgroundColor3 = Color3.fromRGB(55, 59, 72)
-        discordStroke.Color = Color3.fromRGB(70, 74, 88)
-        facebookStroke.Color = Color3.fromRGB(70, 74, 88)
+        username.TextColor3 = c
+        discordIcon.TextColor3 = c
+        facebookIcon.TextColor3 = c
+        discordButton.BackgroundColor3 = c
+        facebookButton.BackgroundColor3 = c
+        discordStroke.Color = c
+        facebookStroke.Color = c
         task.wait(0.08)
     end
 end)
