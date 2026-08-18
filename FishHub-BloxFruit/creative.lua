@@ -67,28 +67,92 @@ local function button(parent,txt,y,fn)
 end
 
 -- Roblox Player
+-- IMPORTANT:
+-- Roblox has two separate names:
+--   1) Username  -> the fixed @name (we use @thankhuyenhuy to identify the account)
+--   2) DisplayName -> the player's chosen in-game display name
+-- We must NEVER use the username as the DisplayName.
 local roblox=section("ROBLOX PLAYER",128)
-local targetName="thankhuyenhuy"
-local targetId
-pcall(function() targetId=Players:GetUserIdFromNameAsync(targetName) end)
-local avatar=Instance.new("ImageLabel"); avatar.Size=UDim2.fromOffset(62,62); avatar.Position=UDim2.new(.5,-125,0,22); avatar.BackgroundColor3=Color3.fromRGB(24,27,35); avatar.BorderSizePixel=0; avatar.ScaleType=Enum.ScaleType.Crop; avatar.Parent=roblox; corner(avatar,11)
-if targetId then avatar.Image="rbxthumb://type=AvatarHeadShot&id="..tostring(targetId).."&w=150&h=150" end
-local displayName=targetName
-if targetId then
-    pcall(function()
-        local HttpService=context and context.HttpService
-        if HttpService then
-            local body=HttpService:GetAsync("https://users.roblox.com/v1/users/"..tostring(targetId))
-            local data=HttpService:JSONDecode(body)
-            if type(data)=="table" and type(data.displayName)=="string" and data.displayName~="" then
-                displayName=data.displayName
-            end
-        end
-    end)
+local targetUsername="thankhuyenhuy"
+local targetPlayer=nil
+local targetId=nil
+local targetDisplayName=nil
+
+-- First prefer the actual Player object in the current server.
+-- This gives the real DisplayName immediately and avoids confusing Username with DisplayName.
+for _,candidate in ipairs(Players:GetPlayers()) do
+    if string.lower(candidate.Name)==string.lower(targetUsername) then
+        targetPlayer=candidate
+        break
+    end
 end
-local nm=text(roblox,displayName,16,FIXED_TEXT,Enum.Font.GothamBold); nm.Size=UDim2.fromOffset(180,23); nm.Position=UDim2.new(.5,-52,0,22); nm.TextXAlignment=Enum.TextXAlignment.Left
-local un=text(roblox,"@"..targetName,10,FIXED_SUB,Enum.Font.GothamMedium); un.Size=UDim2.fromOffset(180,18); un.Position=UDim2.new(.5,-52,0,49); un.TextXAlignment=Enum.TextXAlignment.Left
-local cap=text(roblox,"ROBLOX PLAYER PROFILE",8,FIXED_MUTED,Enum.Font.GothamBold); cap.Size=UDim2.fromOffset(180,16); cap.Position=UDim2.new(.5,-52,0,72); cap.TextXAlignment=Enum.TextXAlignment.Left
+
+if targetPlayer then
+    targetId=targetPlayer.UserId
+    targetDisplayName=targetPlayer.DisplayName
+else
+    -- Account may not be in the current server; resolve username -> UserId.
+    pcall(function()
+        targetId=Players:GetUserIdFromNameAsync(targetUsername)
+    end)
+
+    -- Resolve the real Roblox DisplayName from the account profile.
+    local HttpService=context and context.HttpService
+    if targetId then
+        -- Executor-safe first choice: game:HttpGet + JSONDecode.
+        pcall(function()
+            if game.HttpGet and HttpService then
+                local body=game:HttpGet("https://users.roblox.com/v1/users/"..tostring(targetId))
+                local data=HttpService:JSONDecode(body)
+                if type(data)=="table" and type(data.displayName)=="string" and data.displayName~="" then
+                    targetDisplayName=data.displayName
+                end
+            end
+        end)
+
+        -- Fallback for environments that expose HttpService:GetAsync directly.
+        if not targetDisplayName and HttpService then
+            pcall(function()
+                local body=HttpService:GetAsync("https://users.roblox.com/v1/users/"..tostring(targetId))
+                local data=HttpService:JSONDecode(body)
+                if type(data)=="table" and type(data.displayName)=="string" and data.displayName~="" then
+                    targetDisplayName=data.displayName
+                end
+            end)
+        end
+    end
+end
+
+-- Final fallback is only used if Roblox's public profile request failed.
+-- The @username is NEVER used as the normal DisplayName source.
+targetDisplayName=(type(targetDisplayName)=="string" and targetDisplayName~="" and targetDisplayName) or "Unknown Display Name"
+
+local avatar=Instance.new("ImageLabel")
+avatar.Size=UDim2.fromOffset(62,62)
+avatar.Position=UDim2.new(.5,-125,0,22)
+avatar.BackgroundColor3=Color3.fromRGB(24,27,35)
+avatar.BorderSizePixel=0
+avatar.ScaleType=Enum.ScaleType.Crop
+avatar.Parent=roblox
+corner(avatar,11)
+if targetId then
+    avatar.Image="rbxthumb://type=AvatarHeadShot&id="..tostring(targetId).."&w=150&h=150"
+end
+
+local nm=text(roblox,targetDisplayName,16,FIXED_TEXT,Enum.Font.GothamBold)
+nm.Size=UDim2.fromOffset(180,23)
+nm.Position=UDim2.new(.5,-52,0,22)
+nm.TextXAlignment=Enum.TextXAlignment.Left
+
+local un=text(roblox,"@"..targetUsername,10,FIXED_SUB,Enum.Font.GothamMedium)
+un.Size=UDim2.fromOffset(180,18)
+un.Position=UDim2.new(.5,-52,0,49)
+un.TextXAlignment=Enum.TextXAlignment.Left
+
+local cap=text(roblox,"ROBLOX PLAYER PROFILE",8,FIXED_MUTED,Enum.Font.GothamBold)
+cap.Size=UDim2.fromOffset(180,16)
+cap.Position=UDim2.new(.5,-52,0,72)
+cap.TextXAlignment=Enum.TextXAlignment.Left
 
 -- Discord
 local dc=section("SERVER DISCORD",112)
