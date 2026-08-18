@@ -1,3 +1,22 @@
+--[[
+    FishHub Settings Module
+    -----------------------
+    This file owns EVERYTHING opened/controlled by the Main Gear button:
+      * Settings window
+      * Theme picker
+      * Apply Theme
+      * Rainbow Continuous
+      * Rainbow Speed
+      * Debug toggle
+      * Hotkey picker
+      * Settings open/close animation
+      * Theme/rainbow engine
+
+    The Main file still owns the Gear button itself.
+    This module deliberately receives the existing Main UI through ctx so
+    moving this code does not duplicate or recreate the Main UI.
+]]
+
 return function(ctx)
     if type(ctx) ~= "table" then
         error("FishHub setting.lua: context table is required")
@@ -317,6 +336,11 @@ pickerHue=math.clamp((pos.Y-abs.Y)/size.Y,0,1)
 UpdateThemePicker()
 end
 local pickerDragging=nil
+
+-- Forward declaration: the color picker is created before the theme engine.
+-- Without this, picker callbacks can resolve ApplyGlobalTheme as nil/global.
+local ApplyGlobalTheme
+
 local function StopRainbowForManualColor()
     if isRainbowRunning or rainbowTransitionActive then
         isRainbowRunning = false
@@ -646,7 +670,7 @@ hotkeyButtonBox.MouseButton1Click:Connect(function()
         end
     end)
 end)
-local function ApplyGlobalTheme(newColor)
+ApplyGlobalTheme = function(newColor)
     Config.ThemeColor = newColor
     if not isRainbowRunning and not rainbowTransitionActive then
         staticThemeColor = newColor
@@ -772,6 +796,8 @@ rainbowClickArea.MouseButton1Click:Connect(function()
         return
     end
     local enableRainbow = not isRainbowRunning
+    rainbowTransitionSerial = rainbowTransitionSerial + 1
+    local transitionSerial = rainbowTransitionSerial
     rainbowTransitionActive = true
     if enableRainbow then
         staticThemeColor = Config.ThemeColor
@@ -784,7 +810,7 @@ rainbowClickArea.MouseButton1Click:Connect(function()
         task.spawn(function()
             local token = getLoadingAnimationToken()
             task.wait(THEME_LOADING_APPLY_DELAY)
-            if token ~= getLoadingAnimationToken() or not isThemeLoading() or not loadingScreen.Parent then
+            if transitionSerial ~= rainbowTransitionSerial or token ~= getLoadingAnimationToken() or not isThemeLoading() or not loadingScreen.Parent then
                 rainbowTransitionActive = false
                 setThemeLoading(false)
                 StopLoadingAnimation()
@@ -826,7 +852,7 @@ rainbowClickArea.MouseButton1Click:Connect(function()
         task.spawn(function()
             local token = getLoadingAnimationToken()
             task.wait(THEME_LOADING_APPLY_DELAY)
-            if token ~= getLoadingAnimationToken() or not isThemeLoading() or not loadingScreen.Parent then
+            if transitionSerial ~= rainbowTransitionSerial or token ~= getLoadingAnimationToken() or not isThemeLoading() or not loadingScreen.Parent then
                 rainbowTransitionActive = false
                 setThemeLoading(false)
                 StopLoadingAnimation()
@@ -890,6 +916,7 @@ applyThemeBtn.MouseButton1Click:Connect(function()
     if isThemeLoading() or rainbowTransitionActive then return end
     local targetColor = selectedThemeColor
     if typeof(targetColor) ~= "Color3" then return end
+    rainbowTransitionSerial = rainbowTransitionSerial + 1
     isRainbowRunning = false
     rainbowTransitionActive = true
     staticThemeColor = targetColor
