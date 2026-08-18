@@ -1,179 +1,250 @@
---// FishHub Creative - clean redesign
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
+--// FishHub Creative.lua
+--// Creative profile: @thankhuyenhuy
+--// Script by DaoHuyLam
+
 local context = ...
+
+local Players = (context and context.Players) or game:GetService("Players")
+local TweenService = (context and context.TweenService) or game:GetService("TweenService")
 local player = (context and context.Player) or Players.LocalPlayer
-if not player then return end
-local playerGui = (context and context.PlayerGui) or player:WaitForChild("PlayerGui",10)
 local tab = context and context.Tab
-local main = context and context.MainWindow
+
 if not tab then
-    local fishHub = playerGui and playerGui:FindFirstChild("FishHub")
-    local mainWindow = fishHub and fishHub:FindFirstChild("MainWindow")
-    local content = mainWindow and mainWindow:FindFirstChild("ContentContainer")
-    tab = content and content:FindFirstChild("CreativeTab",true)
-    main = main or mainWindow
-end
-if not tab then return end
-for _,child in ipairs(tab:GetChildren()) do child:Destroy() end
-
-local FIXED_TEXT = Color3.fromRGB(244,246,250)
-local FIXED_SUB = Color3.fromRGB(164,169,184)
-local FIXED_MUTED = Color3.fromRGB(116,122,138)
-local FIXED_CARD = Color3.fromRGB(35,38,48)
-local FIXED_CARD2 = Color3.fromRGB(42,46,58)
-local FIXED_BUTTON = Color3.fromRGB(62,67,82)
-local FIXED_BUTTON_HOVER = Color3.fromRGB(73,79,96)
-
-local function accent()
-    local s = main and main:FindFirstChildOfClass("UIStroke")
-    return (s and s.Color) or Color3.fromRGB(0,229,255)
-end
-local function corner(o,r) local c=Instance.new("UICorner"); c.CornerRadius=UDim.new(0,r); c.Parent=o end
-local function text(parent,t,size,color,font)
-    local x=Instance.new("TextLabel")
-    x.BackgroundTransparency=1; x.Text=t; x.TextSize=size; x.TextColor3=color; x.Font=font or Enum.Font.GothamMedium; x.Parent=parent
-    return x
-end
-local function addStroke(o,c,tr,th) local s=Instance.new("UIStroke"); s.Color=c; s.Transparency=tr or 0; s.Thickness=th or 1; s.Parent=o; return s end
-local function notify(msg)
-    local fn=context and context.ShowNotification
-    if type(fn)=="function" then pcall(fn,msg) end
-end
-local function copy(s) pcall(function() if setclipboard then setclipboard(s) end end) end
-
-local scroll=Instance.new("ScrollingFrame")
-scroll.Size=UDim2.new(1,-8,1,-4); scroll.Position=UDim2.fromOffset(4,2); scroll.BackgroundTransparency=1; scroll.BorderSizePixel=0; scroll.ScrollBarThickness=0; scroll.ScrollBarImageTransparency=1; scroll.AutomaticCanvasSize=Enum.AutomaticSize.Y; scroll.Parent=tab
-local root=Instance.new("Frame"); root.Size=UDim2.new(1,-14,0,0); root.AutomaticSize=Enum.AutomaticSize.Y; root.BackgroundTransparency=1; root.Parent=scroll
-local layout=Instance.new("UIListLayout"); layout.Padding=UDim.new(0,14); layout.HorizontalAlignment=Enum.HorizontalAlignment.Center; layout.Parent=root
-
-local themed={} 
-local function section(titleText,height)
-    local holder=Instance.new("Frame"); holder.Size=UDim2.new(1,0,0,height+48); holder.BackgroundTransparency=1; holder.Parent=root
-    local title=text(holder,titleText,12,accent(),Enum.Font.GothamBold); title.Size=UDim2.new(0,240,0,20); title.Position=UDim2.new(.5,-120,0,0); title.TextXAlignment=Enum.TextXAlignment.Center
-    local line=Instance.new("Frame"); line.Size=UDim2.new(1,-12,0,2); line.Position=UDim2.new(.5,0,0,28); line.AnchorPoint=Vector2.new(.5,0); line.BackgroundColor3=accent(); line.BorderSizePixel=0; line.Parent=holder
-    local grad=Instance.new("UIGradient"); grad.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,.96),NumberSequenceKeypoint.new(.16,.72),NumberSequenceKeypoint.new(.35,.28),NumberSequenceKeypoint.new(.5,0),NumberSequenceKeypoint.new(.65,.28),NumberSequenceKeypoint.new(.84,.72),NumberSequenceKeypoint.new(1,.96)}); grad.Parent=line
-    local card=Instance.new("Frame"); card.Size=UDim2.new(1,-4,0,height); card.Position=UDim2.new(.5,0,0,45); card.AnchorPoint=Vector2.new(.5,0); card.BackgroundColor3=FIXED_CARD; card.BackgroundTransparency=.02; card.BorderSizePixel=0; card.Parent=holder; corner(card,12); addStroke(card,Color3.fromRGB(72,77,92),.18,1)
-    table.insert(themed,{title=title,line=line})
-    return card
-end
-local function button(parent,txt,y,fn)
-    local b=Instance.new("TextButton"); b.Size=UDim2.fromOffset(164,34); b.Position=UDim2.new(.5,0,0,y); b.AnchorPoint=Vector2.new(.5,0); b.BackgroundColor3=FIXED_BUTTON; b.BorderSizePixel=0; b.Text=txt; b.Font=Enum.Font.GothamBold; b.TextSize=11; b.TextColor3=FIXED_TEXT; b.AutoButtonColor=false; b.Parent=parent; corner(b,8)
-    local st=addStroke(b,Color3.fromRGB(92,97,112),.2,1)
-    b.MouseEnter:Connect(function() TweenService:Create(b,TweenInfo.new(.15),{BackgroundColor3=FIXED_BUTTON_HOVER}):Play(); TweenService:Create(st,TweenInfo.new(.15),{Transparency=0}):Play() end)
-    b.MouseLeave:Connect(function() TweenService:Create(b,TweenInfo.new(.15),{BackgroundColor3=FIXED_BUTTON}):Play(); TweenService:Create(st,TweenInfo.new(.15),{Transparency=.2}):Play() end)
-    b.Activated:Connect(function() if fn then fn() end end)
-    return b
+    return
 end
 
--- Roblox Player
--- IMPORTANT:
--- Roblox has two separate names:
---   1) Username  -> the fixed @name (we use @thankhuyenhuy to identify the account)
---   2) DisplayName -> the player's chosen in-game display name
--- We must NEVER use the username as the DisplayName.
-local roblox=section("ROBLOX PLAYER",128)
-local targetUsername="thankhuyenhuy"
-local targetPlayer=nil
-local targetId=nil
-local targetDisplayName=nil
-
--- First prefer the actual Player object in the current server.
--- This gives the real DisplayName immediately and avoids confusing Username with DisplayName.
-for _,candidate in ipairs(Players:GetPlayers()) do
-    if string.lower(candidate.Name)==string.lower(targetUsername) then
-        targetPlayer=candidate
-        break
-    end
+-- Clean ONLY the Creative tab.
+for _, child in ipairs(tab:GetChildren()) do
+    child:Destroy()
 end
 
-if targetPlayer then
-    targetId=targetPlayer.UserId
-    targetDisplayName=targetPlayer.DisplayName
-else
-    -- Account may not be in the current server; resolve username -> UserId.
-    pcall(function()
-        targetId=Players:GetUserIdFromNameAsync(targetUsername)
-    end)
+tab.CanvasSize = UDim2.new(0, 0, 0, 0)
+tab.AutomaticCanvasSize = Enum.AutomaticSize.Y
+tab.ScrollingDirection = Enum.ScrollingDirection.Y
+tab.ScrollBarThickness = 0
 
-    -- Resolve the real Roblox DisplayName from the account profile.
-    local HttpService=context and context.HttpService
-    if targetId then
-        -- Executor-safe first choice: game:HttpGet + JSONDecode.
-        pcall(function()
-            if game.HttpGet and HttpService then
-                local body=game:HttpGet("https://users.roblox.com/v1/users/"..tostring(targetId))
-                local data=HttpService:JSONDecode(body)
-                if type(data)=="table" and type(data.displayName)=="string" and data.displayName~="" then
-                    targetDisplayName=data.displayName
-                end
-            end
-        end)
+local ACCENT = Color3.fromRGB(0, 229, 255)
+local PURPLE = Color3.fromRGB(168, 85, 247)
+local BG = Color3.fromRGB(9, 11, 18)
+local CARD = Color3.fromRGB(15, 18, 28)
+local TEXT = Color3.fromRGB(245, 247, 255)
+local MUTED = Color3.fromRGB(145, 151, 170)
 
-        -- Fallback for environments that expose HttpService:GetAsync directly.
-        if not targetDisplayName and HttpService then
-            pcall(function()
-                local body=HttpService:GetAsync("https://users.roblox.com/v1/users/"..tostring(targetId))
-                local data=HttpService:JSONDecode(body)
-                if type(data)=="table" and type(data.displayName)=="string" and data.displayName~="" then
-                    targetDisplayName=data.displayName
-                end
-            end)
-        end
-    end
+local function tween(instance, info, props)
+    local t = TweenService:Create(instance, info, props)
+    t:Play()
+    return t
 end
 
--- Final fallback is only used if Roblox's public profile request failed.
--- The @username is NEVER used as the normal DisplayName source.
-targetDisplayName=(type(targetDisplayName)=="string" and targetDisplayName~="" and targetDisplayName) or "Unknown Display Name"
-
-local avatar=Instance.new("ImageLabel")
-avatar.Size=UDim2.fromOffset(62,62)
-avatar.Position=UDim2.new(.5,-125,0,22)
-avatar.BackgroundColor3=Color3.fromRGB(24,27,35)
-avatar.BorderSizePixel=0
-avatar.ScaleType=Enum.ScaleType.Crop
-avatar.Parent=roblox
-corner(avatar,11)
-if targetId then
-    avatar.Image="rbxthumb://type=AvatarHeadShot&id="..tostring(targetId).."&w=150&h=150"
+local function corner(parent, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius)
+    c.Parent = parent
+    return c
 end
 
-local nm=text(roblox,targetDisplayName,16,FIXED_TEXT,Enum.Font.GothamBold)
-nm.Size=UDim2.fromOffset(180,23)
-nm.Position=UDim2.new(.5,-52,0,22)
-nm.TextXAlignment=Enum.TextXAlignment.Left
+local function stroke(parent, color, thickness, transparency)
+    local s = Instance.new("UIStroke")
+    s.Color = color
+    s.Thickness = thickness or 1
+    s.Transparency = transparency or 0
+    s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    s.Parent = parent
+    return s
+end
 
-local un=text(roblox,"@"..targetUsername,10,FIXED_SUB,Enum.Font.GothamMedium)
-un.Size=UDim2.fromOffset(180,18)
-un.Position=UDim2.new(.5,-52,0,49)
-un.TextXAlignment=Enum.TextXAlignment.Left
+local function label(parent, text, size, position, font, color)
+    local l = Instance.new("TextLabel")
+    l.BackgroundTransparency = 1
+    l.Text = text
+    l.TextColor3 = color or TEXT
+    l.Font = font or Enum.Font.GothamMedium
+    l.TextSize = size
+    l.Position = position
+    l.Size = UDim2.new(1, 0, 0, size + 8)
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    l.Parent = parent
+    return l
+end
 
-local cap=text(roblox,"ROBLOX PLAYER PROFILE",8,FIXED_MUTED,Enum.Font.GothamBold)
-cap.Size=UDim2.fromOffset(180,16)
-cap.Position=UDim2.new(.5,-52,0,72)
-cap.TextXAlignment=Enum.TextXAlignment.Left
+-- Main creative canvas.
+local root = Instance.new("Frame")
+root.Name = "CreativeRoot"
+root.Size = UDim2.new(1, -8, 0, 330)
+root.Position = UDim2.new(0, 4, 0, 4)
+root.BackgroundColor3 = BG
+root.BorderSizePixel = 0
+root.Parent = tab
+corner(root, 14)
+stroke(root, ACCENT, 1.2, 0.55)
 
--- Discord
-local dc=section("SERVER DISCORD",112)
-local di=text(dc,"◈",24,FIXED_TEXT,Enum.Font.GothamBold); di.Size=UDim2.fromOffset(44,30); di.Position=UDim2.new(.5,-22,0,9); di.TextXAlignment=Enum.TextXAlignment.Center
-local dsub=text(dc,"FishHub Community Server",10,FIXED_SUB,Enum.Font.GothamMedium); dsub.Size=UDim2.new(1,-24,0,18); dsub.Position=UDim2.fromOffset(12,43); dsub.TextXAlignment=Enum.TextXAlignment.Center
-button(dc,"JOIN DISCORD",68,function() copy("https://discord.gg/zFN6Nd99fC"); notify("Discord invite copied!") end)
+-- Soft animated accent line.
+local topGlow = Instance.new("Frame")
+topGlow.Size = UDim2.new(1, -34, 0, 2)
+topGlow.Position = UDim2.new(0, 17, 0, 16)
+topGlow.BackgroundColor3 = ACCENT
+topGlow.BorderSizePixel = 0
+topGlow.Parent = root
+corner(topGlow, 2)
 
--- Facebook
-local fb=section("FACEBOOK PLAYER",112)
-local fi=text(fb,"f",26,FIXED_TEXT,Enum.Font.GothamBold); fi.Size=UDim2.fromOffset(44,32); fi.Position=UDim2.new(.5,-22,0,7); fi.TextXAlignment=Enum.TextXAlignment.Center
-local fsub=text(fb,"Connect with the player",10,FIXED_SUB,Enum.Font.GothamMedium); fsub.Size=UDim2.new(1,-24,0,18); fsub.Position=UDim2.fromOffset(12,43); fsub.TextXAlignment=Enum.TextXAlignment.Center
-button(fb,"ADD FACEBOOK",68,function() copy("https://www.facebook.com/dao.huy.lam.09/"); notify("Facebook profile link copied!") end)
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, ACCENT),
+    ColorSequenceKeypoint.new(0.5, PURPLE),
+    ColorSequenceKeypoint.new(1, ACCENT)
+})
+gradient.Parent = topGlow
 
 task.spawn(function()
-    while tab.Parent do
-        local c=accent()
-        for _,item in ipairs(themed) do
-            if item.title.Parent then item.title.TextColor3=c end
-            if item.line.Parent then item.line.BackgroundColor3=c end
-        end
-        task.wait(.05)
+    local offset = -1
+    while topGlow.Parent do
+        offset += 0.012
+        if offset > 1 then offset = -1 end
+        gradient.Offset = Vector2.new(offset, 0)
+        task.wait(0.025)
+    end
+end)
+
+-- Header.
+local badge = Instance.new("Frame")
+badge.Size = UDim2.new(0, 42, 0, 42)
+badge.Position = UDim2.new(0, 22, 0, 34)
+badge.BackgroundColor3 = ACCENT
+badge.BackgroundTransparency = 0.84
+badge.BorderSizePixel = 0
+badge.Parent = root
+corner(badge, 12)
+stroke(badge, ACCENT, 1, 0.35)
+
+local badgeText = label(badge, "✦", 20, UDim2.new(0, 0, 0, 4), Enum.Font.GothamBold, ACCENT)
+badgeText.TextXAlignment = Enum.TextXAlignment.Center
+
+local title = label(root, "CREATIVE", 21, UDim2.new(0, 78, 0, 34), Enum.Font.GothamBold, TEXT)
+local subtitle = label(root, "A personal space crafted for @thankhuyenhuy", 10, UDim2.new(0, 80, 0, 61), Enum.Font.GothamMedium, MUTED)
+
+local author = label(root, "SCRIPT BY  •  DaoHuyLam", 9, UDim2.new(0, 80, 0, 80), Enum.Font.Code, ACCENT)
+
+-- Profile card.
+local profile = Instance.new("Frame")
+profile.Size = UDim2.new(1, -44, 0, 104)
+profile.Position = UDim2.new(0, 22, 0, 112)
+profile.BackgroundColor3 = CARD
+profile.BackgroundTransparency = 0.08
+profile.BorderSizePixel = 0
+profile.Parent = root
+corner(profile, 12)
+stroke(profile, PURPLE, 1, 0.62)
+
+local avatarHolder = Instance.new("Frame")
+avatarHolder.Size = UDim2.new(0, 66, 0, 66)
+avatarHolder.Position = UDim2.new(0, 18, 0.5, 0)
+avatarHolder.AnchorPoint = Vector2.new(0, 0.5)
+avatarHolder.BackgroundColor3 = Color3.fromRGB(23, 26, 39)
+avatarHolder.BorderSizePixel = 0
+avatarHolder.Parent = profile
+corner(avatarHolder, 16)
+stroke(avatarHolder, ACCENT, 1.2, 0.35)
+
+local avatar = Instance.new("ImageLabel")
+avatar.Size = UDim2.new(1, -6, 1, -6)
+avatar.Position = UDim2.new(0, 3, 0, 3)
+avatar.BackgroundTransparency = 1
+avatar.Parent = avatarHolder
+corner(avatar, 14)
+
+pcall(function()
+    avatar.Image = Players:GetUserThumbnailAsync(
+        player.UserId,
+        Enum.ThumbnailType.HeadShot,
+        Enum.ThumbnailSize.Size100x100
+    )
+end)
+
+local handle = label(profile, "@thankhuyenhuy", 15, UDim2.new(0, 98, 0, 22), Enum.Font.GothamBold, TEXT)
+local realName = label(profile, "Roblox profile", 10, UDim2.new(0, 98, 0, 46), Enum.Font.GothamMedium, MUTED)
+
+local statusDot = Instance.new("Frame")
+statusDot.Size = UDim2.new(0, 7, 0, 7)
+statusDot.Position = UDim2.new(1, -112, 0, 28)
+statusDot.BackgroundColor3 = Color3.fromRGB(55, 235, 135)
+statusDot.BorderSizePixel = 0
+statusDot.Parent = profile
+corner(statusDot, 10)
+
+local status = label(profile, "CREATIVE", 9, UDim2.new(1, -98, 0, 20), Enum.Font.Code, Color3.fromRGB(55, 235, 135))
+status.TextXAlignment = Enum.TextXAlignment.Right
+
+-- Footer cards.
+local leftInfo = Instance.new("Frame")
+leftInfo.Size = UDim2.new(0.5, -26, 0, 72)
+leftInfo.Position = UDim2.new(0, 22, 0, 228)
+leftInfo.BackgroundColor3 = CARD
+leftInfo.BorderSizePixel = 0
+leftInfo.Parent = root
+corner(leftInfo, 11)
+stroke(leftInfo, ACCENT, 1, 0.7)
+
+local rightInfo = Instance.new("Frame")
+rightInfo.Size = UDim2.new(0.5, -26, 0, 72)
+rightInfo.Position = UDim2.new(0.5, 4, 0, 228)
+rightInfo.BackgroundColor3 = CARD
+rightInfo.BorderSizePixel = 0
+rightInfo.Parent = root
+corner(rightInfo, 11)
+stroke(rightInfo, PURPLE, 1, 0.7)
+
+local l1 = label(leftInfo, "IDENTITY", 8, UDim2.new(0, 14, 0, 10), Enum.Font.Code, MUTED)
+local l2 = label(leftInfo, "thankhuyenhuy", 13, UDim2.new(0, 14, 0, 29), Enum.Font.GothamBold, TEXT)
+
+local r1 = label(rightInfo, "AUTHOR", 8, UDim2.new(0, 14, 0, 10), Enum.Font.Code, MUTED)
+local r2 = label(rightInfo, "DaoHuyLam", 13, UDim2.new(0, 14, 0, 29), Enum.Font.GothamBold, TEXT)
+
+-- Bottom signature.
+local signature = label(root, "✦  FISHHUB CREATIVE  /  @thankhuyenhuy", 8, UDim2.new(0, 22, 1, -25), Enum.Font.Code, Color3.fromRGB(105, 111, 130))
+
+-- Entrance animation.
+root.BackgroundTransparency = 1
+profile.BackgroundTransparency = 1
+leftInfo.BackgroundTransparency = 1
+rightInfo.BackgroundTransparency = 1
+badge.BackgroundTransparency = 1
+
+for _, obj in ipairs({title, subtitle, author, handle, realName, status, l1, l2, r1, r2, signature, badgeText}) do
+    obj.TextTransparency = 1
+end
+
+task.spawn(function()
+    task.wait(0.05)
+    tween(root, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 0
+    })
+    tween(badge, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 0.84
+    })
+
+    for _, obj in ipairs({title, subtitle, author, handle, realName, status, l1, l2, r1, r2, signature, badgeText}) do
+        tween(obj, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            TextTransparency = 0
+        })
+        task.wait(0.035)
+    end
+
+    tween(profile, TweenInfo.new(0.4), {BackgroundTransparency = 0.08})
+    tween(leftInfo, TweenInfo.new(0.4), {BackgroundTransparency = 0})
+    tween(rightInfo, TweenInfo.new(0.4), {BackgroundTransparency = 0})
+end)
+
+-- Subtle breathing animation for the accent.
+task.spawn(function()
+    while root.Parent do
+        tween(topGlow, TweenInfo.new(1.1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            BackgroundTransparency = 0.15
+        })
+        task.wait(1.1)
+        tween(topGlow, TweenInfo.new(1.1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            BackgroundTransparency = 0.45
+        })
+        task.wait(1.1)
     end
 end)
 
