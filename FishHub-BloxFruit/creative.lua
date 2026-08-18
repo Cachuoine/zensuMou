@@ -1,298 +1,103 @@
--- FishHub Creative tab
--- Rebuilt from scratch: Roblox Player / Discord / Facebook
-
+--// FishHub Creative - clean redesign
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-
+local TweenService = game:GetService("TweenService")
 local context = ...
 local player = (context and context.Player) or Players.LocalPlayer
-if not player then
-    return
-end
-
-local playerGui = (context and context.PlayerGui) or player:WaitForChild("PlayerGui", 10)
+if not player then return end
+local playerGui = (context and context.PlayerGui) or player:WaitForChild("PlayerGui",10)
 local tab = context and context.Tab
-local main = context and (context.MainWindow or context.Main)
-local ShowNotification = context and context.ShowNotification
-local Config = context and context.Config
-
+local main = context and context.MainWindow
 if not tab then
     local fishHub = playerGui and playerGui:FindFirstChild("FishHub")
     local mainWindow = fishHub and fishHub:FindFirstChild("MainWindow")
-    main = main or mainWindow
     local content = mainWindow and mainWindow:FindFirstChild("ContentContainer")
-    tab = content and content:FindFirstChild("CreativeTab", true)
+    tab = content and content:FindFirstChild("CreativeTab",true)
+    main = main or mainWindow
 end
+if not tab then return end
+for _,child in ipairs(tab:GetChildren()) do child:Destroy() end
 
-if not tab then
-    return
-end
-
-for _, child in ipairs(tab:GetChildren()) do
-    child:Destroy()
-end
-
-tab.ClipsDescendants = true
-tab.AutomaticCanvasSize = Enum.AutomaticSize.Y
-
-tab.ScrollBarThickness = 0
-tab.ScrollBarImageTransparency = 1
-
-tab.ScrollingDirection = Enum.ScrollingDirection.Y
-
-local DISCORD_URL = "https://discord.gg/zFN6Nd99fC"
-local FACEBOOK_URL = "https://www.facebook.com/dao.huy.lam.09/"
+local FIXED_TEXT = Color3.fromRGB(244,246,250)
+local FIXED_SUB = Color3.fromRGB(164,169,184)
+local FIXED_MUTED = Color3.fromRGB(116,122,138)
+local FIXED_CARD = Color3.fromRGB(35,38,48)
+local FIXED_CARD2 = Color3.fromRGB(42,46,58)
+local FIXED_BUTTON = Color3.fromRGB(62,67,82)
+local FIXED_BUTTON_HOVER = Color3.fromRGB(73,79,96)
 
 local function accent()
-    if Config and typeof(Config.ThemeColor) == "Color3" then
-        return Config.ThemeColor
-    end
-    if main then
-        local stroke = main:FindFirstChildOfClass("UIStroke")
-        if stroke then
-            return stroke.Color
-        end
-    end
-    return Color3.fromRGB(0, 229, 255)
+    local s = main and main:FindFirstChildOfClass("UIStroke")
+    return (s and s.Color) or Color3.fromRGB(0,229,255)
 end
-
-local function notify(message)
-    if type(ShowNotification) == "function" then
-        pcall(ShowNotification, message)
-    end
-end
-
-local function corner(instance, radius)
-    local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0, radius)
-    c.Parent = instance
-end
-
-local function stroke(instance, color, thickness, transparency)
-    local s = Instance.new("UIStroke")
-    s.Color = color or accent()
-    s.Thickness = thickness or 1
-    s.Transparency = transparency or 0
-    s.Parent = instance
-    return s
-end
-
-local function label(parent, text, size, color, font)
-    local x = Instance.new("TextLabel")
-    x.BackgroundTransparency = 1
-    x.Text = text
-    x.Font = font or Enum.Font.GothamMedium
-    x.TextSize = size or 11
-    x.TextColor3 = color or Color3.fromRGB(235, 238, 245)
-    x.TextXAlignment = Enum.TextXAlignment.Center
-    x.TextYAlignment = Enum.TextYAlignment.Center
-    x.Parent = parent
+local function corner(o,r) local c=Instance.new("UICorner"); c.CornerRadius=UDim.new(0,r); c.Parent=o end
+local function text(parent,t,size,color,font)
+    local x=Instance.new("TextLabel")
+    x.BackgroundTransparency=1; x.Text=t; x.TextSize=size; x.TextColor3=color; x.Font=font or Enum.Font.GothamMedium; x.Parent=parent
     return x
 end
+local function addStroke(o,c,tr,th) local s=Instance.new("UIStroke"); s.Color=c; s.Transparency=tr or 0; s.Thickness=th or 1; s.Parent=o; return s end
+local function notify(msg)
+    local fn=context and context.ShowNotification
+    if type(fn)=="function" then pcall(fn,msg) end
+end
+local function copy(s) pcall(function() if setclipboard then setclipboard(s) end end) end
 
-local root = Instance.new("Frame")
-root.Name = "CreativeRoot"
-root.Parent = tab
-root.Size = UDim2.new(1, -20, 0, 0)
-root.Position = UDim2.new(0, 10, 0, 6)
-root.AutomaticSize = Enum.AutomaticSize.Y
-root.BackgroundTransparency = 1
+local scroll=Instance.new("ScrollingFrame")
+scroll.Size=UDim2.new(1,-8,1,-4); scroll.Position=UDim2.fromOffset(4,2); scroll.BackgroundTransparency=1; scroll.BorderSizePixel=0; scroll.ScrollBarThickness=0; scroll.ScrollBarImageTransparency=1; scroll.AutomaticCanvasSize=Enum.AutomaticSize.Y; scroll.Parent=tab
+local root=Instance.new("Frame"); root.Size=UDim2.new(1,-14,0,0); root.AutomaticSize=Enum.AutomaticSize.Y; root.BackgroundTransparency=1; root.Parent=scroll
+local layout=Instance.new("UIListLayout"); layout.Padding=UDim.new(0,14); layout.HorizontalAlignment=Enum.HorizontalAlignment.Center; layout.Parent=root
 
-local list = Instance.new("UIListLayout")
-list.Parent = root
-list.Padding = UDim.new(0, 18)
-list.HorizontalAlignment = Enum.HorizontalAlignment.Center
-list.SortOrder = Enum.SortOrder.LayoutOrder
-
-local function makeSection(titleText, order)
-    local holder = Instance.new("Frame")
-    holder.Name = titleText:gsub("%s+", "") .. "Section"
-    holder.Parent = root
-    holder.Size = UDim2.new(1, 0, 0, 118)
-    holder.BackgroundTransparency = 1
-    holder.LayoutOrder = order
-
-    local title = label(holder, titleText, 10, accent(), Enum.Font.GothamBold)
-    title.Size = UDim2.new(0, 260, 0, 18)
-    title.Position = UDim2.new(0.5, -130, 0, 0)
-    title.ZIndex = 3
-
-    local line = Instance.new("Frame")
-    line.Name = "CenterFadeLine"
-    line.Parent = holder
-    line.Size = UDim2.new(1, 0, 0, 1)
-    line.Position = UDim2.new(0, 0, 0, 25)
-    line.BackgroundColor3 = accent()
-    line.BorderSizePixel = 0
-    line.ZIndex = 1
-
-    local gradient = Instance.new("UIGradient")
-    gradient.Parent = line
-    gradient.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 1),
-        NumberSequenceKeypoint.new(0.12, 0.94),
-        NumberSequenceKeypoint.new(0.25, 0.68),
-        NumberSequenceKeypoint.new(0.38, 0.25),
-        NumberSequenceKeypoint.new(0.50, 0),
-        NumberSequenceKeypoint.new(0.62, 0.25),
-        NumberSequenceKeypoint.new(0.75, 0.68),
-        NumberSequenceKeypoint.new(0.88, 0.94),
-        NumberSequenceKeypoint.new(1, 1),
-    })
-
-    local content = Instance.new("Frame")
-    content.Name = "Content"
-    content.Parent = holder
-    content.Size = UDim2.new(1, -8, 0, 78)
-    content.Position = UDim2.new(0, 4, 0, 39)
-    content.BackgroundColor3 = Color3.fromRGB(9, 11, 17)
-    content.BackgroundTransparency = 0.14
-    content.BorderSizePixel = 0
-    content.ZIndex = 2
-    corner(content, 11)
-    local contentStroke = stroke(content, accent(), 1, 0.62)
-
-    return holder, content, title, line, contentStroke
+local themed={} 
+local function section(titleText,height)
+    local holder=Instance.new("Frame"); holder.Size=UDim2.new(1,0,0,height+48); holder.BackgroundTransparency=1; holder.Parent=root
+    local title=text(holder,titleText,12,accent(),Enum.Font.GothamBold); title.Size=UDim2.new(0,240,0,20); title.Position=UDim2.new(.5,-120,0,0); title.TextXAlignment=Enum.TextXAlignment.Center
+    local line=Instance.new("Frame"); line.Size=UDim2.new(1,-12,0,2); line.Position=UDim2.new(.5,0,0,28); line.AnchorPoint=Vector2.new(.5,0); line.BackgroundColor3=accent(); line.BorderSizePixel=0; line.Parent=holder
+    local grad=Instance.new("UIGradient"); grad.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,.96),NumberSequenceKeypoint.new(.16,.72),NumberSequenceKeypoint.new(.35,.28),NumberSequenceKeypoint.new(.5,0),NumberSequenceKeypoint.new(.65,.28),NumberSequenceKeypoint.new(.84,.72),NumberSequenceKeypoint.new(1,.96)}); grad.Parent=line
+    local card=Instance.new("Frame"); card.Size=UDim2.new(1,-4,0,height); card.Position=UDim2.new(.5,0,0,45); card.AnchorPoint=Vector2.new(.5,0); card.BackgroundColor3=FIXED_CARD; card.BackgroundTransparency=.02; card.BorderSizePixel=0; card.Parent=holder; corner(card,12); addStroke(card,Color3.fromRGB(72,77,92),.18,1)
+    table.insert(themed,{title=title,line=line})
+    return card
+end
+local function button(parent,txt,y,fn)
+    local b=Instance.new("TextButton"); b.Size=UDim2.fromOffset(164,34); b.Position=UDim2.new(.5,0,0,y); b.AnchorPoint=Vector2.new(.5,0); b.BackgroundColor3=FIXED_BUTTON; b.BorderSizePixel=0; b.Text=txt; b.Font=Enum.Font.GothamBold; b.TextSize=11; b.TextColor3=FIXED_TEXT; b.AutoButtonColor=false; b.Parent=parent; corner(b,8)
+    local st=addStroke(b,Color3.fromRGB(92,97,112),.2,1)
+    b.MouseEnter:Connect(function() TweenService:Create(b,TweenInfo.new(.15),{BackgroundColor3=FIXED_BUTTON_HOVER}):Play(); TweenService:Create(st,TweenInfo.new(.15),{Transparency=0}):Play() end)
+    b.MouseLeave:Connect(function() TweenService:Create(b,TweenInfo.new(.15),{BackgroundColor3=FIXED_BUTTON}):Play(); TweenService:Create(st,TweenInfo.new(.15),{Transparency=.2}):Play() end)
+    b.Activated:Connect(function() if fn then fn() end end)
+    return b
 end
 
--- 1. ROBLOX PLAYER
-local _, robloxCard = makeSection("ROBLOX PLAYER", 1)
+-- Roblox Player
+local roblox=section("ROBLOX PLAYER",128)
+local targetName="thankhuyenhuynhuy"
+local targetId
+pcall(function() targetId=Players:GetUserIdFromNameAsync(targetName) end)
+local avatar=Instance.new("ImageLabel"); avatar.Size=UDim2.fromOffset(62,62); avatar.Position=UDim2.new(.5,-125,0,22); avatar.BackgroundColor3=Color3.fromRGB(24,27,35); avatar.BorderSizePixel=0; avatar.ScaleType=Enum.ScaleType.Crop; avatar.Parent=roblox; corner(avatar,11)
+if targetId then avatar.Image="rbxthumb://type=AvatarHeadShot&id="..tostring(targetId).."&w=150&h=150" end
+local nm=text(roblox,targetName,16,FIXED_TEXT,Enum.Font.GothamBold); nm.Size=UDim2.fromOffset(180,23); nm.Position=UDim2.new(.5,-52,0,22); nm.TextXAlignment=Enum.TextXAlignment.Left
+local un=text(roblox,"@"..targetName,10,FIXED_SUB,Enum.Font.GothamMedium); un.Size=UDim2.fromOffset(180,18); un.Position=UDim2.new(.5,-52,0,49); un.TextXAlignment=Enum.TextXAlignment.Left
+local cap=text(roblox,"ROBLOX PLAYER PROFILE",8,FIXED_MUTED,Enum.Font.GothamBold); cap.Size=UDim2.fromOffset(180,16); cap.Position=UDim2.new(.5,-52,0,72); cap.TextXAlignment=Enum.TextXAlignment.Left
 
-local avatar = Instance.new("ImageLabel")
-avatar.Parent = robloxCard
-avatar.Size = UDim2.fromOffset(52, 52)
-avatar.Position = UDim2.new(0, 14, 0.5, 0)
-avatar.AnchorPoint = Vector2.new(0, 0.5)
-avatar.BackgroundColor3 = Color3.fromRGB(18, 20, 29)
-avatar.BorderSizePixel = 0
-avatar.ScaleType = Enum.ScaleType.Crop
-avatar.Image = string.format("rbxthumb://type=AvatarHeadShot&id=%d&w=150&h=150", player.UserId)
-corner(avatar, 10)
+-- Discord
+local dc=section("SERVER DISCORD",112)
+local di=text(dc,"◈",24,FIXED_TEXT,Enum.Font.GothamBold); di.Size=UDim2.fromOffset(44,30); di.Position=UDim2.new(.5,-22,0,9); di.TextXAlignment=Enum.TextXAlignment.Center
+local dsub=text(dc,"FishHub Community Server",10,FIXED_SUB,Enum.Font.GothamMedium); dsub.Size=UDim2.new(1,-24,0,18); dsub.Position=UDim2.fromOffset(12,43); dsub.TextXAlignment=Enum.TextXAlignment.Center
+button(dc,"JOIN DISCORD",68,function() copy("https://discord.gg/zFN6Nd99fC"); notify("Discord invite copied!") end)
 
-local displayName = label(robloxCard, player.DisplayName, 13, Color3.fromRGB(245, 247, 252), Enum.Font.GothamBold)
-displayName.Size = UDim2.new(0.45, 0, 0, 22)
-displayName.Position = UDim2.new(0, 78, 0, 12)
-displayName.TextXAlignment = Enum.TextXAlignment.Left
+-- Facebook
+local fb=section("FACEBOOK PLAYER",112)
+local fi=text(fb,"f",26,FIXED_TEXT,Enum.Font.GothamBold); fi.Size=UDim2.fromOffset(44,32); fi.Position=UDim2.new(.5,-22,0,7); fi.TextXAlignment=Enum.TextXAlignment.Center
+local fsub=text(fb,"Connect with the player",10,FIXED_SUB,Enum.Font.GothamMedium); fsub.Size=UDim2.new(1,-24,0,18); fsub.Position=UDim2.fromOffset(12,43); fsub.TextXAlignment=Enum.TextXAlignment.Center
+button(fb,"ADD FACEBOOK",68,function() copy("https://www.facebook.com/dao.huy.lam.09/"); notify("Facebook profile link copied!") end)
 
-displayName.TextTruncate = Enum.TextTruncate.AtEnd
-
-local username = label(robloxCard, "@" .. player.Name, 10, accent(), Enum.Font.GothamBold)
-username.Size = UDim2.new(0.45, 0, 0, 18)
-username.Position = UDim2.new(0, 78, 0, 37)
-username.TextXAlignment = Enum.TextXAlignment.Left
-
-local robloxHint = label(robloxCard, "PLAYER PROFILE", 8, Color3.fromRGB(112, 118, 132), Enum.Font.GothamMedium)
-robloxHint.Size = UDim2.new(0, 120, 0, 16)
-robloxHint.Position = UDim2.new(1, -134, 0, 9)
-robloxHint.TextXAlignment = Enum.TextXAlignment.Right
-
--- 2. DISCORD
-local _, discordCard = makeSection("SERVER DISCORD", 2)
-
-discordCard.BackgroundColor3 = Color3.fromRGB(9, 11, 18)
-
-local discordIcon = label(discordCard, "◈", 20, accent(), Enum.Font.GothamBold)
-discordIcon.Size = UDim2.fromOffset(42, 42)
-discordIcon.Position = UDim2.new(0, 14, 0.5, -21)
-
-local discordName = label(discordCard, "FishHub Community", 12, Color3.fromRGB(240, 243, 250), Enum.Font.GothamBold)
-discordName.Size = UDim2.new(0, 180, 0, 20)
-discordName.Position = UDim2.new(0, 62, 0, 9)
-discordName.TextXAlignment = Enum.TextXAlignment.Left
-
-local discordSub = label(discordCard, "SERVER • COMMUNITY", 8, Color3.fromRGB(110, 116, 130), Enum.Font.GothamMedium)
-discordSub.Size = UDim2.new(0, 180, 0, 16)
-discordSub.Position = UDim2.new(0, 62, 0, 31)
-discordSub.TextXAlignment = Enum.TextXAlignment.Left
-
-local discordButton = Instance.new("TextButton")
-discordButton.Parent = discordCard
-discordButton.Size = UDim2.new(0, 112, 0, 30)
-discordButton.Position = UDim2.new(1, -126, 0.5, -15)
-discordButton.BackgroundColor3 = accent()
-discordButton.BorderSizePixel = 0
-discordButton.AutoButtonColor = false
-discordButton.Text = "JOIN SERVER"
-discordButton.Font = Enum.Font.GothamBold
-discordButton.TextSize = 10
-discordButton.TextColor3 = Color3.fromRGB(24, 27, 34)
-discordButton.ZIndex = 5
-corner(discordButton, 7)
-local discordStroke = stroke(discordButton, accent(), 1, 0.1)
-
-discordButton.MouseEnter:Connect(function()
-    discordButton.BackgroundColor3 = accent():Lerp(Color3.new(1, 1, 1), 0.10)
-end)
-discordButton.MouseLeave:Connect(function()
-    discordButton.BackgroundColor3 = accent()
-end)
-discordButton.Activated:Connect(function()
-    pcall(function()
-        if setclipboard then
-            setclipboard(DISCORD_URL)
-        end
-    end)
-    notify("Discord link copied successfully!")
-end)
-
--- 3. FACEBOOK
-local _, facebookCard = makeSection("FACEBOOK PLAYER", 3)
-
-local facebookIcon = label(facebookCard, "f", 22, accent(), Enum.Font.GothamBold)
-facebookIcon.Size = UDim2.fromOffset(42, 42)
-facebookIcon.Position = UDim2.new(0, 14, 0.5, -21)
-
-local facebookName = label(facebookCard, "Dao Huy Lam", 12, Color3.fromRGB(240, 243, 250), Enum.Font.GothamBold)
-facebookName.Size = UDim2.new(0, 170, 0, 20)
-facebookName.Position = UDim2.new(0, 62, 0, 9)
-facebookName.TextXAlignment = Enum.TextXAlignment.Left
-
-local facebookSub = label(facebookCard, "SOCIAL PROFILE", 8, Color3.fromRGB(110, 116, 130), Enum.Font.GothamMedium)
-facebookSub.Size = UDim2.new(0, 170, 0, 16)
-facebookSub.Position = UDim2.new(0, 62, 0, 31)
-facebookSub.TextXAlignment = Enum.TextXAlignment.Left
-
-local facebookButton = Instance.new("TextButton")
-facebookButton.Parent = facebookCard
-facebookButton.Size = UDim2.new(0, 112, 0, 30)
-facebookButton.Position = UDim2.new(1, -126, 0.5, -15)
-facebookButton.BackgroundColor3 = accent()
-facebookButton.BorderSizePixel = 0
-facebookButton.AutoButtonColor = false
-facebookButton.Text = "ADD FACEBOOK"
-facebookButton.Font = Enum.Font.GothamBold
-facebookButton.TextSize = 10
-facebookButton.TextColor3 = Color3.fromRGB(24, 27, 34)
-facebookButton.ZIndex = 5
-corner(facebookButton, 7)
-local facebookStroke = stroke(facebookButton, accent(), 1, 0.1)
-
-facebookButton.MouseEnter:Connect(function()
-    facebookButton.BackgroundColor3 = accent():Lerp(Color3.new(1, 1, 1), 0.10)
-end)
-facebookButton.MouseLeave:Connect(function()
-    facebookButton.BackgroundColor3 = accent()
-end)
-facebookButton.Activated:Connect(function()
-    pcall(function()
-        if setclipboard then
-            setclipboard(FACEBOOK_URL)
-        end
-    end)
-    notify("Facebook link copied successfully!")
-end)
-
--- Keep accents synced with the Main theme/Rainbow engine.
 task.spawn(function()
     while tab.Parent do
-        local c = accent()
-        username.TextColor3 = c
-        discordIcon.TextColor3 = c
-        facebookIcon.TextColor3 = c
-        discordButton.BackgroundColor3 = c
-        facebookButton.BackgroundColor3 = c
-        discordStroke.Color = c
-        facebookStroke.Color = c
-        task.wait(0.08)
+        local c=accent()
+        for _,item in ipairs(themed) do
+            if item.title.Parent then item.title.TextColor3=c end
+            if item.line.Parent then item.line.BackgroundColor3=c end
+        end
+        task.wait(.05)
     end
 end)
+
+return true
