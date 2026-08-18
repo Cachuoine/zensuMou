@@ -308,11 +308,13 @@ hueCursorStroke.Color=Color3.new(0,0,0)
 local applyThemeBtn
 
 -- Invisible interaction shield used while Rainbow is active/loading.
-local local pickerLocked=false
+local pickerLocked = false
 local function RefreshPickerLock()
-    pickerLocked=(isRainbowRunning==true)
-    svButton.Active=not pickerLocked
-    hueButton.Active=not pickerLocked
+    -- Only an actively running Rainbow session blocks manual color picking.
+    -- Theme loading / Apply Theme transitions do NOT permanently lock the picker.
+    pickerLocked = (isRainbowRunning == true)
+    svButton.Active = not pickerLocked
+    hueButton.Active = not pickerLocked
 end
 local selectedThemeColor=Config.ThemeColor
 local pickerHue,pickerSaturation,pickerValue=Config.ThemeColor:ToHSV()
@@ -326,6 +328,7 @@ palettePreview.BackgroundColor3=selectedThemeColor
 local r,g,b=selectedThemeColor.R*255,selectedThemeColor.G*255,selectedThemeColor.B*255
 paletteValue.Text=string.format("#%02X%02X%02X",math.floor(r+0.5),math.floor(g+0.5),math.floor(b+0.5))
 end
+-- Manual picker updates ONLY the preview values.
 local function GetMousePosition()
 local mouse=Players.LocalPlayer:GetMouse()
 return Vector2.new(mouse.X,mouse.Y)
@@ -928,6 +931,7 @@ applyThemeBtn.MouseButton1Click:Connect(function()
     local applySerial = rainbowTransitionSerial
     isRainbowRunning = false
     rainbowTransitionActive = true
+    RefreshPickerLock()
     staticThemeColor = targetColor
     local started = PlayAdvancedThemeLoading(targetColor, "FISHHUB", "Applying Theme & Reloading UI")
     if not started then rainbowTransitionActive = false RefreshPickerLock() return end
