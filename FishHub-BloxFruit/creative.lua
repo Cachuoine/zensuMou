@@ -1,251 +1,1115 @@
---// FishHub Creative.lua
---// Creative profile: @thankhuyenhuy
---// Script by DaoHuyLam
+--==============================================================
+-- FishHub | Creative.lua
+-- Premium Creative / Social Center
+--==============================================================
 
 local context = ...
 
-local Players = (context and context.Players) or game:GetService("Players")
-local TweenService = (context and context.TweenService) or game:GetService("TweenService")
-local player = (context and context.Player) or Players.LocalPlayer
-local tab = context and context.Tab
-
-if not tab then
+if type(context) ~= "table" then
     return
 end
 
--- Clean ONLY the Creative tab.
-for _, child in ipairs(tab:GetChildren()) do
+local Tab = context.Tab
+
+if not Tab then
+    return
+end
+
+local TweenService = context.TweenService or game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+
+local Config = context.Config or {}
+local ShowNotification = context.ShowNotification
+
+--==============================================================
+-- CONFIG
+--==============================================================
+
+local SOCIALS = {
+    {
+        Name = "Discord",
+        Asset = "rbxassetid://79178042116025",
+        Url = "https://discord.gg/zFN6Nd99fC",
+        Description = "COMMUNITY",
+    },
+
+    {
+        Name = "Facebook",
+        Asset = "rbxassetid://121038275317096",
+        Url = "https://www.facebook.com/dao.huy.lam.09/",
+        Description = "PROFILE",
+    },
+
+    {
+        Name = "TikTok",
+        Asset = "rbxassetid://71597520923112",
+        Url = "https://www.tiktok.com/@daolam.trh",
+        Description = "FOLLOW",
+    },
+}
+
+local DEFAULT_THEME = Color3.fromRGB(130, 95, 255)
+
+local function GetThemeColor()
+    if typeof(Config.ThemeColor) == "Color3" then
+        return Config.ThemeColor
+    end
+
+    return DEFAULT_THEME
+end
+
+local ThemeColor = GetThemeColor()
+
+--==============================================================
+-- HELPERS
+--==============================================================
+
+local function New(className, properties)
+    local object = Instance.new(className)
+
+    for property, value in pairs(properties or {}) do
+        object[property] = value
+    end
+
+    return object
+end
+
+local function Corner(parent, radius)
+    return New("UICorner", {
+        CornerRadius = UDim.new(0, radius),
+        Parent = parent
+    })
+end
+
+local function Stroke(parent, color, thickness, transparency)
+    return New("UIStroke", {
+        Color = color,
+        Thickness = thickness or 1,
+        Transparency = transparency or 0,
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+        Parent = parent
+    })
+end
+
+local function Scale(parent)
+    return New("UIScale", {
+        Scale = 1,
+        Parent = parent
+    })
+end
+
+local function Tween(object, duration, properties, style, direction)
+    local ok, result = pcall(function()
+        local tween = TweenService:Create(
+            object,
+            TweenInfo.new(
+                duration,
+                style or Enum.EasingStyle.Quint,
+                direction or Enum.EasingDirection.Out
+            ),
+            properties
+        )
+
+        tween:Play()
+
+        return tween
+    end)
+
+    if ok then
+        return result
+    end
+end
+
+local function Notify(text)
+    if type(ShowNotification) == "function" then
+        pcall(function()
+            ShowNotification(text)
+        end)
+
+        return
+    end
+
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "FishHub",
+            Text = text,
+            Duration = 3
+        })
+    end)
+end
+
+--==============================================================
+-- CLEAR OLD CREATIVE CONTENT
+--==============================================================
+
+for _, child in ipairs(Tab:GetChildren()) do
     child:Destroy()
 end
 
-tab.CanvasSize = UDim2.new(0, 0, 0, 0)
-tab.AutomaticCanvasSize = Enum.AutomaticSize.Y
-tab.ScrollingDirection = Enum.ScrollingDirection.Y
-tab.ScrollBarThickness = 0
+Tab.BackgroundTransparency = 1
+Tab.BorderSizePixel = 0
+Tab.ScrollBarThickness = 0
+Tab.CanvasSize = UDim2.new(0, 0, 0, 0)
+Tab.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
-local ACCENT = Color3.fromRGB(0, 229, 255)
-local PURPLE = Color3.fromRGB(168, 85, 247)
-local BG = Color3.fromRGB(9, 11, 18)
-local CARD = Color3.fromRGB(15, 18, 28)
-local TEXT = Color3.fromRGB(245, 247, 255)
-local MUTED = Color3.fromRGB(145, 151, 170)
+--==============================================================
+-- ROOT
+--==============================================================
 
-local function tween(instance, info, props)
-    local t = TweenService:Create(instance, info, props)
-    t:Play()
-    return t
-end
+local Root = New("Frame", {
+    Name = "CreativeRoot",
+    Parent = Tab,
 
-local function corner(parent, radius)
-    local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0, radius)
-    c.Parent = parent
-    return c
-end
+    Size = UDim2.new(1, -8, 0, 0),
+    AutomaticSize = Enum.AutomaticSize.Y,
 
-local function stroke(parent, color, thickness, transparency)
-    local s = Instance.new("UIStroke")
-    s.Color = color
-    s.Thickness = thickness or 1
-    s.Transparency = transparency or 0
-    s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    s.Parent = parent
-    return s
-end
-
-local function label(parent, text, size, position, font, color)
-    local l = Instance.new("TextLabel")
-    l.BackgroundTransparency = 1
-    l.Text = text
-    l.TextColor3 = color or TEXT
-    l.Font = font or Enum.Font.GothamMedium
-    l.TextSize = size
-    l.Position = position
-    l.Size = UDim2.new(1, 0, 0, size + 8)
-    l.TextXAlignment = Enum.TextXAlignment.Left
-    l.Parent = parent
-    return l
-end
-
--- Main creative canvas.
-local root = Instance.new("Frame")
-root.Name = "CreativeRoot"
-root.Size = UDim2.new(1, -8, 0, 330)
-root.Position = UDim2.new(0, 4, 0, 4)
-root.BackgroundColor3 = BG
-root.BorderSizePixel = 0
-root.Parent = tab
-corner(root, 14)
-stroke(root, ACCENT, 1.2, 0.55)
-
--- Soft animated accent line.
-local topGlow = Instance.new("Frame")
-topGlow.Size = UDim2.new(1, -34, 0, 2)
-topGlow.Position = UDim2.new(0, 17, 0, 16)
-topGlow.BackgroundColor3 = ACCENT
-topGlow.BorderSizePixel = 0
-topGlow.Parent = root
-corner(topGlow, 2)
-
-local gradient = Instance.new("UIGradient")
-gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, ACCENT),
-    ColorSequenceKeypoint.new(0.5, PURPLE),
-    ColorSequenceKeypoint.new(1, ACCENT)
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0
 })
-gradient.Parent = topGlow
 
-task.spawn(function()
-    local offset = -1
-    while topGlow.Parent do
-        offset += 0.012
-        if offset > 1 then offset = -1 end
-        gradient.Offset = Vector2.new(offset, 0)
-        task.wait(0.025)
+New("UIPadding", {
+    Parent = Root,
+
+    PaddingTop = UDim.new(0, 8),
+    PaddingBottom = UDim.new(0, 18),
+    PaddingLeft = UDim.new(0, 6),
+    PaddingRight = UDim.new(0, 6)
+})
+
+New("UIListLayout", {
+    Parent = Root,
+
+    FillDirection = Enum.FillDirection.Vertical,
+    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+    SortOrder = Enum.SortOrder.LayoutOrder,
+
+    Padding = UDim.new(0, 12)
+})
+
+--==============================================================
+-- HERO
+--==============================================================
+
+local Hero = New("Frame", {
+    Name = "Hero",
+
+    Parent = Root,
+    LayoutOrder = 1,
+
+    Size = UDim2.new(1, 0, 0, 178),
+
+    BackgroundColor3 = Color3.fromRGB(9, 10, 17),
+    BorderSizePixel = 0,
+
+    ClipsDescendants = true
+})
+
+Corner(Hero, 17)
+
+local HeroStroke = Stroke(
+    Hero,
+    ThemeColor,
+    1.4,
+    0.3
+)
+
+New("UIGradient", {
+    Parent = Hero,
+
+    Rotation = 25,
+
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(
+            0,
+            Color3.fromRGB(17, 18, 29)
+        ),
+
+        ColorSequenceKeypoint.new(
+            0.5,
+            Color3.fromRGB(9, 10, 17)
+        ),
+
+        ColorSequenceKeypoint.new(
+            1,
+            Color3.fromRGB(21, 15, 32)
+        )
+    })
+})
+
+local Glow1 = New("Frame", {
+    Parent = Hero,
+
+    AnchorPoint = Vector2.new(0.5, 0.5),
+    Position = UDim2.new(1, 20, 0, 20),
+
+    Size = UDim2.fromOffset(190, 190),
+
+    BackgroundColor3 = ThemeColor,
+    BackgroundTransparency = 0.92,
+
+    BorderSizePixel = 0
+})
+
+Corner(Glow1, 100)
+
+local Glow2 = New("Frame", {
+    Parent = Hero,
+
+    AnchorPoint = Vector2.new(0.5, 0.5),
+    Position = UDim2.new(0, -15, 1, 10),
+
+    Size = UDim2.fromOffset(145, 145),
+
+    BackgroundColor3 = ThemeColor,
+    BackgroundTransparency = 0.95,
+
+    BorderSizePixel = 0
+})
+
+Corner(Glow2, 100)
+
+--==============================================================
+-- HERO TITLE
+--==============================================================
+
+local Accent = New("Frame", {
+    Parent = Hero,
+
+    Position = UDim2.fromOffset(18, 17),
+    Size = UDim2.fromOffset(4, 43),
+
+    BackgroundColor3 = ThemeColor,
+    BorderSizePixel = 0
+})
+
+Corner(Accent, 3)
+
+local Title = New("TextLabel", {
+    Parent = Hero,
+
+    Position = UDim2.fromOffset(32, 13),
+    Size = UDim2.new(1, -50, 0, 29),
+
+    BackgroundTransparency = 1,
+
+    Text = "CREATIVE",
+
+    TextColor3 = Color3.fromRGB(248, 249, 255),
+
+    Font = Enum.Font.GothamBlack,
+    TextSize = 23,
+
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
+local Subtitle = New("TextLabel", {
+    Parent = Hero,
+
+    Position = UDim2.fromOffset(32, 42),
+    Size = UDim2.new(1, -50, 0, 18),
+
+    BackgroundTransparency = 1,
+
+    Text = "FISHHUB  •  SOCIAL CENTER",
+
+    TextColor3 = ThemeColor,
+
+    Font = Enum.Font.GothamBold,
+    TextSize = 9,
+
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
+local HeroLine = New("Frame", {
+    Parent = Hero,
+
+    Position = UDim2.fromOffset(18, 72),
+    Size = UDim2.new(1, -36, 0, 1),
+
+    BackgroundColor3 = ThemeColor,
+    BackgroundTransparency = 0.55,
+
+    BorderSizePixel = 0
+})
+
+local Description = New("TextLabel", {
+    Parent = Hero,
+
+    Position = UDim2.fromOffset(18, 86),
+    Size = UDim2.new(1, -36, 0, 42),
+
+    BackgroundTransparency = 1,
+
+    Text = "Welcome to the Creative space.\nConnect with FishHub through the links below.",
+
+    TextColor3 = Color3.fromRGB(157, 163, 182),
+
+    Font = Enum.Font.Gotham,
+    TextSize = 11,
+
+    TextWrapped = true,
+
+    TextXAlignment = Enum.TextXAlignment.Left,
+    TextYAlignment = Enum.TextYAlignment.Top
+})
+
+local Badge = New("TextLabel", {
+    Parent = Hero,
+
+    Position = UDim2.fromOffset(18, 144),
+    Size = UDim2.fromOffset(105, 20),
+
+    BackgroundColor3 = ThemeColor,
+    BackgroundTransparency = 0.86,
+
+    Text = "SOCIAL LINKS",
+
+    TextColor3 = Color3.fromRGB(235, 237, 255),
+
+    Font = Enum.Font.GothamBold,
+    TextSize = 8,
+
+    TextXAlignment = Enum.TextXAlignment.Center
+})
+
+Corner(Badge, 8)
+
+--==============================================================
+-- SECTION
+--==============================================================
+
+local Section = New("Frame", {
+    Parent = Root,
+
+    LayoutOrder = 2,
+
+    Size = UDim2.new(1, 0, 0, 35),
+
+    BackgroundTransparency = 1
+})
+
+New("TextLabel", {
+    Parent = Section,
+
+    Size = UDim2.new(1, 0, 0, 18),
+
+    BackgroundTransparency = 1,
+
+    Text = "CONNECT",
+
+    TextColor3 = Color3.fromRGB(242, 244, 252),
+
+    Font = Enum.Font.GothamBold,
+    TextSize = 11,
+
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
+New("TextLabel", {
+    Parent = Section,
+
+    Position = UDim2.fromOffset(0, 18),
+    Size = UDim2.new(1, 0, 0, 15),
+
+    BackgroundTransparency = 1,
+
+    Text = "Hover a logo for an effect • Click to copy",
+
+    TextColor3 = Color3.fromRGB(91, 97, 115),
+
+    Font = Enum.Font.Gotham,
+    TextSize = 8,
+
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
+--==============================================================
+-- SOCIAL ROW
+--==============================================================
+
+local SocialRow = New("Frame", {
+    Name = "SocialRow",
+
+    Parent = Root,
+
+    LayoutOrder = 3,
+
+    Size = UDim2.new(1, 0, 0, 140),
+
+    BackgroundTransparency = 1
+})
+
+New("UIListLayout", {
+    Parent = SocialRow,
+
+    FillDirection = Enum.FillDirection.Horizontal,
+
+    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+    VerticalAlignment = Enum.VerticalAlignment.Center,
+
+    Padding = UDim.new(0, 10)
+})
+
+local Cards = {}
+
+--==============================================================
+-- COPY FUNCTION
+--==============================================================
+
+local function CopyURL(data)
+    local copied = false
+
+    pcall(function()
+        if type(setclipboard) == "function" then
+            setclipboard(data.Url)
+            copied = true
+        end
+    end)
+
+    if copied then
+        Notify(
+            "Copied " .. data.Name .. " link!"
+        )
+    else
+        Notify(
+            data.Name .. " link: " .. data.Url
+        )
     end
-end)
-
--- Header.
-local badge = Instance.new("Frame")
-badge.Size = UDim2.new(0, 42, 0, 42)
-badge.Position = UDim2.new(0, 22, 0, 34)
-badge.BackgroundColor3 = ACCENT
-badge.BackgroundTransparency = 0.84
-badge.BorderSizePixel = 0
-badge.Parent = root
-corner(badge, 12)
-stroke(badge, ACCENT, 1, 0.35)
-
-local badgeText = label(badge, "✦", 20, UDim2.new(0, 0, 0, 4), Enum.Font.GothamBold, ACCENT)
-badgeText.TextXAlignment = Enum.TextXAlignment.Center
-
-local title = label(root, "CREATIVE", 21, UDim2.new(0, 78, 0, 34), Enum.Font.GothamBold, TEXT)
-local subtitle = label(root, "A personal space crafted for @thankhuyenhuy", 10, UDim2.new(0, 80, 0, 61), Enum.Font.GothamMedium, MUTED)
-
-local author = label(root, "SCRIPT BY  •  DaoHuyLam", 9, UDim2.new(0, 80, 0, 80), Enum.Font.Code, ACCENT)
-
--- Profile card.
-local profile = Instance.new("Frame")
-profile.Size = UDim2.new(1, -44, 0, 104)
-profile.Position = UDim2.new(0, 22, 0, 112)
-profile.BackgroundColor3 = CARD
-profile.BackgroundTransparency = 0.08
-profile.BorderSizePixel = 0
-profile.Parent = root
-corner(profile, 12)
-stroke(profile, PURPLE, 1, 0.62)
-
-local avatarHolder = Instance.new("Frame")
-avatarHolder.Size = UDim2.new(0, 66, 0, 66)
-avatarHolder.Position = UDim2.new(0, 18, 0.5, 0)
-avatarHolder.AnchorPoint = Vector2.new(0, 0.5)
-avatarHolder.BackgroundColor3 = Color3.fromRGB(23, 26, 39)
-avatarHolder.BorderSizePixel = 0
-avatarHolder.Parent = profile
-corner(avatarHolder, 16)
-stroke(avatarHolder, ACCENT, 1.2, 0.35)
-
-local avatar = Instance.new("ImageLabel")
-avatar.Size = UDim2.new(1, -6, 1, -6)
-avatar.Position = UDim2.new(0, 3, 0, 3)
-avatar.BackgroundTransparency = 1
-avatar.Parent = avatarHolder
-corner(avatar, 14)
-
-pcall(function()
-    avatar.Image = Players:GetUserThumbnailAsync(
-        player.UserId,
-        Enum.ThumbnailType.HeadShot,
-        Enum.ThumbnailSize.Size100x100
-    )
-end)
-
-local handle = label(profile, "@thankhuyenhuy", 15, UDim2.new(0, 98, 0, 22), Enum.Font.GothamBold, TEXT)
-local realName = label(profile, "Roblox profile", 10, UDim2.new(0, 98, 0, 46), Enum.Font.GothamMedium, MUTED)
-
-local statusDot = Instance.new("Frame")
-statusDot.Size = UDim2.new(0, 7, 0, 7)
-statusDot.Position = UDim2.new(1, -112, 0, 28)
-statusDot.BackgroundColor3 = Color3.fromRGB(55, 235, 135)
-statusDot.BorderSizePixel = 0
-statusDot.Parent = profile
-corner(statusDot, 10)
-
-local status = label(profile, "CREATIVE", 9, UDim2.new(1, -98, 0, 20), Enum.Font.Code, Color3.fromRGB(55, 235, 135))
-status.TextXAlignment = Enum.TextXAlignment.Right
-
--- Footer cards.
-local leftInfo = Instance.new("Frame")
-leftInfo.Size = UDim2.new(0.5, -26, 0, 72)
-leftInfo.Position = UDim2.new(0, 22, 0, 228)
-leftInfo.BackgroundColor3 = CARD
-leftInfo.BorderSizePixel = 0
-leftInfo.Parent = root
-corner(leftInfo, 11)
-stroke(leftInfo, ACCENT, 1, 0.7)
-
-local rightInfo = Instance.new("Frame")
-rightInfo.Size = UDim2.new(0.5, -26, 0, 72)
-rightInfo.Position = UDim2.new(0.5, 4, 0, 228)
-rightInfo.BackgroundColor3 = CARD
-rightInfo.BorderSizePixel = 0
-rightInfo.Parent = root
-corner(rightInfo, 11)
-stroke(rightInfo, PURPLE, 1, 0.7)
-
-local l1 = label(leftInfo, "IDENTITY", 8, UDim2.new(0, 14, 0, 10), Enum.Font.Code, MUTED)
-local l2 = label(leftInfo, "thankhuyenhuy", 13, UDim2.new(0, 14, 0, 29), Enum.Font.GothamBold, TEXT)
-
-local r1 = label(rightInfo, "AUTHOR", 8, UDim2.new(0, 14, 0, 10), Enum.Font.Code, MUTED)
-local r2 = label(rightInfo, "DaoHuyLam", 13, UDim2.new(0, 14, 0, 29), Enum.Font.GothamBold, TEXT)
-
--- Bottom signature.
-local signature = label(root, "✦  FISHHUB CREATIVE  /  @thankhuyenhuy", 8, UDim2.new(0, 22, 1, -25), Enum.Font.Code, Color3.fromRGB(105, 111, 130))
-
--- Entrance animation.
-root.BackgroundTransparency = 1
-profile.BackgroundTransparency = 1
-leftInfo.BackgroundTransparency = 1
-rightInfo.BackgroundTransparency = 1
-badge.BackgroundTransparency = 1
-
-for _, obj in ipairs({title, subtitle, author, handle, realName, status, l1, l2, r1, r2, signature, badgeText}) do
-    obj.TextTransparency = 1
 end
 
-task.spawn(function()
-    task.wait(0.05)
-    tween(root, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-        BackgroundTransparency = 0
-    })
-    tween(badge, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        BackgroundTransparency = 0.84
+--==============================================================
+-- CREATE SOCIAL CARDS
+--==============================================================
+
+for index, data in ipairs(SOCIALS) do
+
+    local Card = New("TextButton", {
+        Name = data.Name .. "Card",
+
+        Parent = SocialRow,
+
+        LayoutOrder = index,
+
+        Size = UDim2.fromOffset(108, 126),
+
+        BackgroundColor3 = Color3.fromRGB(13, 14, 22),
+
+        BorderSizePixel = 0,
+
+        AutoButtonColor = false,
+
+        Text = "",
+
+        ClipsDescendants = true
     })
 
-    for _, obj in ipairs({title, subtitle, author, handle, realName, status, l1, l2, r1, r2, signature, badgeText}) do
-        tween(obj, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-            TextTransparency = 0
-        })
-        task.wait(0.035)
+    Corner(Card, 15)
+
+    local CardStroke = Stroke(
+        Card,
+        ThemeColor,
+        1.2,
+        0.4
+    )
+
+    local CardScale = Scale(Card)
+
+    --==========================================================
+    -- MOUSE GLOW
+    --==========================================================
+
+    local MouseGlow = New("Frame", {
+        Name = "MouseGlow",
+
+        Parent = Card,
+
+        AnchorPoint = Vector2.new(0.5, 0.5),
+
+        Position = UDim2.fromScale(0.5, 0.3),
+
+        Size = UDim2.fromOffset(70, 70),
+
+        BackgroundColor3 = ThemeColor,
+
+        BackgroundTransparency = 0.94,
+
+        BorderSizePixel = 0,
+
+        Visible = false,
+
+        ZIndex = 1
+    })
+
+    Corner(MouseGlow, 50)
+
+    --==========================================================
+    -- ICON HOLDER
+    --==========================================================
+
+    local IconHolder = New("Frame", {
+        Parent = Card,
+
+        AnchorPoint = Vector2.new(0.5, 0),
+
+        Position = UDim2.new(0.5, 0, 0, 11),
+
+        Size = UDim2.fromOffset(70, 70),
+
+        BackgroundColor3 = Color3.fromRGB(8, 9, 14),
+
+        BorderSizePixel = 0,
+
+        ZIndex = 2
+    })
+
+    Corner(IconHolder, 21)
+
+    local IconStroke = Stroke(
+        IconHolder,
+        ThemeColor,
+        1.2,
+        0.3
+    )
+
+    local Icon = New("ImageLabel", {
+        Name = "Logo",
+
+        Parent = IconHolder,
+
+        AnchorPoint = Vector2.new(0.5, 0.5),
+
+        Position = UDim2.fromScale(0.5, 0.5),
+
+        Size = UDim2.fromOffset(46, 46),
+
+        BackgroundTransparency = 1,
+
+        Image = data.Asset,
+
+        ImageColor3 = ThemeColor,
+
+        ScaleType = Enum.ScaleType.Fit,
+
+        ZIndex = 3
+    })
+
+    --==========================================================
+    -- TEXT
+    --==========================================================
+
+    local NameLabel = New("TextLabel", {
+        Parent = Card,
+
+        Position = UDim2.fromOffset(5, 85),
+
+        Size = UDim2.new(1, -10, 0, 16),
+
+        BackgroundTransparency = 1,
+
+        Text = string.upper(data.Name),
+
+        TextColor3 = Color3.fromRGB(240, 242, 250),
+
+        Font = Enum.Font.GothamBold,
+
+        TextSize = 9,
+
+        TextXAlignment = Enum.TextXAlignment.Center,
+
+        ZIndex = 3
+    })
+
+    local DescriptionLabel = New("TextLabel", {
+        Parent = Card,
+
+        Position = UDim2.fromOffset(5, 102),
+
+        Size = UDim2.new(1, -10, 0, 12),
+
+        BackgroundTransparency = 1,
+
+        Text = data.Description,
+
+        TextColor3 = Color3.fromRGB(87, 93, 111),
+
+        Font = Enum.Font.GothamMedium,
+
+        TextSize = 7,
+
+        TextXAlignment = Enum.TextXAlignment.Center,
+
+        ZIndex = 3
+    })
+
+    Cards[index] = {
+        Data = data,
+        Card = Card,
+        Scale = CardScale,
+        Stroke = CardStroke,
+        Icon = Icon,
+        IconHolder = IconHolder,
+        IconStroke = IconStroke,
+        Glow = MouseGlow
+    }
+
+    local Hovering = false
+
+    --==========================================================
+    -- HOVER ENTER
+    --==========================================================
+
+    Card.MouseEnter:Connect(function(x, y)
+
+        Hovering = true
+
+        MouseGlow.Visible = true
+
+        if x and y then
+            MouseGlow.Position = UDim2.fromOffset(x, y)
+        end
+
+        Tween(
+            CardScale,
+            0.18,
+            {
+                Scale = 1.075
+            },
+            Enum.EasingStyle.Back
+        )
+
+        Tween(
+            Card,
+            0.18,
+            {
+                BackgroundColor3 = Color3.fromRGB(19, 20, 30)
+            }
+        )
+
+        Tween(
+            IconHolder,
+            0.18,
+            {
+                Size = UDim2.fromOffset(75, 75)
+            },
+            Enum.EasingStyle.Back
+        )
+
+        Tween(
+            Icon,
+            0.18,
+            {
+                Size = UDim2.fromOffset(51, 51)
+            },
+            Enum.EasingStyle.Back
+        )
+
+        Tween(
+            MouseGlow,
+            0.2,
+            {
+                Size = UDim2.fromOffset(94, 94),
+                BackgroundTransparency = 0.76
+            }
+        )
+
+        Tween(
+            CardStroke,
+            0.18,
+            {
+                Thickness = 2,
+                Transparency = 0
+            }
+        )
+
+        Tween(
+            IconStroke,
+            0.18,
+            {
+                Thickness = 2,
+                Transparency = 0
+            }
+        )
+    end)
+
+    --==========================================================
+    -- FOLLOW MOUSE
+    --==========================================================
+
+    Card.MouseMoved:Connect(function(x, y)
+
+        if not Hovering then
+            return
+        end
+
+        MouseGlow.Position = UDim2.fromOffset(x, y)
+    end)
+
+    --==========================================================
+    -- HOVER LEAVE
+    --==========================================================
+
+    Card.MouseLeave:Connect(function()
+
+        Hovering = false
+
+        MouseGlow.Visible = false
+
+        Tween(
+            CardScale,
+            0.2,
+            {
+                Scale = 1
+            }
+        )
+
+        Tween(
+            Card,
+            0.2,
+            {
+                BackgroundColor3 = Color3.fromRGB(13, 14, 22)
+            }
+        )
+
+        Tween(
+            IconHolder,
+            0.2,
+            {
+                Size = UDim2.fromOffset(70, 70)
+            }
+        )
+
+        Tween(
+            Icon,
+            0.2,
+            {
+                Size = UDim2.fromOffset(46, 46)
+            }
+        )
+
+        Tween(
+            MouseGlow,
+            0.2,
+            {
+                Size = UDim2.fromOffset(70, 70),
+                BackgroundTransparency = 0.94
+            }
+        )
+
+        Tween(
+            CardStroke,
+            0.2,
+            {
+                Thickness = 1.2,
+                Transparency = 0.4
+            }
+        )
+
+        Tween(
+            IconStroke,
+            0.2,
+            {
+                Thickness = 1.2,
+                Transparency = 0.3
+            }
+        )
+    end)
+
+    --==========================================================
+    -- CLICK
+    --==========================================================
+
+    Card.MouseButton1Click:Connect(function()
+
+        Tween(
+            CardScale,
+            0.08,
+            {
+                Scale = 0.93
+            },
+            Enum.EasingStyle.Quad
+        )
+
+        task.delay(0.08, function()
+
+            if not Card.Parent then
+                return
+            end
+
+            Tween(
+                CardScale,
+                0.18,
+                {
+                    Scale = Hovering and 1.075 or 1
+                },
+                Enum.EasingStyle.Back
+            )
+        end)
+
+        CopyURL(data)
+    end)
+end
+
+--==============================================================
+-- FOOTER
+--==============================================================
+
+local Footer = New("Frame", {
+    Parent = Root,
+
+    LayoutOrder = 4,
+
+    Size = UDim2.new(1, 0, 0, 42),
+
+    BackgroundTransparency = 1
+})
+
+New("Frame", {
+    Parent = Footer,
+
+    AnchorPoint = Vector2.new(0.5, 0),
+
+    Position = UDim2.new(0.5, 0, 0, 1),
+
+    Size = UDim2.new(0.65, 0, 0, 1),
+
+    BackgroundColor3 = ThemeColor,
+
+    BackgroundTransparency = 0.72,
+
+    BorderSizePixel = 0
+})
+
+New("TextLabel", {
+    Parent = Footer,
+
+    Position = UDim2.fromOffset(0, 11),
+
+    Size = UDim2.new(1, 0, 0, 20),
+
+    BackgroundTransparency = 1,
+
+    Text = "FISHHUB  •  CREATIVE",
+
+    TextColor3 = Color3.fromRGB(74, 80, 97),
+
+    Font = Enum.Font.GothamMedium,
+
+    TextSize = 8,
+
+    TextXAlignment = Enum.TextXAlignment.Center
+})
+
+--==============================================================
+-- RAINBOW SYSTEM
+--==============================================================
+
+local RainbowTime = 0
+
+local RainbowConnection
+
+RainbowConnection = RunService.RenderStepped:Connect(function(delta)
+
+    if not Root.Parent then
+
+        if RainbowConnection then
+            RainbowConnection:Disconnect()
+        end
+
+        return
     end
 
-    tween(profile, TweenInfo.new(0.4), {BackgroundTransparency = 0.08})
-    tween(leftInfo, TweenInfo.new(0.4), {BackgroundTransparency = 0})
-    tween(rightInfo, TweenInfo.new(0.4), {BackgroundTransparency = 0})
-end)
+    RainbowTime =
+        (RainbowTime + delta * 0.18) % 1
 
--- Subtle breathing animation for the accent.
-task.spawn(function()
-    while root.Parent do
-        tween(topGlow, TweenInfo.new(1.1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            BackgroundTransparency = 0.15
-        })
-        task.wait(1.1)
-        tween(topGlow, TweenInfo.new(1.1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            BackgroundTransparency = 0.45
-        })
-        task.wait(1.1)
+    for index, item in ipairs(Cards) do
+
+        local hue =
+            (RainbowTime + ((index - 1) / #Cards) * 0.22)
+            % 1
+
+        local RainbowColor =
+            Color3.fromHSV(
+                hue,
+                0.85,
+                1
+            )
+
+        item.Icon.ImageColor3 =
+            RainbowColor
+
+        item.IconStroke.Color =
+            RainbowColor
+
+        item.Glow.BackgroundColor3 =
+            RainbowColor
     end
 end)
 
-return true
+--==============================================================
+-- THEME SYNC
+--==============================================================
+
+task.spawn(function()
+
+    local PreviousColor = GetThemeColor()
+
+    while Root.Parent do
+
+        local CurrentColor =
+            GetThemeColor()
+
+        if CurrentColor ~= PreviousColor then
+
+            PreviousColor = CurrentColor
+            ThemeColor = CurrentColor
+
+            HeroStroke.Color =
+                CurrentColor
+
+            Accent.BackgroundColor3 =
+                CurrentColor
+
+            Subtitle.TextColor3 =
+                CurrentColor
+
+            HeroLine.BackgroundColor3 =
+                CurrentColor
+
+            Badge.BackgroundColor3 =
+                CurrentColor
+
+            for _, item in ipairs(Cards) do
+
+                item.Stroke.Color =
+                    CurrentColor
+
+                item.IconStroke.Color =
+                    CurrentColor
+            end
+        end
+
+        task.wait(0.25)
+    end
+end)
+
+--==============================================================
+-- ENTRANCE ANIMATION
+--==============================================================
+
+local HeroScale = Scale(Hero)
+
+HeroScale.Scale = 0.95
+Hero.BackgroundTransparency = 1
+
+for _, item in ipairs(Cards) do
+
+    item.Card.BackgroundTransparency = 1
+    item.Icon.ImageTransparency = 1
+end
+
+task.defer(function()
+
+    Tween(
+        HeroScale,
+        0.42,
+        {
+            Scale = 1
+        },
+        Enum.EasingStyle.Back
+    )
+
+    Tween(
+        Hero,
+        0.35,
+        {
+            BackgroundTransparency = 0
+        }
+    )
+
+    task.wait(0.12)
+
+    for index, item in ipairs(Cards) do
+
+        task.delay(
+            (index - 1) * 0.09,
+            function()
+
+                if not item.Card.Parent then
+                    return
+                end
+
+                Tween(
+                    item.Card,
+                    0.28,
+                    {
+                        BackgroundTransparency = 0
+                    }
+                )
+
+                Tween(
+                    item.Icon,
+                    0.3,
+                    {
+                        ImageTransparency = 0
+                    }
+                )
+            end
+        )
+    end
+end)
+
+--==============================================================
+-- CANVAS
+--==============================================================
+
+local function RefreshCanvas()
+
+    if Tab and Tab.Parent then
+
+        Tab.CanvasSize =
+            UDim2.new(
+                0,
+                0,
+                0,
+                Root.AbsoluteSize.Y + 12
+            )
+    end
+end
+
+Root:GetPropertyChangedSignal(
+    "AbsoluteSize"
+):Connect(RefreshCanvas)
+
+task.defer(function()
+
+    task.wait(0.3)
+
+    RefreshCanvas()
+end)
+
+--==============================================================
+-- RETURN API
+--==============================================================
+
+return {
+    Root = Root,
+
+    Cards = Cards,
+
+    Copy = function(name)
+
+        for _, item in ipairs(Cards) do
+
+            if string.lower(item.Data.Name)
+                == string.lower(tostring(name)) then
+
+                CopyURL(item.Data)
+
+                return true
+            end
+        end
+
+        return false
+    end
+}
