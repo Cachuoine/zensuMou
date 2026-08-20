@@ -14,15 +14,51 @@ local playerGui = (context and context.PlayerGui) or player:WaitForChild("Player
 local tab = context and context.Tab
 local main = context and context.MainWindow
 
-if not tab then
-    local fishHub = playerGui and playerGui:FindFirstChild("FishHub")
-    local mainWindow = fishHub and fishHub:FindFirstChild("MainWindow")
-    local content = mainWindow and mainWindow:FindFirstChild("ContentContainer")
-    tab = content and content:FindFirstChild("SettingTab", true)
-    main = main or mainWindow
+local function findDescendantByNames(parent, names)
+    if not parent then return nil end
+    for _, name in ipairs(names) do
+        local exact = parent:FindFirstChild(name, true)
+        if exact and exact:IsA("GuiObject") then
+            return exact
+        end
+    end
+    return nil
 end
 
-if not tab then return end
+if not tab then
+    local fishHub = playerGui and (
+        playerGui:FindFirstChild("FishHub")
+        or playerGui:FindFirstChild("FishHubUI")
+    )
+
+    local mainWindow = main or (fishHub and (
+        fishHub:FindFirstChild("MainWindow", true)
+        or fishHub:FindFirstChild("Main", true)
+        or fishHub
+    ))
+
+    main = mainWindow
+
+    tab = findDescendantByNames(mainWindow, {
+        "SettingTab", "SettingsTab", "Setting", "Settings",
+        "GearTab", "Gear", "setting", "settings"
+    })
+
+    -- Last-resort fallback: find a frame whose name contains "setting".
+    if not tab and mainWindow then
+        for _, obj in ipairs(mainWindow:GetDescendants()) do
+            if obj:IsA("GuiObject") and string.find(string.lower(obj.Name), "setting", 1, true) then
+                tab = obj
+                break
+            end
+        end
+    end
+end
+
+if not tab then
+    warn("[FishHub Setting] Could not locate the Setting tab. Expected a Setting/Settings/SettingTab GUI object.")
+    return
+end
 
 for _, child in ipairs(tab:GetChildren()) do
     child:Destroy()
@@ -37,8 +73,13 @@ local State = {
 }
 
 local function theme()
-    local stroke = main and main:FindFirstChildOfClass("UIStroke")
-    return stroke and stroke.Color or State.SelectedColor
+    if main then
+        local stroke = main:FindFirstChildOfClass("UIStroke", true)
+        if stroke and stroke:IsA("UIStroke") then
+            return stroke.Color
+        end
+    end
+    return State.SelectedColor
 end
 
 local function corner(parent, radius)
@@ -525,8 +566,11 @@ end)
 --// Live rainbow engine
 local hueValue = 0
 
-RunService.RenderStepped:Connect(function(dt)
-    if not tab.Parent then return end
+local heartbeatConnection = RunService.Heartbeat:Connect(function(dt)
+    if not tab.Parent then
+        if heartbeatConnection then heartbeatConnection:Disconnect() end
+        return
+    end
 
     if State.Rainbow then
         local speed = math.max(State.RainbowSpeed,1)
@@ -555,5 +599,12 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 
 --// Initial values
-setSpeedFromX(speedBar.AbsolutePosition.X + speedBar.AbsoluteSize.X * .5)
-setUIScaleFromX(uiBar.AbsolutePosition.X + uiBar.AbsoluteSize.X * .5)
+task.defer(function()
+    task.wait()
+    if speedBar.Parent then
+        setSpeedFromX(speedBar.AbsolutePosition.X + speedBar.AbsoluteSize.X * .5)
+    end
+    if uiBar.Parent then
+        setUIScaleFromX(uiBar.AbsolutePosition.X + uiBar.AbsoluteSize.X * .5)
+    end
+end)
