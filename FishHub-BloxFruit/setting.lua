@@ -1,1045 +1,559 @@
---[[
-    FishHub Settings Module
-    -----------------------
-    This file owns EVERYTHING opened/controlled by the Main Gear button:
-      * Settings window
-      * Theme picker
-      * Apply Theme
-      * Rainbow Continuous
-      * Rainbow Speed
-      * Debug toggle
-      * Hotkey picker
-      * Settings open/close animation
-      * Theme/rainbow engine
+--// FishHub • Setting.lua
+--// Advanced Settings tab
+--// Theme / Rainbow / Color / UI size controls.
 
-    The Main file still owns the Gear button itself.
-    This module deliberately receives the existing Main UI through ctx so
-    moving this code does not duplicate or recreate the Main UI.
-]]
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
-return function(ctx)
-    if type(ctx) ~= "table" then
-        error("FishHub setting.lua: context table is required")
-    end
+local player = Players.LocalPlayer
+if not player then return end
 
-    local Players = ctx.Players
-    local UserInputService = ctx.UserInputService
-    local TweenService = ctx.TweenService
+local context = ...
+local playerGui = (context and context.PlayerGui) or player:WaitForChild("PlayerGui", 10)
+local tab = context and context.Tab
+local main = context and context.MainWindow
 
-    local gui = ctx.gui
-    local main = ctx.main
-    local mainScale = ctx.mainScale
-    local Config = ctx.Config
+if not tab then
+    local fishHub = playerGui and playerGui:FindFirstChild("FishHub")
+    local mainWindow = fishHub and fishHub:FindFirstChild("MainWindow")
+    local content = mainWindow and mainWindow:FindFirstChild("ContentContainer")
+    tab = content and content:FindFirstChild("SettingTab", true)
+    main = main or mainWindow
+end
 
-    local allHubStrokes = ctx.allHubStrokes
-    local allHubLines = ctx.allHubLines
-    local allThemeTexts = ctx.allThemeTexts
+if not tab then return end
 
-    local mainStroke = ctx.mainStroke
-    local glowBorder = ctx.glowBorder
-    local openStroke = ctx.openStroke
-    local openGlow = ctx.openGlow
-    local openAccent = ctx.openAccent
-    local openStatus = ctx.openStatus
-    local openIcon = ctx.openIcon
-    local lineStroke = ctx.lineStroke
+for _, child in ipairs(tab:GetChildren()) do
+    child:Destroy()
+end
 
-    local contentHoverRegistry = ctx.contentHoverRegistry
-    local tabButtons = ctx.tabButtons
-    local CONTENT_BORDER_COLOR = ctx.CONTENT_BORDER_COLOR
-    local getActiveTabName = ctx.getActiveTabName
+local State = {
+    Rainbow = false,
+    RainbowSpeed = 50,
+    UIAlpha = 0,
+    UIScale = 100,
+    SelectedColor = Color3.fromRGB(104, 82, 255),
+}
 
-    local loadingScreen = ctx.loadingScreen
-    local progressFill = ctx.progressFill
-    local loadingStatus = ctx.loadingStatus
-    local THEME_LOADING_APPLY_DELAY = ctx.THEME_LOADING_APPLY_DELAY
+local function theme()
+    local stroke = main and main:FindFirstChildOfClass("UIStroke")
+    return stroke and stroke.Color or State.SelectedColor
+end
 
-    local PlayAdvancedThemeLoading = ctx.PlayAdvancedThemeLoading
-    local StopLoadingAnimation = ctx.StopLoadingAnimation
-    local RestoreUIAfterThemeLoading = ctx.RestoreUIAfterThemeLoading
-    local FinishAdvancedThemeLoading = ctx.FinishAdvancedThemeLoading
-    local UpdateLoadingTheme = ctx.UpdateLoadingTheme
-    local ShowNotification = ctx.ShowNotification
-    local isThemeLoading = ctx.isThemeLoading
-    local getLoadingAnimationToken = ctx.getLoadingAnimationToken
-    local setThemeLoading = ctx.setThemeLoading
+local function corner(parent, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius)
+    c.Parent = parent
+end
 
-    local debugSidebarFrame = ctx.debugSidebarFrame
-    local keyStatusSidebarFrame = ctx.keyStatusSidebarFrame
-    local debugDividerBetween = ctx.debugDividerBetween
+local function mkStroke(parent, transparency)
+    local s = Instance.new("UIStroke")
+    s.Color = theme()
+    s.Thickness = 1
+    s.Transparency = transparency or .58
+    s.Parent = parent
+    return s
+end
 
-    local gearBtn = ctx.gearBtn
+local function txt(parent, value, size, color, font)
+    local l = Instance.new("TextLabel")
+    l.BackgroundTransparency = 1
+    l.Text = value
+    l.TextSize = size
+    l.TextColor3 = color
+    l.Font = font or Enum.Font.GothamMedium
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    l.TextYAlignment = Enum.TextYAlignment.Center
+    l.Parent = parent
+    return l
+end
 
-    if not gui then error("FishHub setting.lua: missing gui") end
-    if not main then error("FishHub setting.lua: missing main") end
-    if not mainScale then error("FishHub setting.lua: missing mainScale") end
-    if not Config then error("FishHub setting.lua: missing Config") end
-    if not gearBtn then error("FishHub setting.lua: Main did not provide Gear button") end
+local function tween(obj, props, duration)
+    return TweenService:Create(
+        obj,
+        TweenInfo.new(duration or .2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+        props
+    )
+end
 
-    -- State that used to live in Main alongside the Gear code.
-    local isRainbowRunning = false
-    local rainbowTransitionActive = false
-    local rainbowTransitionSerial = 0
-    local staticThemeColor = Config.ThemeColor
-    local rainbowHue = select(1, Config.ThemeColor:ToHSV())
+local accents, strokes, accentTexts = {}, {}, {}
 
+local scroll = Instance.new("ScrollingFrame")
+scroll.Name = "SettingScroll"
+scroll.Size = UDim2.new(1,0,1,0)
+scroll.BackgroundTransparency = 1
+scroll.BorderSizePixel = 0
+scroll.ScrollBarThickness = 0
+scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scroll.ScrollingDirection = Enum.ScrollingDirection.Y
+scroll.Parent = tab
 
-local settingsWindow = Instance.new("Frame")
-settingsWindow.Name = "SettingsWindow"
-settingsWindow.Parent = gui
-settingsWindow.Size = UDim2.new(0, 240, 0, Config.MainHeight)
-settingsWindow.AnchorPoint = Vector2.new(0, 0.5)
-settingsWindow.BackgroundColor3 = Config.BgMain
-settingsWindow.BackgroundTransparency = Config.UITransparency
-settingsWindow.BorderSizePixel = 0
-settingsWindow.Visible = false
-local settingsScale = Instance.new("UIScale")
-settingsScale.Parent = settingsWindow
-settingsScale.Scale = 1
-Instance.new("UICorner", settingsWindow).CornerRadius = UDim.new(0, 14)
-local settingsStroke = Instance.new("UIStroke")
-settingsStroke.Parent = settingsWindow
-settingsStroke.Thickness = 2
-settingsStroke.Color = Config.ThemeColor
-task.spawn(function()
-    while gui and gui.Parent do
-        if main.Visible then
-            local scale = mainScale.Scale
-            local scaledMainHalfWidth = (Config.MainWidth * scale) / 2
-            settingsWindow.Position = UDim2.new(
-                0.5,
-                scaledMainHalfWidth + 10,
-                0.5,
-                0
-            )
-        end
-        task.wait()
-    end
-end)
-local settingsTitle = Instance.new("TextLabel")
-settingsTitle.Parent = settingsWindow
-settingsTitle.Size = UDim2.new(1, 0, 0, 46)
-settingsTitle.BackgroundTransparency = 1
-settingsTitle.Text = "⚙ Setting"
-settingsTitle.Font = Enum.Font.GothamBold
-settingsTitle.TextSize = 15
-settingsTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-settingsTitle.TextXAlignment = Enum.TextXAlignment.Center
-local settingsLine = Instance.new("Frame")
-settingsLine.Parent = settingsWindow
-settingsLine.Size = UDim2.new(1, -20, 0, 1)
-settingsLine.Position = UDim2.new(0, 10, 0, 45)
-settingsLine.BackgroundColor3 = Config.BorderColor
-settingsLine.BorderSizePixel = 0
-table.insert(allHubLines, settingsLine)
-local settingsScroll = Instance.new("ScrollingFrame")
-settingsScroll.Parent = settingsWindow
-settingsScroll.Size = UDim2.new(1, -10, 1, -55)
-settingsScroll.Position = UDim2.new(0, 5, 0, 50)
-settingsScroll.BackgroundTransparency = 1
-settingsScroll.BorderSizePixel = 0
-settingsScroll.ScrollBarThickness = 0
-settingsScroll.ScrollBarImageTransparency = 1
-settingsScroll.ScrollBarImageColor3 = Color3.new(1, 1, 1)
-settingsScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-settingsScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-local settingsLayout = Instance.new("UIListLayout")
-settingsLayout.Parent = settingsScroll
-settingsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-settingsLayout.Padding = UDim.new(0, 10)
-settingsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-local function CreateSectionDivider(title, order)
-    local container = Instance.new("Frame")
-    container.Parent = settingsScroll
-    container.Size = UDim2.new(1, -10, 0, 28)
-    container.BackgroundTransparency = 1
-    container.LayoutOrder = order
-    local label = Instance.new("TextLabel")
-    label.Parent = container
-    label.Size = UDim2.new(1, 0, 0, 16)
-    label.Position = UDim2.new(0.5, 0, 0, 0)
-    label.AnchorPoint = Vector2.new(0.5, 0)
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 13
-    label.TextColor3 = Config.ThemeColor
-    label.Text = title
-    label.AutomaticSize = Enum.AutomaticSize.X
-    label.ZIndex = 2
-    table.insert(allThemeTexts, label)
+local p = Instance.new("UIPadding")
+p.PaddingLeft = UDim.new(0,7)
+p.PaddingRight = UDim.new(0,7)
+p.PaddingTop = UDim.new(0,7)
+p.PaddingBottom = UDim.new(0,14)
+p.Parent = scroll
+
+local root = Instance.new("Frame")
+root.Size = UDim2.new(1,-14,0,0)
+root.AutomaticSize = Enum.AutomaticSize.Y
+root.BackgroundTransparency = 1
+root.Parent = scroll
+
+local list = Instance.new("UIListLayout")
+list.Padding = UDim.new(0,12)
+list.HorizontalAlignment = Enum.HorizontalAlignment.Center
+list.Parent = root
+
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1,0,0,105)
+header.BackgroundColor3 = Color3.fromRGB(7,8,12)
+header.BorderSizePixel = 0
+header.ClipsDescendants = true
+header.Parent = root
+corner(header,15)
+table.insert(strokes,mkStroke(header,.38))
+
+local glow = Instance.new("Frame")
+glow.Size = UDim2.new(0,160,0,160)
+glow.Position = UDim2.new(1,-90,0,-75)
+glow.BackgroundColor3 = theme()
+glow.BackgroundTransparency = .88
+glow.BorderSizePixel = 0
+glow.Parent = header
+corner(glow,100)
+table.insert(accents,glow)
+
+local bar = Instance.new("Frame")
+bar.Size = UDim2.new(0,4,1,-30)
+bar.Position = UDim2.new(0,14,0,15)
+bar.BackgroundColor3 = theme()
+bar.BorderSizePixel = 0
+bar.Parent = header
+corner(bar,4)
+table.insert(accents,bar)
+
+local title = txt(header,"SETTING",21,Color3.fromRGB(245,246,252),Enum.Font.GothamBlack)
+title.Position = UDim2.new(0,30,0,14)
+title.Size = UDim2.new(1,-44,0,26)
+
+local sub = txt(header,"Appearance & interface",10,Color3.fromRGB(145,150,165),Enum.Font.GothamMedium)
+sub.Position = UDim2.new(0,31,0,43)
+sub.Size = UDim2.new(1,-44,0,18)
+
+local stateText = txt(header,"RAINBOW OFF",9,theme(),Enum.Font.GothamBold)
+stateText.Position = UDim2.new(0,31,0,70)
+stateText.Size = UDim2.new(0,150,0,18)
+table.insert(accentTexts,stateText)
+
+local function sectionTitle(textValue)
+    local h = Instance.new("Frame")
+    h.Size = UDim2.new(1,0,0,30)
+    h.BackgroundTransparency = 1
+    h.Parent = root
+
+    local title = txt(h,textValue,9,theme(),Enum.Font.GothamBold)
+    title.Size = UDim2.new(.5,0,1,0)
+    title.Position = UDim2.new(.25,0,0,0)
+    title.TextXAlignment = Enum.TextXAlignment.Center
+    table.insert(accentTexts,title)
+
     local line = Instance.new("Frame")
-    line.Parent = container
-    line.Size = UDim2.new(1, 0, 0, 2)
-    line.Position = UDim2.new(0, 0, 0, 18)
-    line.BackgroundColor3 = Config.ThemeColor
+    line.Size = UDim2.new(1,0,0,1)
+    line.Position = UDim2.new(0,0,1,-1)
+    line.BackgroundColor3 = theme()
     line.BorderSizePixel = 0
-    Instance.new("UICorner", line).CornerRadius = UDim.new(1, 0)
-    local gradient = Instance.new("UIGradient")
-    gradient.Parent = line
-    gradient.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 0.9),NumberSequenceKeypoint.new(0.18, 0.55),NumberSequenceKeypoint.new(0.38, 0.2),NumberSequenceKeypoint.new(0.5, 0),NumberSequenceKeypoint.new(0.62, 0.2),NumberSequenceKeypoint.new(0.82, 0.55),NumberSequenceKeypoint.new(1, 0.9)})
-    table.insert(allHubLines, line)
+    line.Parent = h
+    table.insert(accents,line)
+
+    local g = Instance.new("UIGradient")
+    g.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0,.98),
+        NumberSequenceKeypoint.new(.22,.65),
+        NumberSequenceKeypoint.new(.5,0),
+        NumberSequenceKeypoint.new(.78,.65),
+        NumberSequenceKeypoint.new(1,.98),
+    })
+    g.Parent = line
 end
-CreateSectionDivider("THEME", 1)
-local colorPalette=Instance.new("Frame")
-colorPalette.Name="ColorPalette"
-colorPalette.Parent=settingsScroll
-colorPalette.Size=UDim2.new(1,-10,0,178)
-colorPalette.BackgroundColor3=Color3.fromRGB(18,20,28)
-colorPalette.BorderSizePixel=0
-colorPalette.LayoutOrder=2
-Instance.new("UICorner",colorPalette).CornerRadius=UDim.new(0,12)
-local paletteStroke=Instance.new("UIStroke")
-paletteStroke.Parent=colorPalette
-paletteStroke.Thickness=1
-paletteStroke.Color=Config.ThemeColor
-table.insert(allHubStrokes,paletteStroke)
-local paletteTitle=Instance.new("TextLabel")
-paletteTitle.Parent=colorPalette
-paletteTitle.Size=UDim2.new(1,-20,0,22)
-paletteTitle.Position=UDim2.new(0,10,0,6)
-paletteTitle.BackgroundTransparency=1
-paletteTitle.Text="THEME COLOR"
-paletteTitle.Font=Enum.Font.GothamBold
-paletteTitle.TextSize=10
-paletteTitle.TextColor3=Color3.fromRGB(180,185,200)
-paletteTitle.TextXAlignment=Enum.TextXAlignment.Left
-local palettePreview=Instance.new("Frame")
-palettePreview.Parent=colorPalette
-palettePreview.Size=UDim2.new(0,34,0,20)
-palettePreview.Position=UDim2.new(1,-44,0,7)
-palettePreview.BackgroundColor3=Config.ThemeColor
-palettePreview.BorderSizePixel=0
-Instance.new("UICorner",palettePreview).CornerRadius=UDim.new(0,6)
-local paletteValue=Instance.new("TextLabel")
-paletteValue.Parent=colorPalette
-paletteValue.Size=UDim2.new(0,90,0,18)
-paletteValue.Position=UDim2.new(1,-140,0,8)
-paletteValue.BackgroundTransparency=1
-paletteValue.TextColor3=Color3.fromRGB(150,155,170)
-paletteValue.Font=Enum.Font.Code
-paletteValue.TextSize=9
-paletteValue.TextXAlignment=Enum.TextXAlignment.Right
-local svArea=Instance.new("Frame")
-svArea.Parent=colorPalette
-svArea.Size=UDim2.new(1,-54,0,118)
-svArea.Position=UDim2.new(0,10,0,34)
-svArea.BackgroundColor3=Color3.fromHSV(0,1,1)
-svArea.BorderSizePixel=0
-svArea.ClipsDescendants=true
-Instance.new("UICorner",svArea).CornerRadius=UDim.new(0,8)
-local svWhite=Instance.new("Frame")
-svWhite.Parent=svArea
-svWhite.Size=UDim2.fromScale(1,1)
-svWhite.BackgroundColor3=Color3.new(1,1,1)
-svWhite.BorderSizePixel=0
-local whiteGradient=Instance.new("UIGradient")
-whiteGradient.Parent=svWhite
-whiteGradient.Color=ColorSequence.new(Color3.new(1,1,1),Color3.new(1,1,1))
-whiteGradient.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0),NumberSequenceKeypoint.new(1,1)})
-whiteGradient.Rotation=0
-local svBlack=Instance.new("Frame")
-svBlack.Parent=svArea
-svBlack.Size=UDim2.fromScale(1,1)
-svBlack.BackgroundColor3=Color3.new(0,0,0)
-svBlack.BorderSizePixel=0
-local blackGradient=Instance.new("UIGradient")
-blackGradient.Parent=svBlack
-blackGradient.Color=ColorSequence.new(Color3.new(0,0,0),Color3.new(0,0,0))
-blackGradient.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,1),NumberSequenceKeypoint.new(1,0)})
-blackGradient.Rotation=90
-local svButton=Instance.new("TextButton")
-svButton.Parent=svArea
-svButton.Size=UDim2.fromScale(1,1)
-svButton.BackgroundTransparency=1
-svButton.Text=""
-svButton.AutoButtonColor=false
-svButton.ZIndex=5
-local svCursor=Instance.new("Frame")
-svCursor.Parent=svArea
-svCursor.Size=UDim2.new(0,12,0,12)
-svCursor.AnchorPoint=Vector2.new(0.5,0.5)
-svCursor.BackgroundColor3=Color3.new(1,1,1)
-svCursor.BorderSizePixel=0
-svCursor.ZIndex=7
-Instance.new("UICorner",svCursor).CornerRadius=UDim.new(1,0)
-local svCursorStroke=Instance.new("UIStroke")
-svCursorStroke.Parent=svCursor
-svCursorStroke.Thickness=2
-svCursorStroke.Color=Color3.new(0,0,0)
-local hueBar=Instance.new("Frame")
-hueBar.Parent=colorPalette
-hueBar.Size=UDim2.new(0,18,0,118)
-hueBar.Position=UDim2.new(1,-32,0,34)
-hueBar.BackgroundColor3=Color3.new(1,1,1)
-hueBar.BorderSizePixel=0
-hueBar.ZIndex=4
-Instance.new("UICorner",hueBar).CornerRadius=UDim.new(1,0)
-local hueGradient=Instance.new("UIGradient")
-hueGradient.Parent=hueBar
-hueGradient.Color=ColorSequence.new({
-ColorSequenceKeypoint.new(0,Color3.fromRGB(255,0,0)),
-ColorSequenceKeypoint.new(0.1667,Color3.fromRGB(255,255,0)),
-ColorSequenceKeypoint.new(0.3333,Color3.fromRGB(0,255,0)),
-ColorSequenceKeypoint.new(0.5,Color3.fromRGB(0,255,255)),
-ColorSequenceKeypoint.new(0.6667,Color3.fromRGB(0,0,255)),
-ColorSequenceKeypoint.new(0.8333,Color3.fromRGB(255,0,255)),
-ColorSequenceKeypoint.new(1,Color3.fromRGB(255,0,0))
+
+local function card(height)
+    local c = Instance.new("Frame")
+    c.Size = UDim2.new(1,0,0,height)
+    c.BackgroundColor3 = Color3.fromRGB(8,9,14)
+    c.BorderSizePixel = 0
+    c.Parent = root
+    corner(c,12)
+    table.insert(strokes,mkStroke(c,.68))
+    return c
+end
+
+--// Theme color preview
+sectionTitle("THEME")
+
+local themeCard = card(94)
+
+local preview = Instance.new("Frame")
+preview.Size = UDim2.new(0,54,0,54)
+preview.Position = UDim2.new(0,13,.5,-27)
+preview.BackgroundColor3 = State.SelectedColor
+preview.BorderSizePixel = 0
+preview.Parent = themeCard
+corner(preview,13)
+table.insert(accents,preview)
+
+local previewGradient = Instance.new("UIGradient")
+previewGradient.Rotation = 45
+previewGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0,Color3.new(1,1,1)),
+    ColorSequenceKeypoint.new(.35,State.SelectedColor),
+    ColorSequenceKeypoint.new(1,Color3.fromRGB(8,9,14)),
 })
-hueGradient.Rotation=90
-local hueButton=Instance.new("TextButton")
-hueButton.Parent=hueBar
-hueButton.Size=UDim2.fromScale(1,1)
-hueButton.BackgroundTransparency=1
-hueButton.Text=""
-hueButton.AutoButtonColor=false
-hueButton.ZIndex=5
-local hueCursor=Instance.new("Frame")
-hueCursor.Parent=hueBar
-hueCursor.Size=UDim2.new(1,0,0,4)
-hueCursor.AnchorPoint=Vector2.new(0,0.5)
-hueCursor.BackgroundColor3=Color3.new(1,1,1)
-hueCursor.BorderSizePixel=0
-hueCursor.ZIndex=7
-local hueCursorStroke=Instance.new("UIStroke")
-hueCursorStroke.Parent=hueCursor
-hueCursorStroke.Thickness=1
-hueCursorStroke.Color=Color3.new(0,0,0)
+previewGradient.Parent = preview
 
-local applyThemeBtn
+local colorTitle = txt(themeCard,"ACCENT COLOR",10,Color3.fromRGB(240,242,248),Enum.Font.GothamBold)
+colorTitle.Position = UDim2.new(0,82,0,16)
+colorTitle.Size = UDim2.new(1,-94,0,18)
 
--- Invisible interaction shield used while Rainbow is active/loading.
-local pickerLocked = false
-local function RefreshPickerLock()
-    -- Only an actively running Rainbow session blocks manual color picking.
-    -- Theme loading / Apply Theme transitions do NOT permanently lock the picker.
-    pickerLocked = (isRainbowRunning == true)
-    svButton.Active = not pickerLocked
-    hueButton.Active = not pickerLocked
-end
-local selectedThemeColor=Config.ThemeColor
-local pickerHue,pickerSaturation,pickerValue=Config.ThemeColor:ToHSV()
-local function UpdateThemePicker()
-local hueColor=Color3.fromHSV(pickerHue,1,1)
-svArea.BackgroundColor3=hueColor
-svCursor.Position=UDim2.new(pickerSaturation,0,1-pickerValue,0)
-hueCursor.Position=UDim2.new(0,0,pickerHue,0)
-selectedThemeColor=Color3.fromHSV(pickerHue,pickerSaturation,pickerValue)
-palettePreview.BackgroundColor3=selectedThemeColor
-local r,g,b=selectedThemeColor.R*255,selectedThemeColor.G*255,selectedThemeColor.B*255
-paletteValue.Text=string.format("#%02X%02X%02X",math.floor(r+0.5),math.floor(g+0.5),math.floor(b+0.5))
-end
--- Manual picker updates ONLY the preview values.
-local function GetMousePosition()
-local mouse=Players.LocalPlayer:GetMouse()
-return Vector2.new(mouse.X,mouse.Y)
-end
-local function UpdateSVFromPosition(pos)
-local abs=svButton.AbsolutePosition
-local size=svButton.AbsoluteSize
-if size.X<=0 or size.Y<=0 then return end
-pickerSaturation=math.clamp((pos.X-abs.X)/size.X,0,1)
-pickerValue=math.clamp(1-(pos.Y-abs.Y)/size.Y,0,1)
-UpdateThemePicker()
-end
-local function UpdateHueFromPosition(pos)
-local abs=hueButton.AbsolutePosition
-local size=hueButton.AbsoluteSize
-if size.Y<=0 then return end
-pickerHue=math.clamp((pos.Y-abs.Y)/size.Y,0,1)
-UpdateThemePicker()
-end
-local pickerDragging=nil
+local colorInfo = txt(themeCard,"Manual color overrides rainbow",8,Color3.fromRGB(125,130,145),Enum.Font.GothamMedium)
+colorInfo.Position = UDim2.new(0,82,0,37)
+colorInfo.Size = UDim2.new(1,-94,0,16)
 
--- Forward declaration: the color picker is created before the theme engine.
--- Without this, picker callbacks can resolve ApplyGlobalTheme as nil/global.
-local ApplyGlobalTheme
+local apply = Instance.new("TextButton")
+apply.AutoButtonColor = false
+apply.Text = "APPLY"
+apply.TextSize = 8
+apply.Font = Enum.Font.GothamBold
+apply.TextColor3 = Color3.fromRGB(245,246,252)
+apply.Size = UDim2.new(0,72,0,25)
+apply.Position = UDim2.new(1,-84,1,-35)
+apply.BackgroundColor3 = State.SelectedColor
+apply.BorderSizePixel = 0
+apply.Parent = themeCard
+corner(apply,8)
+table.insert(accents,apply)
 
--- Manual picker input only changes the preview. The actual UI theme is changed
--- only after the user presses APPLY THEME. Rainbow mode completely locks the picker.
-local function IsPickerLocked()
-    return pickerLocked == true
+-- Vertical hue slider
+local hue = Instance.new("Frame")
+hue.Name = "ColorSlider"
+hue.Size = UDim2.new(0,12,0,54)
+hue.Position = UDim2.new(1,-102,0,14)
+hue.BackgroundColor3 = Color3.new(1,1,1)
+hue.BorderSizePixel = 0
+hue.Parent = themeCard
+corner(hue,6)
+
+local hueGradient = Instance.new("UIGradient")
+hueGradient.Rotation = 90
+hueGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0,Color3.fromRGB(255,0,0)),
+    ColorSequenceKeypoint.new(.16,Color3.fromRGB(255,255,0)),
+    ColorSequenceKeypoint.new(.33,Color3.fromRGB(0,255,0)),
+    ColorSequenceKeypoint.new(.50,Color3.fromRGB(0,255,255)),
+    ColorSequenceKeypoint.new(.66,Color3.fromRGB(0,80,255)),
+    ColorSequenceKeypoint.new(.83,Color3.fromRGB(170,0,255)),
+    ColorSequenceKeypoint.new(1,Color3.fromRGB(255,0,0)),
+})
+hueGradient.Parent = hue
+
+local knob = Instance.new("Frame")
+knob.Size = UDim2.new(0,18,0,6)
+knob.Position = UDim2.new(.5,-9,.25,-3)
+knob.BackgroundColor3 = Color3.fromRGB(245,246,252)
+knob.BorderSizePixel = 0
+knob.Parent = hue
+corner(knob,4)
+
+local hueDragging = false
+
+local function setHueFromY(y)
+    local pos = math.clamp((y-hue.AbsolutePosition.Y)/math.max(hue.AbsoluteSize.Y,1),0,1)
+    knob.Position = UDim2.new(.5,-9,pos,-3)
+
+    -- Full HSV hue, high saturation/value.
+    local h = pos
+    State.SelectedColor = Color3.fromHSV(h, .82, .98)
+    preview.BackgroundColor3 = State.SelectedColor
 end
 
-svButton.MouseButton1Down:Connect(function()
-    if IsPickerLocked() then return end
-    pickerDragging="SV"
-    UpdateSVFromPosition(GetMousePosition())
-end)
-
-hueButton.MouseButton1Down:Connect(function()
-    if IsPickerLocked() then return end
-    pickerDragging="HUE"
-    UpdateHueFromPosition(GetMousePosition())
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input.UserInputType ~= Enum.UserInputType.MouseMovement or not pickerDragging then return end
-    if IsPickerLocked() then
-        pickerDragging = nil
-        return
-    end
-    local pos=GetMousePosition()
-    if pickerDragging=="SV" then
-        UpdateSVFromPosition(pos)
-    else
-        UpdateHueFromPosition(pos)
+hue.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        hueDragging = true
+        setHueFromY(input.Position.Y)
+        State.Rainbow = false
+        stateText.Text = "RAINBOW OFF • MANUAL"
     end
 end)
-UserInputService.InputEnded:Connect(function(input)
-if input.UserInputType==Enum.UserInputType.MouseButton1 then
-pickerDragging=nil
-end
-end)
-UpdateThemePicker()
-applyThemeBtn = Instance.new("TextButton")
-applyThemeBtn.Parent = settingsScroll
-applyThemeBtn.Size = UDim2.new(1, -10, 0, 32)
-applyThemeBtn.BackgroundColor3 = Config.ThemeColor
-applyThemeBtn.BorderSizePixel = 0
-applyThemeBtn.AutoButtonColor = false
-applyThemeBtn.Font = Enum.Font.GothamBold
-applyThemeBtn.TextSize = 12
-applyThemeBtn.TextColor3 = Color3.fromRGB(30, 30, 40)
-applyThemeBtn.Text = "APPLY THEME"
-applyThemeBtn.LayoutOrder = 3
-Instance.new("UICorner", applyThemeBtn).CornerRadius = UDim.new(0, 6)
-RefreshPickerLock()
-local rainbowToggleCard = Instance.new("Frame")
-rainbowToggleCard.Parent = settingsScroll
-rainbowToggleCard.Size = UDim2.new(1, -10, 0, 42)
-rainbowToggleCard.BackgroundColor3 = Config.BgCard
-rainbowToggleCard.BackgroundTransparency = 0.2
-rainbowToggleCard.BorderSizePixel = 0
-rainbowToggleCard.LayoutOrder = 4
-Instance.new("UICorner", rainbowToggleCard).CornerRadius = UDim.new(0, 8)
-local rainbowToggleLbl = Instance.new("TextLabel")
-rainbowToggleLbl.Parent = rainbowToggleCard
-rainbowToggleLbl.Size = UDim2.new(1, -60, 1, 0)
-rainbowToggleLbl.Position = UDim2.new(0, 10, 0, 0)
-rainbowToggleLbl.BackgroundTransparency = 1
-rainbowToggleLbl.Font = Enum.Font.GothamBold
-rainbowToggleLbl.TextSize = 11
-rainbowToggleLbl.TextColor3 = Color3.fromRGB(200, 200, 220)
-rainbowToggleLbl.Text = "Rainbow Continuous:"
-rainbowToggleLbl.TextXAlignment = Enum.TextXAlignment.Left
-local rainbowToggleBox = Instance.new("Frame")
-rainbowToggleBox.Parent = rainbowToggleCard
-rainbowToggleBox.Size = UDim2.new(0, 16, 0, 16)
-rainbowToggleBox.Position = UDim2.new(1, -26, 0.5, -8)
-rainbowToggleBox.BackgroundColor3 = Color3.fromRGB(24, 25, 34)
-rainbowToggleBox.BorderSizePixel = 0
-rainbowToggleBox.ZIndex = 2
-Instance.new("UICorner", rainbowToggleBox).CornerRadius = UDim.new(0, 4)
-local rainbowToggleStroke = Instance.new("UIStroke")
-rainbowToggleStroke.Parent = rainbowToggleBox
-rainbowToggleStroke.Thickness = 1.5
-rainbowToggleStroke.Color = Config.ThemeColor
-rainbowToggleStroke.Transparency = 0.15
-local rainbowToggleCircle = Instance.new("Frame")
-rainbowToggleCircle.Parent = rainbowToggleBox
-rainbowToggleCircle.Size = UDim2.new(0, 8, 0, 8)
-rainbowToggleCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
-rainbowToggleCircle.AnchorPoint = Vector2.new(0.5, 0.5)
-rainbowToggleCircle.BackgroundColor3 = Config.ThemeColor
-rainbowToggleCircle.BorderSizePixel = 0
-rainbowToggleCircle.Visible = false
-rainbowToggleCircle.ZIndex = 3
-Instance.new("UICorner", rainbowToggleCircle).CornerRadius = UDim.new(1, 0)
-local rainbowClickArea = Instance.new("TextButton")
-rainbowClickArea.Parent = rainbowToggleCard
-rainbowClickArea.Size = UDim2.new(1, 0, 1, 0)
-rainbowClickArea.BackgroundTransparency = 1
-rainbowClickArea.Text = ""
-CreateSectionDivider("CONTROL", 5.5)
-local rainbowSpeedCard = Instance.new("Frame")
-rainbowSpeedCard.Parent = settingsScroll
-rainbowSpeedCard.Size = UDim2.new(1, -10, 0, 112)
-rainbowSpeedCard.BackgroundColor3 = Config.BgCard
-rainbowSpeedCard.BackgroundTransparency = 0.2
-rainbowSpeedCard.BorderSizePixel = 0
-rainbowSpeedCard.LayoutOrder = 5.7
-Instance.new("UICorner", rainbowSpeedCard).CornerRadius = UDim.new(0, 8)
-local rainbowSpeedTitle = Instance.new("TextLabel")
-rainbowSpeedTitle.Parent = rainbowSpeedCard
-rainbowSpeedTitle.Size = UDim2.new(1, -16, 0, 20)
-rainbowSpeedTitle.Position = UDim2.new(0, 8, 0, 5)
-rainbowSpeedTitle.BackgroundTransparency = 1
-rainbowSpeedTitle.Font = Enum.Font.GothamBold
-rainbowSpeedTitle.TextSize = 11
-rainbowSpeedTitle.TextColor3 = Color3.fromRGB(200, 200, 220)
-rainbowSpeedTitle.Text = "Rainbow Speed:"
-rainbowSpeedTitle.TextXAlignment = Enum.TextXAlignment.Left
-local rainbowSpeedPercentLabel = Instance.new("TextLabel")
-rainbowSpeedPercentLabel.Parent = rainbowSpeedCard
-rainbowSpeedPercentLabel.Size = UDim2.new(0, 55, 0, 20)
-rainbowSpeedPercentLabel.Position = UDim2.new(1, -63, 0, 5)
-rainbowSpeedPercentLabel.BackgroundTransparency = 1
-rainbowSpeedPercentLabel.Font = Enum.Font.GothamBold
-rainbowSpeedPercentLabel.TextSize = 11
-rainbowSpeedPercentLabel.TextColor3 = Config.ThemeColor
-rainbowSpeedPercentLabel.Text = "100%"
-rainbowSpeedPercentLabel.TextXAlignment = Enum.TextXAlignment.Right
-table.insert(allThemeTexts, rainbowSpeedPercentLabel)
-local rainbowSpeedBar = Instance.new("Frame")
-rainbowSpeedBar.Parent = rainbowSpeedCard
-rainbowSpeedBar.Size = UDim2.new(1, -16, 0, 8)
-rainbowSpeedBar.Position = UDim2.new(0, 8, 0, 32)
-rainbowSpeedBar.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-rainbowSpeedBar.BorderSizePixel = 0
-Instance.new("UICorner", rainbowSpeedBar).CornerRadius = UDim.new(1, 0)
-local rainbowSpeedFill = Instance.new("Frame")
-rainbowSpeedFill.Parent = rainbowSpeedBar
-rainbowSpeedFill.Size = UDim2.new(Config.RainbowSpeedPercent / 300, 0, 1, 0)
-rainbowSpeedFill.BackgroundColor3 = Config.ThemeColor
-rainbowSpeedFill.BorderSizePixel = 0
-Instance.new("UICorner", rainbowSpeedFill).CornerRadius = UDim.new(1, 0)
-table.insert(allHubLines, rainbowSpeedFill)
-local rainbowSpeedSliderBtn = Instance.new("TextButton")
-rainbowSpeedSliderBtn.Parent = rainbowSpeedBar
-rainbowSpeedSliderBtn.Size = UDim2.new(0, 12, 0, 18)
-rainbowSpeedSliderBtn.Position = UDim2.new(Config.RainbowSpeedPercent / 300, -6, 0.5, -9)
-rainbowSpeedSliderBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-rainbowSpeedSliderBtn.Text = ""
-rainbowSpeedSliderBtn.AutoButtonColor = false
-Instance.new("UICorner", rainbowSpeedSliderBtn).CornerRadius = UDim.new(0, 4)
-local rainbowSpeedInput = Instance.new("TextBox")
-rainbowSpeedInput.Parent = rainbowSpeedCard
-rainbowSpeedInput.Size = UDim2.new(1, -16, 0, 28)
-rainbowSpeedInput.Position = UDim2.new(0, 8, 0, 54)
-rainbowSpeedInput.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-rainbowSpeedInput.BackgroundTransparency = 0.5
-rainbowSpeedInput.BorderSizePixel = 0
-rainbowSpeedInput.Font = Enum.Font.Code
-rainbowSpeedInput.TextSize = 12
-rainbowSpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-rainbowSpeedInput.Text = tostring(Config.RainbowSpeedPercent)
-rainbowSpeedInput.PlaceholderText = "Speed % (10 - 300)"
-rainbowSpeedInput.ClearTextOnFocus = false
-rainbowSpeedInput.TextXAlignment = Enum.TextXAlignment.Center
-Instance.new("UICorner", rainbowSpeedInput).CornerRadius = UDim.new(0, 4)
-local rainbowSpeedNote = Instance.new("TextLabel")
-rainbowSpeedNote.Parent = rainbowSpeedCard
-rainbowSpeedNote.Size = UDim2.new(1, -16, 0, 16)
-rainbowSpeedNote.Position = UDim2.new(0, 8, 0, 88)
-rainbowSpeedNote.BackgroundTransparency = 1
-rainbowSpeedNote.Font = Enum.Font.Code
-rainbowSpeedNote.TextSize = 10
-rainbowSpeedNote.TextColor3 = Color3.fromRGB(145, 145, 165)
-rainbowSpeedNote.Text = "NOTE: SPEED RANGE 10 - 300%"
-rainbowSpeedNote.TextXAlignment = Enum.TextXAlignment.Center
-local rainbowSpeedDragging = false
-local function SetRainbowSpeedPercent(value)
-    value = math.clamp(math.floor((tonumber(value) or Config.RainbowSpeedPercent) + 0.5), 10, 300)
-    Config.RainbowSpeedPercent = value
-    local normalized = value / 300
-    rainbowSpeedFill.Size = UDim2.new(normalized, 0, 1, 0)
-    rainbowSpeedSliderBtn.Position = UDim2.new(normalized, -6, 0.5, -9)
-    rainbowSpeedInput.Text = tostring(value)
-    rainbowSpeedPercentLabel.Text = tostring(value) .. "%"
-    return value
-end
-SetRainbowSpeedPercent(Config.RainbowSpeedPercent)
-rainbowSpeedSliderBtn.MouseButton1Down:Connect(function()
-    rainbowSpeedDragging = true
-end)
-rainbowSpeedBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        rainbowSpeedDragging = true
+
+hue.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        hueDragging = false
     end
 end)
-rainbowSpeedInput.FocusLost:Connect(function()
-    local value = tonumber(rainbowSpeedInput.Text)
-    if value then
-        SetRainbowSpeedPercent(value)
-    else
-        rainbowSpeedInput.Text = tostring(Config.RainbowSpeedPercent)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if hueDragging and (
+        input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch
+    ) then
+        setHueFromY(input.Position.Y)
     end
 end)
-UserInputService.InputChanged:Connect(function(input)
-    if not rainbowSpeedDragging or input.UserInputType ~= Enum.UserInputType.MouseMovement then
-        return
+
+apply.Activated:Connect(function()
+    if context and type(context.SetTheme) == "function" then
+        pcall(context.SetTheme, State.SelectedColor)
+    elseif main then
+        local bind = main:FindFirstChild("SetTheme")
+        if bind and bind:IsA("BindableEvent") then
+            bind:Fire(State.SelectedColor)
+        end
     end
-    local barX = rainbowSpeedBar.AbsolutePosition.X
-    local barWidth = rainbowSpeedBar.AbsoluteSize.X
-    if barWidth <= 0 then return end
-    local mouseX = UserInputService:GetMouseLocation().X
-    local normalized = math.clamp((mouseX - barX) / barWidth, 0, 1)
-    SetRainbowSpeedPercent(10 + normalized * 290)
-end)
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        rainbowSpeedDragging = false
-    end
-end)
-local debugToggleCard = Instance.new("Frame")
-debugToggleCard.Parent = settingsScroll
-debugToggleCard.Size = UDim2.new(1, -10, 0, 42)
-debugToggleCard.BackgroundColor3 = Config.BgCard
-debugToggleCard.BackgroundTransparency = 0.2
-debugToggleCard.BorderSizePixel = 0
-debugToggleCard.LayoutOrder = 6
-Instance.new("UICorner", debugToggleCard).CornerRadius = UDim.new(0, 8)
-local debugToggleLbl = Instance.new("TextLabel")
-debugToggleLbl.Parent = debugToggleCard
-debugToggleLbl.Size = UDim2.new(1, -60, 1, 0)
-debugToggleLbl.Position = UDim2.new(0, 10, 0, 0)
-debugToggleLbl.BackgroundTransparency = 1
-debugToggleLbl.Font = Enum.Font.GothamBold
-debugToggleLbl.TextSize = 11
-debugToggleLbl.TextColor3 = Color3.fromRGB(200, 200, 220)
-debugToggleLbl.Text = "Show Debug Info:"
-debugToggleLbl.TextXAlignment = Enum.TextXAlignment.Left
-local debugToggleBox = Instance.new("Frame")
-debugToggleBox.Parent = debugToggleCard
-debugToggleBox.Size = UDim2.new(0, 16, 0, 16)
-debugToggleBox.Position = UDim2.new(1, -26, 0.5, -8)
-debugToggleBox.BackgroundColor3 = Color3.fromRGB(24, 25, 34)
-debugToggleBox.BorderSizePixel = 0
-debugToggleBox.ZIndex = 2
-Instance.new("UICorner", debugToggleBox).CornerRadius = UDim.new(0, 4)
-local debugToggleStroke = Instance.new("UIStroke")
-debugToggleStroke.Parent = debugToggleBox
-debugToggleStroke.Thickness = 1.5
-debugToggleStroke.Color = Config.ThemeColor
-debugToggleStroke.Transparency = 0.15
-local debugToggleCircle = Instance.new("Frame")
-debugToggleCircle.Parent = debugToggleBox
-debugToggleCircle.Size = UDim2.new(0, 8, 0, 8)
-debugToggleCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
-debugToggleCircle.AnchorPoint = Vector2.new(0.5, 0.5)
-debugToggleCircle.BackgroundColor3 = Config.ThemeColor
-debugToggleCircle.BorderSizePixel = 0
-debugToggleCircle.Visible = Config.ShowDebug
-debugToggleCircle.ZIndex = 3
-Instance.new("UICorner", debugToggleCircle).CornerRadius = UDim.new(1, 0)
-local debugClickArea = Instance.new("TextButton")
-debugClickArea.Parent = debugToggleCard
-debugClickArea.Size = UDim2.new(1, 0, 1, 0)
-debugClickArea.BackgroundTransparency = 1
-debugClickArea.Text = ""
-CreateSectionDivider("HOTKEY", 6.5)
-local hotkeyCard = Instance.new("Frame")
-hotkeyCard.Parent = settingsScroll
-hotkeyCard.Size = UDim2.new(1, -10, 0, 50)
-hotkeyCard.BackgroundColor3 = Config.BgCard
-hotkeyCard.BackgroundTransparency = 0.2
-hotkeyCard.BorderSizePixel = 0
-hotkeyCard.LayoutOrder = 7
-Instance.new("UICorner", hotkeyCard).CornerRadius = UDim.new(0, 8)
-local hotkeyLbl = Instance.new("TextLabel")
-hotkeyLbl.Parent = hotkeyCard
-hotkeyLbl.Size = UDim2.new(0, 110, 1, 0)
-hotkeyLbl.Position = UDim2.new(0, 10, 0, 0)
-hotkeyLbl.BackgroundTransparency = 1
-hotkeyLbl.Font = Enum.Font.GothamBold
-hotkeyLbl.TextSize = 11
-hotkeyLbl.TextColor3 = Color3.fromRGB(200, 200, 220)
-hotkeyLbl.Text = "Toggle Hotkey:"
-hotkeyLbl.TextXAlignment = Enum.TextXAlignment.Left
-local hotkeyButtonBox = Instance.new("TextButton")
-hotkeyButtonBox.Parent = hotkeyCard
-hotkeyButtonBox.Size = UDim2.new(0, 95, 0, 30)
-hotkeyButtonBox.Position = UDim2.new(1, -105, 0.5, -15)
-hotkeyButtonBox.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-hotkeyButtonBox.BackgroundTransparency = 0.5
-hotkeyButtonBox.BorderSizePixel = 0
-hotkeyButtonBox.Font = Enum.Font.GothamBold
-hotkeyButtonBox.TextSize = 12
-hotkeyButtonBox.TextColor3 = Config.ThemeColor
-hotkeyButtonBox.Text = tostring(Config.ToggleKey.Name)
-Instance.new("UICorner", hotkeyButtonBox).CornerRadius = UDim.new(0, 6)
-table.insert(allThemeTexts, hotkeyButtonBox)
-local listeningKey = false
-hotkeyButtonBox.MouseButton1Click:Connect(function()
-    if listeningKey then return end
-    listeningKey = true
-    hotkeyButtonBox.Text = "Press Key..."
-    hotkeyButtonBox.TextColor3 = Color3.fromRGB(255, 215, 0)
-    local connection
-    connection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if input.UserInputType == Enum.UserInputType.Keyboard then
-            Config.ToggleKey = input.KeyCode
-            hotkeyButtonBox.Text = tostring(input.KeyCode.Name)
-            hotkeyButtonBox.TextColor3 = Config.ThemeColor
-            listeningKey = false
-            ShowNotification("Hotkey changed to: " .. tostring(input.KeyCode.Name))
-            if connection then
-                connection:Disconnect()
-                connection = nil
-            end
+
+    apply.Text = "APPLIED"
+    tween(apply,{BackgroundColor3=Color3.fromRGB(18,19,26)},.15):Play()
+
+    task.delay(.8,function()
+        if apply.Parent then
+            apply.Text = "APPLY"
+            apply.BackgroundColor3 = State.SelectedColor
         end
     end)
 end)
-ApplyGlobalTheme = function(newColor)
-    Config.ThemeColor = newColor
-    if not isRainbowRunning and not rainbowTransitionActive then
-        staticThemeColor = newColor
-    end
-    mainStroke.Color = newColor
-    glowBorder.Color = newColor
-    settingsStroke.Color = newColor
-    if openStroke then openStroke.Color = newColor end
-    if openGlow then openGlow.Color = newColor end
-    if openAccent then openAccent.BackgroundColor3 = newColor end
-    if openStatus then openStatus.TextColor3 = newColor end
-    if openIcon then openIcon.TextColor3 = newColor end
-    if lineStroke then lineStroke.Color = newColor end
-    if applyThemeBtn then applyThemeBtn.BackgroundColor3 = newColor end
-    for _, txtObj in ipairs(allThemeTexts) do
-        if txtObj and txtObj.Parent then
-            txtObj.TextColor3 = newColor
-        end
-    end
-    for _, lineObj in ipairs(allHubLines) do
-        if lineObj and lineObj.Parent then
-            lineObj.BackgroundColor3 = newColor
-        end
-    end
+
+--// Rainbow
+sectionTitle("RAINBOW")
+
+local rainbowCard = card(103)
+
+local rainbowTitle = txt(rainbowCard,"RAINBOW THEME",10,Color3.fromRGB(240,242,248),Enum.Font.GothamBold)
+rainbowTitle.Position = UDim2.new(0,15,0,13)
+rainbowTitle.Size = UDim2.new(1,-90,0,18)
+
+local rainbowDesc = txt(rainbowCard,"Cycle the accent color automatically",8,Color3.fromRGB(125,130,145),Enum.Font.GothamMedium)
+rainbowDesc.Position = UDim2.new(0,15,0,33)
+rainbowDesc.Size = UDim2.new(1,-30,0,16)
+
+local toggle = Instance.new("TextButton")
+toggle.AutoButtonColor = false
+toggle.Text = ""
+toggle.Size = UDim2.new(0,46,0,24)
+toggle.Position = UDim2.new(1,-61,0,13)
+toggle.BackgroundColor3 = Color3.fromRGB(25,26,34)
+toggle.BorderSizePixel = 0
+toggle.Parent = rainbowCard
+corner(toggle,12)
+
+local toggleKnob = Instance.new("Frame")
+toggleKnob.Size = UDim2.new(0,18,0,18)
+toggleKnob.Position = UDim2.new(0,3,.5,-9)
+toggleKnob.BackgroundColor3 = Color3.fromRGB(165,168,178)
+toggleKnob.BorderSizePixel = 0
+toggleKnob.Parent = toggle
+corner(toggleKnob,10)
+
+local speedLabel = txt(rainbowCard,"SPEED",8,Color3.fromRGB(125,130,145),Enum.Font.GothamBold)
+speedLabel.Position = UDim2.new(0,15,0,65)
+speedLabel.Size = UDim2.new(0,55,0,18)
+
+local speedValue = txt(rainbowCard,"50%",9,theme(),Enum.Font.GothamBold)
+speedValue.Position = UDim2.new(1,-52,0,65)
+speedValue.Size = UDim2.new(0,37,0,18)
+speedValue.TextXAlignment = Enum.TextXAlignment.Right
+table.insert(accentTexts,speedValue)
+
+local speedBar = Instance.new("Frame")
+speedBar.Size = UDim2.new(1,-86,0,6)
+speedBar.Position = UDim2.new(0,67,0,71)
+speedBar.BackgroundColor3 = Color3.fromRGB(26,27,35)
+speedBar.BorderSizePixel = 0
+speedBar.Parent = rainbowCard
+corner(speedBar,5)
+
+local speedFill = Instance.new("Frame")
+speedFill.Size = UDim2.new(.5,0,1,0)
+speedFill.BackgroundColor3 = theme()
+speedFill.BorderSizePixel = 0
+speedFill.Parent = speedBar
+corner(speedFill,5)
+table.insert(accents,speedFill)
+
+local speedKnob = Instance.new("Frame")
+speedKnob.Size = UDim2.new(0,12,0,12)
+speedKnob.Position = UDim2.new(.5,-6,.5,-6)
+speedKnob.BackgroundColor3 = Color3.fromRGB(245,246,252)
+speedKnob.BorderSizePixel = 0
+speedKnob.Parent = speedBar
+corner(speedKnob,10)
+
+local speedDragging = false
+
+local function setSpeedFromX(x)
+    local p = math.clamp((x-speedBar.AbsolutePosition.X)/math.max(speedBar.AbsoluteSize.X,1),0,1)
+    State.RainbowSpeed = math.floor(p*100+0.5)
+    speedFill.Size = UDim2.new(p,0,1,0)
+    speedKnob.Position = UDim2.new(p,-6,.5,-6)
+    speedValue.Text = tostring(State.RainbowSpeed) .. "%"
 end
-local function UpdateToggleIndicators(accentColor)
-    accentColor = accentColor or Config.ThemeColor
-    rainbowToggleStroke.Color = accentColor
-    rainbowToggleCircle.BackgroundColor3 = accentColor
-    rainbowToggleCircle.Visible = isRainbowRunning
-    debugToggleStroke.Color = accentColor
-    debugToggleCircle.BackgroundColor3 = accentColor
-    debugToggleCircle.Visible = Config.ShowDebug
-end
-UpdateToggleIndicators(Config.ThemeColor)
-RefreshPickerLock()
-task.spawn(function()
-    while gui and gui.Parent do
-        if isRainbowRunning and not rainbowTransitionActive and not isThemeLoading() then
-            rainbowHue = (rainbowHue + (0.0025 * (Config.RainbowSpeedPercent / 100))) % 1
-            local rainbowColor = Color3.fromHSV(rainbowHue, 1, 1)
-            ApplyGlobalTheme(rainbowColor)
-            UpdateToggleIndicators(rainbowColor)
-            pickerHue = rainbowHue
-            UpdateThemePicker()
-            palettePreview.BackgroundColor3 = rainbowColor
-            local rr, gg, bb = rainbowColor.R * 255, rainbowColor.G * 255, rainbowColor.B * 255
-            paletteValue.Text = string.format("#%02X%02X%02X", math.floor(rr + 0.5), math.floor(gg + 0.5), math.floor(bb + 0.5))
-            for _, strokeObj in ipairs(allHubStrokes) do
-                if strokeObj and strokeObj.Parent and not contentHoverRegistry[strokeObj] then
-                    strokeObj.Color = rainbowColor
-                end
-            end
-            for strokeObj, state in pairs(contentHoverRegistry) do
-                if strokeObj and strokeObj.Parent then
-                    if state.hovered then
-                        strokeObj.Color = rainbowColor
-                        state.glow.BackgroundColor3 = rainbowColor
-                    else
-                        strokeObj.Color = CONTENT_BORDER_COLOR
-                    end
-                end
-            end
-            local currentActiveTab = getActiveTabName()
-            for name, btn in pairs(tabButtons) do
-                local stroke = btn:FindFirstChildOfClass("UIStroke")
-                local glow = btn:FindFirstChild("TabGlow")
-                if glow then glow.BackgroundColor3 = staticThemeColor end
-                if name == currentActiveTab then
-                    btn.BackgroundColor3 = rainbowColor
-                    btn.TextColor3 = Color3.fromRGB(30, 30, 40)
-                    if stroke then
-                        stroke.Color = rainbowColor
-                    end
-                else
-                    btn.BackgroundColor3 = Color3.fromRGB(55, 55, 65)
-                    btn.TextColor3 = rainbowColor
-                    if stroke then
-                        stroke.Color = rainbowColor
-                    end
-                end
-            end
-        elseif not isRainbowRunning and not rainbowTransitionActive and not isThemeLoading() then
-            ApplyGlobalTheme(staticThemeColor)
-            UpdateToggleIndicators(staticThemeColor)
-            for _, strokeObj in ipairs(allHubStrokes) do
-                if strokeObj and strokeObj.Parent and not contentHoverRegistry[strokeObj] then
-                    strokeObj.Color = staticThemeColor
-                end
-            end
-            for strokeObj, state in pairs(contentHoverRegistry) do
-                if strokeObj and strokeObj.Parent then
-                    if state.hovered then
-                        strokeObj.Color = staticThemeColor
-                        state.glow.BackgroundColor3 = staticThemeColor
-                    else
-                        strokeObj.Color = CONTENT_BORDER_COLOR
-                    end
-                end
-            end
-            local currentActiveTab = getActiveTabName()
-            for name, btn in pairs(tabButtons) do
-                local stroke = btn:FindFirstChildOfClass("UIStroke")
-                if name == currentActiveTab then
-                    btn.BackgroundColor3 = staticThemeColor
-                    btn.TextColor3 = Color3.fromRGB(30, 30, 40)
-                    if stroke then
-                        stroke.Color = staticThemeColor
-                    end
-                else
-                    btn.BackgroundColor3 = Color3.fromRGB(55, 55, 65)
-                    btn.TextColor3 = Color3.fromRGB(230, 230, 240)
-                    if stroke then
-                        stroke.Color = staticThemeColor
-                    end
-                end
-            end
-        end
-        task.wait(0.03)
+
+speedBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        speedDragging = true
+        setSpeedFromX(input.Position.X)
     end
 end)
-rainbowClickArea.MouseButton1Click:Connect(function()
-    if isThemeLoading() or rainbowTransitionActive then
-        return
+
+speedBar.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        speedDragging = false
     end
-    local enableRainbow = not isRainbowRunning
-    rainbowTransitionSerial = rainbowTransitionSerial + 1
-    local transitionSerial = rainbowTransitionSerial
-    rainbowTransitionActive = true
-    if enableRainbow then
-        isRainbowRunning = true
-        RefreshPickerLock()
-        staticThemeColor = Config.ThemeColor
-        rainbowHue = select(1, staticThemeColor:ToHSV())
-        local firstRainbowColor = Color3.fromHSV(rainbowHue, 1, 1)
-        if not PlayAdvancedThemeLoading(firstRainbowColor, "RAINBOW MODE", "Starting Rainbow Continuous") then
-            isRainbowRunning = false
-            rainbowTransitionActive = false
-            RefreshPickerLock()
-            return
-        end
-        task.spawn(function()
-            local token = getLoadingAnimationToken()
-            task.wait(THEME_LOADING_APPLY_DELAY)
-            if transitionSerial ~= rainbowTransitionSerial or token ~= getLoadingAnimationToken() or not isThemeLoading() or not loadingScreen.Parent then
-                rainbowTransitionActive = false
-                RefreshPickerLock()
-                setThemeLoading(false)
-                StopLoadingAnimation()
-                RestoreUIAfterThemeLoading()
-                return
-            end
-            isRainbowRunning = true
-            rainbowTransitionActive = false
-            RefreshPickerLock()
-            Config.ThemeColor = firstRainbowColor
-            UpdateLoadingTheme()
-            local ok = pcall(function()
-                ApplyGlobalTheme(firstRainbowColor)
-            end)
-            if not ok then
-                Config.ThemeColor = firstRainbowColor
-                UpdateLoadingTheme()
-            end
-            selectedThemeColor = firstRainbowColor
-            palettePreview.BackgroundColor3 = firstRainbowColor
-            local fr, fg, fb = firstRainbowColor.R * 255, firstRainbowColor.G * 255, firstRainbowColor.B * 255
-            paletteValue.Text = string.format("#%02X%02X%02X", math.floor(fr + 0.5), math.floor(fg + 0.5), math.floor(fb + 0.5))
-            UpdateToggleIndicators(firstRainbowColor)
-            loadingStatus.Text = "RAINBOW ACTIVE"
-            TweenService:Create(progressFill, TweenInfo.new(0.28, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 1, 0)}):Play()
-            task.delay(0.35, function()
-                if isThemeLoading() then
-                    FinishAdvancedThemeLoading()
-                end
-            end)
-        end)
-        ShowNotification("Rainbow Continuous Loading...")
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if speedDragging and (
+        input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch
+    ) then
+        setSpeedFromX(input.Position.X)
+    end
+end)
+
+toggle.Activated:Connect(function()
+    State.Rainbow = not State.Rainbow
+
+    if State.Rainbow then
+        stateText.Text = "RAINBOW ON"
+        tween(toggle,{BackgroundColor3=theme()},.2):Play()
+        tween(toggleKnob,{Position=UDim2.new(1,-21,.5,-9)},.2):Play()
     else
-        local restoreColor = staticThemeColor
-        isRainbowRunning = false
-        RefreshPickerLock()
-        if not PlayAdvancedThemeLoading(restoreColor, "RAINBOW MODE", "Returning To Static Theme") then
-            rainbowTransitionActive = false
-            RefreshPickerLock()
-            return
-        end
-        task.spawn(function()
-            local token = getLoadingAnimationToken()
-            task.wait(THEME_LOADING_APPLY_DELAY)
-            if transitionSerial ~= rainbowTransitionSerial or token ~= getLoadingAnimationToken() or not isThemeLoading() or not loadingScreen.Parent then
-                rainbowTransitionActive = false
-                RefreshPickerLock()
-                setThemeLoading(false)
-                StopLoadingAnimation()
-                RestoreUIAfterThemeLoading()
-                return
-            end
-            Config.ThemeColor = restoreColor
-            local ok = pcall(function()
-                ApplyGlobalTheme(restoreColor)
-            end)
-            if not ok then
-                Config.ThemeColor = restoreColor
-                UpdateLoadingTheme()
-            end
-            pickerHue, pickerSaturation, pickerValue = restoreColor:ToHSV()
-            selectedThemeColor = restoreColor
-            rainbowTransitionActive = false
-            RefreshPickerLock()
-            UpdateLoadingTheme()
-            UpdateToggleIndicators(restoreColor)
-            loadingStatus.Text = "THEME RESTORED"
-            TweenService:Create(progressFill, TweenInfo.new(0.28, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 1, 0)}):Play()
-            task.delay(0.35, function()
-                if isThemeLoading() then
-                    FinishAdvancedThemeLoading()
-                end
-            end)
-        end)
-        ShowNotification("Rainbow Continuous Stopping...")
+        stateText.Text = "RAINBOW OFF"
+        tween(toggle,{BackgroundColor3=Color3.fromRGB(25,26,34)},.2):Play()
+        tween(toggleKnob,{Position=UDim2.new(0,3,.5,-9)},.2):Play()
     end
 end)
 
-local function SetDebugVisibility(enabled)
-    Config.ShowDebug = enabled == true
-    if debugToggleCircle then
-        debugToggleCircle.Visible = Config.ShowDebug
+--// UI Scale
+sectionTitle("INTERFACE")
+
+local uiCard = card(80)
+
+local uiTitle = txt(uiCard,"UI SIZE",10,Color3.fromRGB(240,242,248),Enum.Font.GothamBold)
+uiTitle.Position = UDim2.new(0,15,0,13)
+uiTitle.Size = UDim2.new(.5,0,0,18)
+
+local uiValue = txt(uiCard,"100%",9,theme(),Enum.Font.GothamBold)
+uiValue.Position = UDim2.new(1,-55,0,13)
+uiValue.Size = UDim2.new(0,40,0,18)
+uiValue.TextXAlignment = Enum.TextXAlignment.Right
+table.insert(accentTexts,uiValue)
+
+local uiBar = Instance.new("Frame")
+uiBar.Size = UDim2.new(1,-30,0,6)
+uiBar.Position = UDim2.new(0,15,0,49)
+uiBar.BackgroundColor3 = Color3.fromRGB(26,27,35)
+uiBar.BorderSizePixel = 0
+uiBar.Parent = uiCard
+corner(uiBar,5)
+
+local uiFill = Instance.new("Frame")
+uiFill.Size = UDim2.new(.5,0,1,0)
+uiFill.BackgroundColor3 = theme()
+uiFill.BorderSizePixel = 0
+uiFill.Parent = uiBar
+corner(uiFill,5)
+table.insert(accents,uiFill)
+
+local uiKnob = Instance.new("Frame")
+uiKnob.Size = UDim2.new(0,12,0,12)
+uiKnob.Position = UDim2.new(.5,-6,.5,-6)
+uiKnob.BackgroundColor3 = Color3.fromRGB(245,246,252)
+uiKnob.BorderSizePixel = 0
+uiKnob.Parent = uiBar
+corner(uiKnob,10)
+
+local uiDragging = false
+
+local function setUIScaleFromX(x)
+    local p = math.clamp((x-uiBar.AbsolutePosition.X)/math.max(uiBar.AbsoluteSize.X,1),0,1)
+    State.UIScale = math.floor(75+p*50)
+    local normalized = (State.UIScale-75)/50
+
+    uiFill.Size = UDim2.new(normalized,0,1,0)
+    uiKnob.Position = UDim2.new(normalized,-6,.5,-6)
+    uiValue.Text = tostring(State.UIScale) .. "%"
+
+    if context and type(context.SetUIScale) == "function" then
+        pcall(context.SetUIScale, State.UIScale/100)
+    elseif main then
+        local bind = main:FindFirstChild("SetUIScale")
+        if bind and bind:IsA("BindableEvent") then
+            bind:Fire(State.UIScale/100)
+        end
     end
-    if debugSidebarFrame then
-        debugSidebarFrame.Visible = Config.ShowDebug
-    end
-    if keyStatusSidebarFrame then
-        keyStatusSidebarFrame.Visible = Config.ShowDebug
-    end
-    if debugDividerBetween then
-        debugDividerBetween.Visible = Config.ShowDebug
-    end
-    UpdateToggleIndicators(Config.ThemeColor)
 end
 
-debugClickArea.Active = true
-debugClickArea.AutoButtonColor = false
-debugClickArea.Activated:Connect(function()
-    SetDebugVisibility(not Config.ShowDebug)
-    if Config.ShowDebug then
-        ShowNotification("Debug Info Enabled!")
-    else
-        ShowNotification("Debug Info Disabled!")
+uiBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        uiDragging = true
+        setUIScaleFromX(input.Position.X)
     end
 end)
 
-applyThemeBtn.MouseButton1Click:Connect(function()
-    if isThemeLoading() or rainbowTransitionActive then return end
-    local targetColor = selectedThemeColor
-    if typeof(targetColor) ~= "Color3" then return end
-    rainbowTransitionSerial = rainbowTransitionSerial + 1
-    local applySerial = rainbowTransitionSerial
-    isRainbowRunning = false
-    rainbowTransitionActive = true
-    RefreshPickerLock()
-    staticThemeColor = targetColor
-    local started = PlayAdvancedThemeLoading(targetColor, "FISHHUB", "Applying Theme & Reloading UI")
-    if not started then rainbowTransitionActive = false RefreshPickerLock() return end
-    ShowNotification("Applying theme...")
-    task.spawn(function()
-        task.wait(THEME_LOADING_APPLY_DELAY)
-        if applySerial ~= rainbowTransitionSerial or not isThemeLoading() or not loadingScreen.Parent then
-            rainbowTransitionActive = false
-            RefreshPickerLock()
-            setThemeLoading(false)
-            RestoreUIAfterThemeLoading()
-            return
-        end
-        local ok = pcall(ApplyGlobalTheme, targetColor)
-        if not ok then
-            Config.ThemeColor = targetColor
-            UpdateLoadingTheme()
-        end
-        selectedThemeColor = targetColor
-        loadingStatus.Text = ok and "THEME APPLIED" or "THEME APPLIED WITH SAFE RECOVERY"
-        TweenService:Create(progressFill, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 1, 0)}):Play()
-        task.delay(0.5, function()
-            rainbowTransitionActive = false
-            RefreshPickerLock()
-            if isThemeLoading() then FinishAdvancedThemeLoading() end
-        end)
-        ShowNotification("Theme applied successfully to UI & Lines!")
-    end)
+uiBar.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        uiDragging = false
+    end
 end)
 
-    local destroyed = false
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if uiDragging and (
+        input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch
+    ) then
+        setUIScaleFromX(input.Position.X)
+    end
+end)
 
-    local function CloseSettings()
-        if settingsWindow and settingsWindow.Parent then
-            settingsWindow.Visible = false
-        end
+--// Live rainbow engine
+local hueValue = 0
+
+RunService.RenderStepped:Connect(function(dt)
+    if not tab.Parent then return end
+
+    if State.Rainbow then
+        local speed = math.max(State.RainbowSpeed,1)
+        hueValue = (hueValue + dt * (speed / 100) * .35) % 1
+        State.SelectedColor = Color3.fromHSV(hueValue,.82,.98)
+        preview.BackgroundColor3 = State.SelectedColor
     end
 
-    local function ToggleSettings()
-        if destroyed then return end
-        if settingsWindow.Visible then
-            settingsWindow.Visible = false
-        else
-            settingsWindow.Visible = true
-        end
+    local c = State.Rainbow and State.SelectedColor or theme()
+
+    for _, obj in ipairs(accents) do
+        if obj.Parent then obj.BackgroundColor3 = c end
     end
 
-    local function GetCurrentAccentColor()
-        if isRainbowRunning and not rainbowTransitionActive and not isThemeLoading() then
-            return Color3.fromHSV(rainbowHue, 1, 1)
-        end
-        return Config.ThemeColor
+    for _, obj in ipairs(accentTexts) do
+        if obj.Parent then obj.TextColor3 = c end
     end
 
-    -- Main owns the Gear click connection.
-    -- This module only exposes ToggleSettings() to Main.
+    for _, s in ipairs(strokes) do
+        if s.Parent then s.Color = c end
+    end
 
-    -- Settings must follow Main visibility.
-    main:GetPropertyChangedSignal("Visible"):Connect(function()
-        if not main.Visible then
-            CloseSettings()
-        end
-    end)
+    if apply.Parent and not State.Rainbow then
+        apply.BackgroundColor3 = State.SelectedColor
+    end
+end)
 
-    -- Keep the Settings panel attached to the right side of Main.
-    task.spawn(function()
-        while gui and gui.Parent and not destroyed do
-            if main.Visible and settingsWindow and settingsWindow.Parent then
-                local scale = mainScale.Scale
-                local scaledMainHalfWidth = (Config.MainWidth * scale) / 2
-                settingsWindow.Position = UDim2.new(
-                    0.5,
-                    scaledMainHalfWidth + 10,
-                    0.5,
-                    0
-                )
-            end
-            task.wait()
-        end
-    end)
-
-    return {
-        Toggle = ToggleSettings,
-        Open = function()
-            if settingsWindow then settingsWindow.Visible = true end
-        end,
-        Close = CloseSettings,
-        IsOpen = function()
-            return settingsWindow and settingsWindow.Visible == true
-        end,
-        IsRainbowRunning = function()
-            return isRainbowRunning
-        end,
-        IsListeningKey = function()
-            return listeningKey == true
-        end,
-        IsRainbowTransitioning = function()
-            return rainbowTransitionActive
-        end,
-        GetCurrentAccentColor = GetCurrentAccentColor,
-        ApplyTheme = ApplyGlobalTheme,
-        SetDebugVisibility = SetDebugVisibility,
-        Destroy = function()
-            destroyed = true
-            CloseSettings()
-            if settingsWindow then
-                settingsWindow:Destroy()
-            end
-        end,
-    }
-end
+--// Initial values
+setSpeedFromX(speedBar.AbsolutePosition.X + speedBar.AbsoluteSize.X * .5)
+setUIScaleFromX(uiBar.AbsolutePosition.X + uiBar.AbsoluteSize.X * .5)
