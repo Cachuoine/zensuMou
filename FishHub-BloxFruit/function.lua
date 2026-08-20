@@ -97,11 +97,14 @@ root.AutomaticSize = Enum.AutomaticSize.Y
 root.BackgroundTransparency = 1
 root.Parent = scroll
 
-local list = Instance.new("UIListLayout")
-list.Padding = UDim.new(0, 12)
-list.HorizontalAlignment = Enum.HorizontalAlignment.Center
-list.SortOrder = Enum.SortOrder.LayoutOrder
-list.Parent = root
+local grid = Instance.new("UIGridLayout")
+grid.CellSize = UDim2.new(0.5, -7, 0, 92)
+grid.CellPadding = UDim2.new(0, 10, 0, 10)
+grid.FillDirection = Enum.FillDirection.Horizontal
+grid.FillDirectionMaxCells = 2
+grid.HorizontalAlignment = Enum.HorizontalAlignment.Center
+grid.SortOrder = Enum.SortOrder.LayoutOrder
+grid.Parent = root
 
 --// Header
 local header = Instance.new("Frame")
@@ -154,11 +157,39 @@ search.Parent = root
 corner(search, 12)
 table.insert(strokeObjects, stroke(search, .68))
 
-local icon = label(search, "⌕", 25, getTheme(), Enum.Font.GothamMedium)
-icon.Size = UDim2.new(0, 32, 1, 0)
-icon.Position = UDim2.new(0, 10, 0, -1)
-icon.TextXAlignment = Enum.TextXAlignment.Center
-table.insert(accentLabels, icon)
+local iconHolder = Instance.new("Frame")
+iconHolder.Name = "SearchIcon"
+iconHolder.Size = UDim2.new(0, 30, 0, 30)
+iconHolder.Position = UDim2.new(0, 11, 0.5, -15)
+iconHolder.BackgroundTransparency = 1
+iconHolder.Parent = search
+
+local lens = Instance.new("Frame")
+lens.Size = UDim2.new(0, 13, 0, 13)
+lens.Position = UDim2.new(0, 5, 0, 4)
+lens.BackgroundTransparency = 1
+lens.BorderSizePixel = 0
+lens.Parent = iconHolder
+corner(lens, 20)
+
+local lensStroke = Instance.new("UIStroke")
+lensStroke.Color = getTheme()
+lensStroke.Thickness = 2
+lensStroke.Transparency = 0
+lensStroke.Parent = lens
+
+local handle = Instance.new("Frame")
+handle.Size = UDim2.new(0, 8, 0, 2)
+handle.Position = UDim2.new(0, 17, 0, 18)
+handle.AnchorPoint = Vector2.new(0, 0.5)
+handle.Rotation = 45
+handle.BackgroundColor3 = getTheme()
+handle.BorderSizePixel = 0
+handle.Parent = iconHolder
+corner(handle, 2)
+
+table.insert(accentObjects, handle)
+table.insert(strokeObjects, lensStroke)
 
 local box = Instance.new("TextBox")
 box.Name = "SearchBox"
@@ -251,7 +282,7 @@ local function makeCard(data)
     card.Name = data.key .. "Card"
     card.AutoButtonColor = false
     card.Text = ""
-    card.Size = UDim2.new(1, 0, 0, 59)
+    card.Size = UDim2.new(1, 0, 0, 92)
     card.BackgroundColor3 = Color3.fromRGB(9, 10, 15)
     card.BorderSizePixel = 0
     card.Parent = root
@@ -261,8 +292,8 @@ local function makeCard(data)
     table.insert(strokeObjects, cardStroke)
 
     local indicator = Instance.new("Frame")
-    indicator.Size = UDim2.new(0, 3, 0, 28)
-    indicator.Position = UDim2.new(0, 9, .5, -14)
+    indicator.Size = UDim2.new(0, 4, 0, 54)
+    indicator.Position = UDim2.new(0, 11, .5, -27)
     indicator.BackgroundColor3 = getTheme()
     indicator.BorderSizePixel = 0
     indicator.Parent = card
@@ -270,16 +301,19 @@ local function makeCard(data)
     table.insert(accentObjects, indicator)
 
     local name = label(card, data.name, 10, Color3.fromRGB(240, 242, 248), Enum.Font.GothamBold)
-    name.Position = UDim2.new(0, 22, 0, 8)
-    name.Size = UDim2.new(1, -62, 0, 18)
+    name.Position = UDim2.new(0, 24, 0, 15)
+    name.Size = UDim2.new(1, -48, 0, 21)
+    name.TextSize = 11
 
     local desc = label(card, data.desc, 8, Color3.fromRGB(125, 130, 145), Enum.Font.GothamMedium)
-    desc.Position = UDim2.new(0, 22, 0, 28)
-    desc.Size = UDim2.new(1, -62, 0, 17)
+    desc.Position = UDim2.new(0, 24, 0, 39)
+    desc.Size = UDim2.new(1, -48, 0, 30)
+    desc.TextWrapped = true
+    desc.TextYAlignment = Enum.TextYAlignment.Top
 
     local arrow = label(card, "›", 19, getTheme(), Enum.Font.GothamBold)
-    arrow.Position = UDim2.new(1, -34, .5, -12)
-    arrow.Size = UDim2.new(0, 22, 0, 24)
+    arrow.Position = UDim2.new(1, -31, 1, -31)
+    arrow.Size = UDim2.new(0, 20, 0, 22)
     arrow.TextXAlignment = Enum.TextXAlignment.Center
     table.insert(accentLabels, arrow)
 
@@ -288,12 +322,12 @@ local function makeCard(data)
     local base = card.BackgroundColor3
     card.MouseEnter:Connect(function()
         tween(card, {BackgroundColor3=Color3.fromRGB(16,17,24)}, .16):Play()
-        tween(arrow, {Position=UDim2.new(1,-29,.5,-12)}, .16):Play()
+        tween(arrow, {Position=UDim2.new(1,-27,1,-31)}, .16):Play()
     end)
 
     card.MouseLeave:Connect(function()
         tween(card, {BackgroundColor3=base}, .16):Play()
-        tween(arrow, {Position=UDim2.new(1,-34,.5,-12)}, .16):Play()
+        tween(arrow, {Position=UDim2.new(1,-31,1,-31)}, .16):Play()
     end)
 
     card.Activated:Connect(function()
