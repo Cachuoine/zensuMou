@@ -160,6 +160,104 @@ local heroGradient = addGradient(
     15
 )
 
+local heroGlow = Instance.new("Frame")
+heroGlow.Name = "AccentGlow"
+heroGlow.Size = UDim2.new(0, 150, 0, 150)
+heroGlow.Position = UDim2.new(1, -90, 0, -70)
+heroGlow.BackgroundColor3 = theme()
+heroGlow.BackgroundTransparency = 0.86
+heroGlow.BorderSizePixel = 0
+heroGlow.Parent = welcome
+corner(heroGlow, 100)
+
+local glowGradient = Instance.new("UIGradient")
+glowGradient.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 0.05),
+    NumberSequenceKeypoint.new(1, 1)
+})
+glowGradient.Parent = heroGlow
+
+table.insert(dynamicAccents, heroGlow)
+
+local accent = Instance.new("Frame")
+accent.Name = "AccentBar"
+accent.Size = UDim2.new(0, 4, 1, -34)
+accent.Position = UDim2.new(0, 14, 0, 17)
+accent.BackgroundColor3 = theme()
+accent.BorderSizePixel = 0
+accent.Parent = welcome
+corner(accent, 4)
+table.insert(dynamicAccents, accent)
+
+local brand = label(
+    welcome,
+    "FISHHUB",
+    22,
+    Color3.fromRGB(245, 246, 252),
+    Enum.Font.GothamBlack
+)
+brand.Position = UDim2.new(0, 31, 0, 13)
+brand.Size = UDim2.new(1, -46, 0, 28)
+
+local welcomeText = label(
+    welcome,
+    "WELCOME BACK",
+    9,
+    Color3.fromRGB(145, 150, 165),
+    Enum.Font.GothamBold
+)
+welcomeText.Position = UDim2.new(0, 32, 0, 43)
+welcomeText.Size = UDim2.new(1, -48, 0, 17)
+
+local description = label(
+    welcome,
+    "Your control panel is ready.",
+    10,
+    Color3.fromRGB(184, 188, 200),
+    Enum.Font.GothamMedium
+)
+description.Position = UDim2.new(0, 32, 0, 61)
+description.Size = UDim2.new(1, -48, 0, 18)
+
+local gameName = "Roblox"
+pcall(function()
+    local info = MarketplaceService:GetProductInfo(game.PlaceId)
+    if info and info.Name then
+        gameName = info.Name
+    end
+end)
+
+local gamePill = Instance.new("Frame")
+gamePill.Name = "GamePill"
+gamePill.Size = UDim2.new(0, 0, 0, 25)
+gamePill.AutomaticSize = Enum.AutomaticSize.X
+gamePill.Position = UDim2.new(0, 31, 0, 91)
+gamePill.BackgroundColor3 = Color3.fromRGB(13, 14, 21)
+gamePill.BorderSizePixel = 0
+gamePill.Parent = welcome
+corner(gamePill, 8)
+addStroke(gamePill, 0.78, 1)
+
+local dot = Instance.new("Frame")
+dot.Size = UDim2.new(0, 6, 0, 6)
+dot.Position = UDim2.new(0, 9, 0.5, -3)
+dot.BackgroundColor3 = theme()
+dot.BorderSizePixel = 0
+dot.Parent = gamePill
+corner(dot, 10)
+table.insert(dynamicAccents, dot)
+
+local gameTag = label(
+    gamePill,
+    "  " .. gameName,
+    9,
+    Color3.fromRGB(222, 224, 232),
+    Enum.Font.GothamBold
+)
+gameTag.Size = UDim2.new(0, 0, 1, 0)
+gameTag.AutomaticSize = Enum.AutomaticSize.X
+gameTag.Position = UDim2.new(0, 17, 0, 0)
+
 --//======================================================
 --// SECTION BUILDER
 --//======================================================
