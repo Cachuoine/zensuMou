@@ -14,7 +14,6 @@ if not tab then
     local fishHub = playerGui and playerGui:FindFirstChild("FishHub")
     local mainWindow = fishHub and fishHub:FindFirstChild("MainWindow")
     local content = mainWindow and mainWindow:FindFirstChild("ContentContainer")
-
     tab = content and content:FindFirstChild("HomeTab", true)
     main = main or mainWindow
 end
@@ -27,21 +26,9 @@ end
 
 tab.ClipsDescendants = true
 
---//======================================================
---// THEME
---//======================================================
-
 local function theme()
     local stroke = main and main:FindFirstChildOfClass("UIStroke")
-    return stroke and stroke.Color or Color3.fromRGB(104, 82, 255)
-end
-
-local function darken(color, amount)
-    return Color3.new(
-        math.clamp(color.R - amount, 0, 1),
-        math.clamp(color.G - amount, 0, 1),
-        math.clamp(color.B - amount, 0, 1)
-    )
+    return stroke and stroke.Color or Color3.fromRGB(0, 229, 255)
 end
 
 local function corner(parent, radius)
@@ -61,11 +48,11 @@ local function addStroke(parent, transparency, thickness)
     return s
 end
 
-local function addGradient(parent, colorA, colorB, rotation)
+local function addGradient(parent, a, b, rotation)
     local g = Instance.new("UIGradient")
     g.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, colorA),
-        ColorSequenceKeypoint.new(1, colorB)
+        ColorSequenceKeypoint.new(0, a),
+        ColorSequenceKeypoint.new(1, b)
     })
     g.Rotation = rotation or 0
     g.Parent = parent
@@ -86,12 +73,15 @@ local function label(parent, text, size, color, font)
 end
 
 local function tween(object, properties, duration, style, direction)
-    local info = TweenInfo.new(
-        duration or 0.25,
-        style or Enum.EasingStyle.Quint,
-        direction or Enum.EasingDirection.Out
+    return TweenService:Create(
+        object,
+        TweenInfo.new(
+            duration or 0.25,
+            style or Enum.EasingStyle.Quint,
+            direction or Enum.EasingDirection.Out
+        ),
+        properties
     )
-    return TweenService:Create(object, info, properties)
 end
 
 local dynamicLines = {}
@@ -99,14 +89,9 @@ local dynamicStrokes = {}
 local dynamicAccents = {}
 local dynamicText = {}
 
---//======================================================
---// SCROLL CONTAINER
---//======================================================
-
 local scroll = Instance.new("ScrollingFrame")
 scroll.Name = "HomeScroll"
 scroll.Size = UDim2.new(1, 0, 1, 0)
-scroll.Position = UDim2.new()
 scroll.BackgroundTransparency = 1
 scroll.BorderSizePixel = 0
 scroll.ScrollBarThickness = 0
@@ -137,10 +122,10 @@ list.HorizontalAlignment = Enum.HorizontalAlignment.Center
 list.SortOrder = Enum.SortOrder.LayoutOrder
 list.Parent = root
 
---//======================================================
---// WELCOME HERO
---//======================================================
-
+--========================================================
+-- WELCOME
+-- The old circular AccentGlow has deliberately been removed.
+--========================================================
 local welcome = Instance.new("Frame")
 welcome.Name = "WelcomeCard"
 welcome.Size = UDim2.new(1, 0, 0, 126)
@@ -153,31 +138,12 @@ corner(welcome, 15)
 local welcomeStroke = addStroke(welcome, 0.35, 1)
 table.insert(dynamicStrokes, welcomeStroke)
 
-local heroGradient = addGradient(
+addGradient(
     welcome,
     Color3.fromRGB(12, 13, 20),
     Color3.fromRGB(6, 7, 11),
     15
 )
-
-local heroGlow = Instance.new("Frame")
-heroGlow.Name = "AccentGlow"
-heroGlow.Size = UDim2.new(0, 150, 0, 150)
-heroGlow.Position = UDim2.new(1, -90, 0, -70)
-heroGlow.BackgroundColor3 = theme()
-heroGlow.BackgroundTransparency = 0.86
-heroGlow.BorderSizePixel = 0
-heroGlow.Parent = welcome
-corner(heroGlow, 100)
-
-local glowGradient = Instance.new("UIGradient")
-glowGradient.Transparency = NumberSequence.new({
-    NumberSequenceKeypoint.new(0, 0.05),
-    NumberSequenceKeypoint.new(1, 1)
-})
-glowGradient.Parent = heroGlow
-
-table.insert(dynamicAccents, heroGlow)
 
 local accent = Instance.new("Frame")
 accent.Name = "AccentBar"
@@ -189,33 +155,18 @@ accent.Parent = welcome
 corner(accent, 4)
 table.insert(dynamicAccents, accent)
 
-local brand = label(
-    welcome,
-    "FISHHUB",
-    22,
-    Color3.fromRGB(245, 246, 252),
-    Enum.Font.GothamBlack
-)
+local brand = label(welcome, "FISHHUB", 22,
+    Color3.fromRGB(245, 246, 252), Enum.Font.GothamBlack)
 brand.Position = UDim2.new(0, 31, 0, 13)
 brand.Size = UDim2.new(1, -46, 0, 28)
 
-local welcomeText = label(
-    welcome,
-    "WELCOME BACK",
-    9,
-    Color3.fromRGB(145, 150, 165),
-    Enum.Font.GothamBold
-)
+local welcomeText = label(welcome, "WELCOME BACK", 9,
+    Color3.fromRGB(145, 150, 165), Enum.Font.GothamBold)
 welcomeText.Position = UDim2.new(0, 32, 0, 43)
 welcomeText.Size = UDim2.new(1, -48, 0, 17)
 
-local description = label(
-    welcome,
-    "Your control panel is ready.",
-    10,
-    Color3.fromRGB(184, 188, 200),
-    Enum.Font.GothamMedium
-)
+local description = label(welcome, "Your control panel is ready.", 10,
+    Color3.fromRGB(184, 188, 200), Enum.Font.GothamMedium)
 description.Position = UDim2.new(0, 32, 0, 61)
 description.Size = UDim2.new(1, -48, 0, 18)
 
@@ -236,7 +187,8 @@ gamePill.BackgroundColor3 = Color3.fromRGB(13, 14, 21)
 gamePill.BorderSizePixel = 0
 gamePill.Parent = welcome
 corner(gamePill, 8)
-addStroke(gamePill, 0.78, 1)
+local gamePillStroke = addStroke(gamePill, 0.78, 1)
+table.insert(dynamicStrokes, gamePillStroke)
 
 local dot = Instance.new("Frame")
 dot.Size = UDim2.new(0, 6, 0, 6)
@@ -247,21 +199,16 @@ dot.Parent = gamePill
 corner(dot, 10)
 table.insert(dynamicAccents, dot)
 
-local gameTag = label(
-    gamePill,
-    "  " .. gameName,
-    9,
-    Color3.fromRGB(222, 224, 232),
-    Enum.Font.GothamBold
-)
+local gameTag = label(gamePill, "  " .. gameName, 9,
+    Color3.fromRGB(222, 224, 232), Enum.Font.GothamBold)
 gameTag.Size = UDim2.new(0, 0, 1, 0)
 gameTag.AutomaticSize = Enum.AutomaticSize.X
 gameTag.Position = UDim2.new(0, 17, 0, 0)
 
---//======================================================
---// SECTION BUILDER
---//======================================================
-
+--========================================================
+-- SECTION BUILDER
+-- Section line is intentionally extended by ~34 px (~1 cm).
+--========================================================
 local function section(titleText, height)
     local holder = Instance.new("Frame")
     holder.Name = titleText:gsub("%s+", "")
@@ -269,13 +216,7 @@ local function section(titleText, height)
     holder.BackgroundTransparency = 1
     holder.Parent = root
 
-    local title = label(
-        holder,
-        titleText,
-        9,
-        theme(),
-        Enum.Font.GothamBold
-    )
+    local title = label(holder, titleText, 9, theme(), Enum.Font.GothamBold)
     title.Size = UDim2.new(0, 190, 0, 18)
     title.Position = UDim2.new(0.5, -95, 0, 0)
     title.TextXAlignment = Enum.TextXAlignment.Center
@@ -284,8 +225,8 @@ local function section(titleText, height)
 
     local line = Instance.new("Frame")
     line.Name = "SectionLine"
-    line.Size = UDim2.new(1, 0, 0, 1)
-    line.Position = UDim2.new(0, 0, 0, 24)
+    line.Size = UDim2.new(1, 34, 0, 1)
+    line.Position = UDim2.new(0, -17, 0, 24)
     line.BackgroundColor3 = theme()
     line.BorderSizePixel = 0
     line.ZIndex = 1
@@ -293,20 +234,17 @@ local function section(titleText, height)
 
     local lineGradient = Instance.new("UIGradient")
     lineGradient.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 0.98),
-        NumberSequenceKeypoint.new(0.14, 0.68),
-        NumberSequenceKeypoint.new(0.35, 0.20),
+        NumberSequenceKeypoint.new(0, 0.99),
+        NumberSequenceKeypoint.new(0.12, 0.78),
+        NumberSequenceKeypoint.new(0.30, 0.28),
         NumberSequenceKeypoint.new(0.50, 0),
-        NumberSequenceKeypoint.new(0.65, 0.20),
-        NumberSequenceKeypoint.new(0.86, 0.68),
-        NumberSequenceKeypoint.new(1, 0.98)
+        NumberSequenceKeypoint.new(0.70, 0.28),
+        NumberSequenceKeypoint.new(0.88, 0.78),
+        NumberSequenceKeypoint.new(1, 0.99)
     })
     lineGradient.Parent = line
 
-    table.insert(dynamicLines, {
-        line = line,
-        title = title
-    })
+    table.insert(dynamicLines, {line = line, title = title})
 
     local card = Instance.new("Frame")
     card.Name = "Card"
@@ -331,15 +269,13 @@ local function section(titleText, height)
     return inner
 end
 
---//======================================================
---// PLAYER STATUS
---//======================================================
-
+--========================================================
+-- PLAYER STATUS
+--========================================================
 local status = section("PLAYER STATUS", 154)
 
 local function findValue(...)
     local names = {...}
-
     local containers = {
         player:FindFirstChild("leaderstats"),
         player:FindFirstChild("Data"),
@@ -350,38 +286,27 @@ local function findValue(...)
         if container then
             for _, name in ipairs(names) do
                 local value = container:FindFirstChild(name)
-                if value then
-                    return value
-                end
+                if value then return value end
             end
         end
     end
 
     for _, name in ipairs(names) do
         local value = player:FindFirstChild(name)
-        if value then
-            return value
-        end
+        if value then return value end
     end
 
     return nil
 end
 
 local function formatNumber(value)
-    if not value then
-        return "0"
-    end
-
+    if not value then return "0" end
     local raw = value.Value
     local number = tonumber(raw)
-
-    if not number then
-        return tostring(raw or 0)
-    end
+    if not number then return tostring(raw or 0) end
 
     local text = tostring(math.floor(number))
     local sign = ""
-
     if text:sub(1, 1) == "-" then
         sign = "-"
         text = text:sub(2)
@@ -390,10 +315,7 @@ local function formatNumber(value)
     while true do
         local replaced, count = text:gsub("^(%d+)(%d%d%d)", "%1,%2")
         text = replaced
-
-        if count == 0 then
-            break
-        end
+        if count == 0 then break end
     end
 
     return sign .. text
@@ -420,23 +342,13 @@ local function createStat(titleText, valueText, x, y)
     corner(indicator, 4)
     table.insert(dynamicAccents, indicator)
 
-    local title = label(
-        card,
-        titleText,
-        8,
-        Color3.fromRGB(115, 120, 135),
-        Enum.Font.GothamBold
-    )
+    local title = label(card, titleText, 8,
+        Color3.fromRGB(115, 120, 135), Enum.Font.GothamBold)
     title.Size = UDim2.new(0.55, 0, 1, 0)
     title.Position = UDim2.new(0, 16, 0, 0)
 
-    local value = label(
-        card,
-        valueText,
-        10,
-        Color3.fromRGB(240, 242, 248),
-        Enum.Font.GothamBold
-    )
+    local value = label(card, valueText, 10,
+        Color3.fromRGB(240, 242, 248), Enum.Font.GothamBold)
     value.Size = UDim2.new(0.45, -10, 1, 0)
     value.Position = UDim2.new(0.55, 0, 0, 0)
     value.TextXAlignment = Enum.TextXAlignment.Right
@@ -448,89 +360,43 @@ local levelValue = findValue("Level", "level")
 local beliValue = findValue("Beli", "Money", "money")
 local fragmentsValue = findValue("Fragments", "Fragment", "fragments")
 local bountyHonorValue = findValue(
-    "Bounty/Honor",
-    "BountyHonor",
-    "Bounty",
-    "bounty",
-    "Honor",
-    "honor"
+    "Bounty/Honor", "BountyHonor", "Bounty", "bounty", "Honor", "honor"
 )
 
-local levelTitle, level = createStat(
-    "LEVEL",
-    formatNumber(levelValue),
-    0,
-    7
-)
-
-local _, beli = createStat(
-    "BELI",
-    formatNumber(beliValue),
-    0.5,
-    7
-)
-
-local _, fragments = createStat(
-    "FRAGMENTS",
-    formatNumber(fragmentsValue),
-    0,
-    52
-)
-
-local reputationTitle, reputation = createStat(
-    "BOUNTY",
-    "0",
-    0.5,
-    52
-)
+local _, level = createStat("LEVEL", formatNumber(levelValue), 0, 7)
+local _, beli = createStat("BELI", formatNumber(beliValue), 0.5, 7)
+local _, fragments = createStat("FRAGMENTS", formatNumber(fragmentsValue), 0, 52)
+local reputationTitle, reputation = createStat("BOUNTY", "0", 0.5, 52)
 
 local function getTeamKind()
     local team = player.Team
-
-    if not team then
-        return "Unknown"
-    end
+    if not team then return "Unknown" end
 
     local name = string.lower(team.Name)
-
     if string.find(name, "pirate", 1, true)
         or string.find(name, "pira", 1, true) then
         return "Pirates"
     end
-
     if string.find(name, "marine", 1, true)
         or string.find(name, "mari", 1, true) then
         return "Marines"
     end
-
     return team.Name
 end
 
 local function refreshReputation()
     local kind = getTeamKind()
-
     bountyHonorValue = findValue(
-        "Bounty/Honor",
-        "BountyHonor",
-        "Bounty",
-        "bounty",
-        "Honor",
-        "honor"
+        "Bounty/Honor", "BountyHonor", "Bounty", "bounty", "Honor", "honor"
     )
 
-    if kind == "Marines" then
-        reputationTitle.Text = "HONOR"
-    else
-        reputationTitle.Text = "BOUNTY"
-    end
-
+    reputationTitle.Text = kind == "Marines" and "HONOR" or "BOUNTY"
     reputation.Text = formatNumber(bountyHonorValue)
 end
 
---//======================================================
---// INFORMATION
---//======================================================
-
+--========================================================
+-- INFORMATION
+--========================================================
 local info = section("INFORMATION", 160)
 
 local avatarHolder = Instance.new("Frame")
@@ -562,39 +428,22 @@ avatarAccent.Parent = avatarHolder
 corner(avatarAccent, 10)
 table.insert(dynamicAccents, avatarAccent)
 
-local dn = label(
-    info,
-    player.DisplayName,
-    15,
-    Color3.fromRGB(245, 246, 252),
-    Enum.Font.GothamBold
-)
+local dn = label(info, player.DisplayName, 15,
+    Color3.fromRGB(245, 246, 252), Enum.Font.GothamBold)
 dn.Position = UDim2.new(0, 98, 0, 11)
 dn.Size = UDim2.new(1, -110, 0, 22)
 
-local un = label(
-    info,
-    "@" .. player.Name,
-    10,
-    theme(),
-    Enum.Font.GothamBold
-)
+local un = label(info, "@" .. player.Name, 10, theme(), Enum.Font.GothamBold)
 un.Position = UDim2.new(0, 98, 0, 35)
 un.Size = UDim2.new(1, -110, 0, 18)
 table.insert(dynamicText, un)
 
-local uid = label(
-    info,
-    "USER ID  •  " .. player.UserId,
-    9,
-    Color3.fromRGB(135, 140, 155),
-    Enum.Font.GothamMedium
-)
+local uid = label(info, "USER ID  •  " .. player.UserId, 9,
+    Color3.fromRGB(135, 140, 155), Enum.Font.GothamMedium)
 uid.Position = UDim2.new(0, 98, 0, 56)
 uid.Size = UDim2.new(1, -110, 0, 17)
 
 local executorName = "Unknown"
-
 pcall(function()
     if identifyexecutor then
         local a, b = identifyexecutor()
@@ -604,19 +453,10 @@ pcall(function()
     end
 end)
 
-local ex = label(
-    info,
-    "EXECUTOR  •  " .. executorName,
-    9,
-    Color3.fromRGB(135, 140, 155),
-    Enum.Font.GothamMedium
-)
+local ex = label(info, "EXECUTOR  •  " .. executorName, 9,
+    Color3.fromRGB(135, 140, 155), Enum.Font.GothamMedium)
 ex.Position = UDim2.new(0, 98, 0, 77)
 ex.Size = UDim2.new(1, -110, 0, 17)
-
---//======================================================
---// SMALL LIVE STATUS
---//======================================================
 
 local live = Instance.new("Frame")
 live.Name = "LiveStatus"
@@ -636,70 +476,45 @@ liveDot.Parent = live
 corner(liveDot, 10)
 table.insert(dynamicAccents, liveDot)
 
-local liveText = label(
-    live,
-    "ONLINE  •  SESSION ACTIVE",
-    8,
-    Color3.fromRGB(145, 150, 165),
-    Enum.Font.GothamBold
-)
+local liveText = label(live, "ONLINE  •  SESSION ACTIVE", 8,
+    Color3.fromRGB(145, 150, 165), Enum.Font.GothamBold)
 liveText.Position = UDim2.new(0, 22, 0, 0)
 liveText.Size = UDim2.new(1, -28, 1, 0)
 
---//======================================================
---// INTRO ANIMATION
---//======================================================
-
+--========================================================
+-- ANIMATION
+--========================================================
 welcome.Position = UDim2.new(0, 0, 0, 7)
 welcome.BackgroundTransparency = 1
 
 task.defer(function()
     task.wait(0.05)
+    tween(welcome, {
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundTransparency = 0
+    }, 0.45):Play()
 
-    tween(
-        welcome,
-        {
-            Position = UDim2.new(0, 0, 0, 0),
-            BackgroundTransparency = 0
-        },
-        0.45
-    ):Play()
-
-    for _, object in ipairs({
-        brand,
-        welcomeText,
-        description,
-        gamePill
-    }) do
-        local oldTransparency = object:IsA("GuiObject") and object.BackgroundTransparency or 0
-        if object:IsA("GuiObject") then
-            object.BackgroundTransparency = 1
-        end
-
+    for _, object in ipairs({brand, welcomeText, description, gamePill}) do
+        local oldTransparency = object.BackgroundTransparency
+        object.BackgroundTransparency = 1
         task.delay(0.08, function()
-            if object and object.Parent and object:IsA("GuiObject") then
-                tween(
-                    object,
-                    {BackgroundTransparency = oldTransparency},
-                    0.35
-                ):Play()
+            if object and object.Parent then
+                tween(object, {BackgroundTransparency = oldTransparency}, 0.35):Play()
             end
         end)
     end
 end)
 
---//======================================================
---// THEME SYNC
---//======================================================
-
+--========================================================
+-- THEME SYNC
+--========================================================
 task.spawn(function()
     while tab.Parent do
         local accentColor = theme()
 
         accent.BackgroundColor3 = accentColor
         dot.BackgroundColor3 = accentColor
-        gameTag.TextColor3 = Color3.fromRGB(222, 224, 232)
-        heroGlow.BackgroundColor3 = accentColor
+        gamePillStroke.Color = accentColor
         un.TextColor3 = accentColor
         avatarAccent.BackgroundColor3 = accentColor
         liveDot.BackgroundColor3 = accentColor
@@ -708,7 +523,6 @@ task.spawn(function()
             if item.line and item.line.Parent then
                 item.line.BackgroundColor3 = accentColor
             end
-
             if item.title and item.title.Parent then
                 item.title.TextColor3 = accentColor
             end
@@ -736,37 +550,23 @@ task.spawn(function()
     end
 end)
 
---//======================================================
---// LIVE PLAYER DATA
---//======================================================
-
+--========================================================
+-- LIVE DATA
+--========================================================
 task.spawn(function()
     while tab.Parent do
         levelValue = findValue("Level", "level")
         beliValue = findValue("Beli", "Money", "money")
         fragmentsValue = findValue("Fragments", "Fragment", "fragments")
-        bountyHonorValue = findValue(
-            "Bounty/Honor",
-            "BountyHonor",
-            "Bounty",
-            "bounty",
-            "Honor",
-            "honor"
-        )
 
         level.Text = formatNumber(levelValue)
         beli.Text = formatNumber(beliValue)
         fragments.Text = formatNumber(fragmentsValue)
-
         refreshReputation()
 
         task.wait(0.35)
     end
 end)
-
---//======================================================
---// TEAM CHANGE REFRESH
---//======================================================
 
 player:GetPropertyChangedSignal("Team"):Connect(function()
     if tab.Parent then
@@ -774,35 +574,18 @@ player:GetPropertyChangedSignal("Team"):Connect(function()
     end
 end)
 
---//======================================================
---// HOVER FEEDBACK
---//======================================================
-
+-- Clean rectangular hover feedback; no circular light bubble.
 local function hoverCard(card)
     local original = card.BackgroundColor3
-
     card.MouseEnter:Connect(function()
-        if not card.Parent then return end
-
-        tween(
-            card,
-            {
-                BackgroundColor3 = Color3.fromRGB(16, 17, 24)
-            },
-            0.18
-        ):Play()
+        if card.Parent then
+            tween(card, {BackgroundColor3 = Color3.fromRGB(16, 17, 24)}, 0.18):Play()
+        end
     end)
-
     card.MouseLeave:Connect(function()
-        if not card.Parent then return end
-
-        tween(
-            card,
-            {
-                BackgroundColor3 = original
-            },
-            0.18
-        ):Play()
+        if card.Parent then
+            tween(card, {BackgroundColor3 = original}, 0.18):Play()
+        end
     end)
 end
 
