@@ -34,6 +34,14 @@ local SOCIALS = {
 }
 
 for _, child in ipairs(Tab:GetChildren()) do child:Destroy() end
+
+-- Remove only unwanted circular glow/bubble decorations; keep the original layout intact.
+for _, obj in ipairs(Tab:GetDescendants()) do
+    local n = string.lower(obj.Name)
+    if (n == "glow1" or n == "glow2" or n == "accentglow" or n == "heroglow") and obj:IsA("GuiObject") then
+        obj:Destroy()
+    end
+end
 Tab.BackgroundTransparency = 1
 Tab.BorderSizePixel = 0
 Tab.ScrollBarThickness = 0
