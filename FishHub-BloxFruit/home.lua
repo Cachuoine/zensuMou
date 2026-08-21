@@ -124,7 +124,7 @@ list.Parent = root
 
 --========================================================
 -- WELCOME
--- The old circular AccentGlow has deliberately been removed.
+-- The old circular AccentGlow_REMOVED has deliberately been removed.
 --========================================================
 local welcome = Instance.new("Frame")
 welcome.Name = "WelcomeCard"
@@ -573,6 +573,54 @@ player:GetPropertyChangedSignal("Team"):Connect(function()
         refreshReputation()
     end
 end)
+
+
+--========================================================
+-- FISHHUB CREATIVE FOOTER
+-- Matching divider style; no circular glow/bubble.
+--========================================================
+local creativeFooter = Instance.new("Frame")
+creativeFooter.Name = "FishHubCreativeFooter"
+creativeFooter.Size = UDim2.new(1, 34, 0, 42)
+creativeFooter.Position = UDim2.new(0, -17, 0, 0)
+creativeFooter.BackgroundTransparency = 1
+creativeFooter.Parent = root
+
+local creativeFooterTitle = label(
+    creativeFooter,
+    "FISHHUB CREATIVE",
+    9,
+    theme(),
+    Enum.Font.GothamBold
+)
+creativeFooterTitle.Size = UDim2.new(0, 190, 0, 18)
+creativeFooterTitle.Position = UDim2.new(.5, -95, 0, 0)
+creativeFooterTitle.TextXAlignment = Enum.TextXAlignment.Center
+table.insert(dynamicText, creativeFooterTitle)
+
+local creativeFooterLine = Instance.new("Frame")
+creativeFooterLine.Name = "FooterLine"
+creativeFooterLine.Size = UDim2.new(1, 0, 0, 1)
+creativeFooterLine.Position = UDim2.new(0, 0, 0, 25)
+creativeFooterLine.BackgroundColor3 = theme()
+creativeFooterLine.BorderSizePixel = 0
+creativeFooterLine.Parent = creativeFooter
+
+local creativeFooterGradient = Instance.new("UIGradient")
+creativeFooterGradient.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, .98),
+    NumberSequenceKeypoint.new(.16, .68),
+    NumberSequenceKeypoint.new(.35, .20),
+    NumberSequenceKeypoint.new(.50, 0),
+    NumberSequenceKeypoint.new(.65, .20),
+    NumberSequenceKeypoint.new(.84, .68),
+    NumberSequenceKeypoint.new(1, .98)
+})
+creativeFooterGradient.Parent = creativeFooterLine
+table.insert(dynamicLines, {
+    line = creativeFooterLine,
+    title = creativeFooterTitle
+})
 
 -- Clean rectangular hover feedback; no circular light bubble.
 local function hoverCard(card)
