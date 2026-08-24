@@ -778,7 +778,7 @@ local activeTabName = nil
 -- Settings is lazy-loaded only when the Main Gear is clicked.
 local SettingsController = nil
 local SettingsLoadAttempted = false
-local SETTINGS_URL = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/gear.lua"
+local SETTINGS_URL = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub_BloxFruit/gear.lua"
 local debugSidebarFrame = Instance.new("Frame")
 debugSidebarFrame.Name = "DebugSidebar"
 debugSidebarFrame.Parent = gui
@@ -1191,9 +1191,9 @@ CreateTabContent("Creative")
 
 -- Main tabs stay remote-loaded; Function owns its seven child URLs.
 local TabUrls = {
-    Home = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/home.lua",
-    Function = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/function.lua",
-    Creative = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/creative.lua"
+    Home = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub_BloxFruit/home.lua",
+    Function = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub_BloxFruit/function.lua",
+    Creative = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub_BloxFruit/creative.lua"
 }
 
 local loadedTabs = {}
