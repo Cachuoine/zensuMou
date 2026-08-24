@@ -1180,9 +1180,9 @@ CreateTabContent("Creative")
 
 -- URL Mapping cho từng Tab (Bạn có thể thay thế các URL bên dưới bằng link script thực tế của bạn)
 local TabUrls = {
-    Home = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/home.lua",
-    Function = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/function.lua",
-    Creative = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/creative.lua"
+    Home = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/home.lua",
+    Function = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/function.lua",
+    Creative = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/creative.lua"
 }
 
 local loadedTabs = {}
