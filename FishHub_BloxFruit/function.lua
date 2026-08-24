@@ -12,13 +12,13 @@ local ShowNotification = context.ShowNotification or function() end
 local GetAccent = context.GetCurrentAccentColor or function() return Config.ThemeColor or Color3.new(0,1,1) end
 
 local CHILD_URLS = {
-    SHOP = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/shop.lua",
-    SETTINGFARM = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/settingfarm.lua",
-    FARM = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/farm.lua",
-    ITEM = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/item.lua",
-    ISLAND = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/island.lua",
-    FRUIT = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/fruit.lua",
-    SETTING = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/setting.lua",
+    SHOP = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub_BloxFruit/s1/shop.lua",
+    SETTINGFARM = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub_BloxFruit/s1/settingfarm.lua",
+    FARM = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub_BloxFruit/s1/farm.lua",
+    ITEM = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub_BloxFruit/s1/item.lua",
+    ISLAND = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub_BloxFruit/s1/island.lua",
+    FRUIT = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub_BloxFruit/s1/fruit.lua",
+    SETTING = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub_BloxFruit/s1/setting.lua",
 }
 
 local alive = true
