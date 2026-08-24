@@ -771,12 +771,12 @@ end)
 local CONTENT_BORDER_COLOR = Color3.fromRGB(128, 128, 128)
 local contentHoverRegistry = {}
 local tabButtons = {}
-local activeTabName = "Home"
+local activeTabName = nil
 
 -- Settings is lazy-loaded only when the Main Gear is clicked.
 local SettingsController = nil
 local SettingsLoadAttempted = false
-local SETTINGS_URL = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/setting.lua"
+local SETTINGS_URL = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/gear.lua"
 local debugSidebarFrame = Instance.new("Frame")
 debugSidebarFrame.Name = "DebugSidebar"
 debugSidebarFrame.Parent = gui
@@ -1180,34 +1180,82 @@ CreateTabContent("Creative")
 
 -- URL Mapping cho từng Tab (Bạn có thể thay thế các URL bên dưới bằng link script thực tế của bạn)
 local TabUrls = {
-    Home = "https://raw.githubusercontent.com/username/repo/main/FishHub_Home.lua",
-    Function = "https://raw.githubusercontent.com/username/repo/main/FishHub_Function.lua",
-    Creative = "https://raw.githubusercontent.com/username/repo/main/FishHub_Creative.lua"
+    Home = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/home.lua",
+    Function = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/function.lua",
+    Creative = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/creative.lua"
 }
 
 local loadedTabs = {}
-local function LoadTabUrl(tabName)
-    if loadedTabs[tabName] then return end
-    local url = TabUrls[tabName]
-    if not url then return end
+local loadingTabs = {}
 
-    pcall(function()
-        local success, result = pcall(function()
-            return game:HttpGet(url)
-        end)
-        if success and result then
-            local fn, err = loadstring(result)
-            if fn then
-                local tabFrame = tabs[tabName]
-                if tabFrame then
-                    pcall(fn, tabFrame)
-                    loadedTabs[tabName] = true
-                end
-            else
-                warn("Loadstring error for " .. tabName .. ": " .. tostring(err))
+local function LoadTabUrl(tabName)
+    if loadedTabs[tabName] or loadingTabs[tabName] then
+        return loadedTabs[tabName] == true
+    end
+
+    local url = TabUrls[tabName]
+    if type(url) ~= "string" or url == "" then
+        warn("[FishHub] Missing URL for tab: " .. tostring(tabName))
+        return false
+    end
+
+    loadingTabs[tabName] = true
+    local ok, err = pcall(function()
+        local source = game:HttpGet(url)
+        if type(source) ~= "string" or #source < 10 then
+            error("Remote script returned empty/invalid source")
+        end
+
+        local chunk, compileError = loadstring(source)
+        if type(chunk) ~= "function" then
+            error("Compile error: " .. tostring(compileError))
+        end
+
+        -- home.lua / function.lua / creative.lua use `local context = ...`.
+        -- Pass the REAL FishHub objects into the remote chunk so the scripts
+        -- build their UI inside the existing tab instead of creating/finding
+        -- another GUI. This is the important part.
+        local context = {
+            Player = Players.LocalPlayer,
+            PlayerGui = Players.LocalPlayer and Players.LocalPlayer:FindFirstChildOfClass("PlayerGui"),
+            Tab = tabs[tabName],
+            MainWindow = main,
+            Main = main,
+            Gui = gui,
+            Config = Config,
+            Players = Players,
+            TweenService = TweenService,
+            UserInputService = UserInputService,
+            HttpService = HttpService,
+            ShowNotification = ShowNotification,
+            TabName = tabName
+        }
+
+        -- Execute with the context as vararg. The current GitHub tab files
+        -- consume this through `local context = ...`.
+        local result = chunk(context)
+
+        -- Also support module-style files that return a function.
+        if type(result) == "function" then
+            local moduleOk, moduleErr = pcall(result, context)
+            if not moduleOk then
+                error(moduleErr)
             end
         end
+
+        loadedTabs[tabName] = true
     end)
+
+    loadingTabs[tabName] = nil
+
+    if not ok then
+        warn("[FishHub] " .. tabName .. " failed to load: " .. tostring(err))
+        ShowNotification(tabName .. " failed to load: " .. tostring(err))
+        loadedTabs[tabName] = nil
+        return false
+    end
+
+    return true
 end
 
 local tabTransitionId = 0

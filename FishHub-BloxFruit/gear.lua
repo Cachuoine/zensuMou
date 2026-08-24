@@ -1,19 +1,3 @@
---[[
-    FishHub Gear / Settings Module
-    --------------------------------
-    Giữ nguyên cấu trúc module factory:
-        return function(ctx) -> controller
-
-    Bản nâng cấp:
-      • UI Setting đẹp hơn nhưng không đổi cách Main gọi Gear.
-      • Card có gradient, glow, stroke và hover animation.
-      • Theme picker SV + Hue giữ nguyên.
-      • Apply Theme giữ nguyên cơ chế loading.
-      • Rainbow Continuous + Rainbow Speed giữ nguyên.
-      • Debug toggle + Hotkey picker giữ nguyên.
-      • Không tạo Main UI mới, chỉ dùng context được Main truyền vào.
-]]
-
 return function(ctx)
     assert(type(ctx) == "table", "FishHub gear.lua: context table is required")
 
