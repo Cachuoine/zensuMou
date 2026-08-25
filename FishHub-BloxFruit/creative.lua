@@ -80,58 +80,16 @@ N('UIListLayout',{
 })
 
 -- Profile card
-local profile=N('Frame',{
-	Parent=root,LayoutOrder=1,Size=UDim2.new(1,0,0,138),
-	BackgroundColor3=Color3.fromRGB(9,10,17),BorderSizePixel=0
-})
-Round(profile,16)
-local profileStroke=Stroke(profile,1.3,.28)
-
--- Accent decorative strip
-local accentStrip=N('Frame',{
-	Parent=profile,Position=UDim2.new(0,0,0,0),Size=UDim2.new(1,0,0,3),
-	BackgroundColor3=accent(),BorderSizePixel=0
-})
-Round(accentStrip,3)
-
-local avHolder=N('Frame',{
-	Parent=profile,Position=UDim2.fromOffset(17,17),Size=UDim2.fromOffset(104,104),
-	BackgroundColor3=Color3.fromRGB(6,7,11),BorderSizePixel=0
-})
-Circle(avHolder)
-local avStroke=Stroke(avHolder,2,.15)
-
-local av=N('ImageLabel',{
-	Parent=avHolder,AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),
-	Size=UDim2.fromOffset(96,96),BackgroundTransparency=1,Image='',ScaleType=Enum.ScaleType.Crop
-})
-Circle(av)
-
-local fallback=N('TextLabel',{
-	Parent=avHolder,Size=UDim2.fromScale(1,1),BackgroundTransparency=1,
-	Text='R',Font=Enum.Font.GothamBlack,TextSize=30,TextColor3=accent()
-})
-fallback.ZIndex=3
-
-N('TextLabel',{
-	Parent=profile,Position=UDim2.fromOffset(137,22),Size=UDim2.new(1,-150,0,24),
-	BackgroundTransparency=1,Text='@thankhuyenhuy',Font=Enum.Font.GothamBlack,
-	TextSize=18,TextColor3=Color3.fromRGB(245,246,252),TextXAlignment=Enum.TextXAlignment.Left
-})
-
-local creatorLabel=N('TextLabel',{
-	Parent=profile,Position=UDim2.fromOffset(138,48),Size=UDim2.new(1,-150,0,18),
-	BackgroundTransparency=1,Text='ROBLOX CREATOR',Font=Enum.Font.GothamBold,
-	TextSize=9,TextColor3=accent(),TextXAlignment=Enum.TextXAlignment.Left
-})
-
-N('TextLabel',{
-	Parent=profile,Position=UDim2.fromOffset(138,74),Size=UDim2.new(1,-150,0,38),
-	BackgroundTransparency=1,Text='FishHub interface • social links\nTap a circle to copy the link.',
-	Font=Enum.Font.GothamMedium,TextSize=9,TextColor3=Color3.fromRGB(135,141,158),
-	TextWrapped=true,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top
-})
-
+local profile=N('Frame',{Parent=root,LayoutOrder=1,Size=UDim2.new(1,0,0,154),BackgroundColor3=Color3.fromRGB(8,9,15),BorderSizePixel=0});Round(profile,18);local profileStroke=Stroke(profile,1.4,.18)
+local profileGlow=N('Frame',{Parent=profile,Position=UDim2.fromOffset(2,2),Size=UDim2.new(1,-4,0,3),BackgroundColor3=accent(),BorderSizePixel=0});Round(profileGlow,3)
+local profileLine=N('Frame',{Parent=profile,Position=UDim2.fromOffset(20,145),Size=UDim2.new(1,-40,0,1),BackgroundColor3=accent(),BorderSizePixel=0});profileLine.BackgroundTransparency=.15
+local avGlow=N('Frame',{Parent=profile,Position=UDim2.fromOffset(13,13),Size=UDim2.fromOffset(112,112),BackgroundColor3=accent(),BackgroundTransparency=.78,BorderSizePixel=0});Circle(avGlow)
+local avHolder=N('Frame',{Parent=profile,Position=UDim2.fromOffset(18,18),Size=UDim2.fromOffset(102,102),BackgroundColor3=Color3.fromRGB(5,6,10),BorderSizePixel=0});Circle(avHolder);local avStroke=Stroke(avHolder,2,.05)
+local av=N('ImageLabel',{Parent=avHolder,AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),Size=UDim2.fromOffset(94,94),BackgroundTransparency=1,Image='',ScaleType=Enum.ScaleType.Crop});Circle(av)
+local fallback=N('TextLabel',{Parent=avHolder,Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Text='R',Font=Enum.Font.GothamBlack,TextSize=30,TextColor3=accent()});fallback.ZIndex=3
+N('TextLabel',{Parent=profile,Position=UDim2.fromOffset(137,25),Size=UDim2.new(1,-154,0,26),BackgroundTransparency=1,Text='@thankhuyenhuy',Font=Enum.Font.GothamBlack,TextSize=19,TextColor3=Color3.fromRGB(248,249,255),TextXAlignment=Enum.TextXAlignment.Left})
+local creator=N('TextLabel',{Parent=profile,Position=UDim2.fromOffset(138,52),Size=UDim2.new(1,-154,0,18),BackgroundTransparency=1,Text='ROBLOX CREATOR  •  FISHHUB',Font=Enum.Font.GothamBold,TextSize=8,TextColor3=accent(),TextXAlignment=Enum.TextXAlignment.Left})
+N('TextLabel',{Parent=profile,Position=UDim2.fromOffset(138,78),Size=UDim2.new(1,-154,0,42),BackgroundTransparency=1,Text='Social hub\nTap a circle below to copy a link.',Font=Enum.Font.GothamMedium,TextSize=9,TextColor3=Color3.fromRGB(145,151,168),TextWrapped=true,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top})
 local USERNAME='thankhuyenhuy'
 task.spawn(function()
 	local id
@@ -148,139 +106,49 @@ task.spawn(function()
 end)
 
 -- Section title
-local title=N('TextLabel',{
-	Parent=root,LayoutOrder=2,Size=UDim2.new(1,0,0,38),
-	BackgroundTransparency=1,Text='SOCIAL LINKS\nClick a circular logo to copy its link',
-	Font=Enum.Font.GothamBold,TextSize=10,TextColor3=Color3.fromRGB(239,241,248),
-	TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top
-})
-title.RichText=false
-
--- Decorative separator
-local separator=N('Frame',{
-	Parent=root,LayoutOrder=2,Size=UDim2.new(1,0,0,1),
-	BackgroundColor3=accent(),BackgroundTransparency=.72,BorderSizePixel=0
-})
-Round(separator,1)
-
--- Social buttons
-local row=N('Frame',{
-	Parent=root,LayoutOrder=3,Size=UDim2.new(1,0,0,125),BackgroundTransparency=1
-})
-
-local layout=N('UIListLayout',{
-	Parent=row,FillDirection=Enum.FillDirection.Horizontal,
-	HorizontalAlignment=Enum.HorizontalAlignment.Center,
-	VerticalAlignment=Enum.VerticalAlignment.Center,
-	Padding=UDim.new(0,20)
-})
-
-local socials={
-	{'DISCORD','rbxassetid://79178042116025','https://discord.gg/zFN6Nd99fC'},
-	{'FACEBOOK','rbxassetid://121038275317096','https://www.facebook.com/dao.huy.lam.09/'},
-	{'TIKTOK','rbxassetid://71597520923112','https://www.tiktok.com/@daolam.trh'}
-}
-
-local animated={}
-
-for _,d in ipairs(socials) do
-	local h=N('Frame',{
-		Parent=row,Size=UDim2.fromOffset(95,120),BackgroundTransparency=1
-	})
-
-	-- Soft circular glow behind every social button
-	local glow=N('Frame',{
-		Parent=h,Size=UDim2.fromOffset(92,92),
-		Position=UDim2.new(.5,-46,0,-3),
-		BackgroundColor3=accent(),BackgroundTransparency=.88,BorderSizePixel=0
-	})
-	Circle(glow)
-
-	local b=N('TextButton',{
-		Parent=h,Size=UDim2.fromOffset(82,82),
-		Position=UDim2.new(.5,-41,0,2),
-		AutoButtonColor=false,Text='',
-		BackgroundColor3=Color3.fromRGB(9,10,16),BorderSizePixel=0
-	})
-	Circle(b)
-
-	local st=Stroke(b,1.5,.3)
-	local sc=N('UIScale',{Parent=b})
-
-	local img=N('ImageLabel',{
-		Parent=b,Size=UDim2.fromOffset(50,50),
-		Position=UDim2.new(.5,-25,.5,-25),
-		BackgroundTransparency=1,Image=d[2],
-		ImageColor3=accent(),ScaleType=Enum.ScaleType.Fit
-	})
-
-	local label=N('TextLabel',{
-		Parent=h,Position=UDim2.new(0,0,0,91),Size=UDim2.new(1,0,0,18),
-		BackgroundTransparency=1,Text=d[1],Font=Enum.Font.GothamBold,
-		TextSize=8,TextColor3=Color3.fromRGB(235,237,244),
-		TextXAlignment=Enum.TextXAlignment.Center
-	})
-
-	table.insert(animated,{b=b,st=st,img=img,glow=glow,label=label})
-
-	b.MouseEnter:Connect(function()
-		Tween(sc,.2,{Scale=1.1},Enum.EasingStyle.Back)
-		Tween(st,.2,{Thickness=2.2,Transparency=0})
-		Tween(glow,.2,{BackgroundTransparency=.76,Size=UDim2.fromOffset(98,98),Position=UDim2.new(.5,-49,0,-6)},Enum.EasingStyle.Back)
-		Tween(img,.2,{Size=UDim2.fromOffset(56,56),Position=UDim2.new(.5,-28,.5,-28)},Enum.EasingStyle.Back)
-	end)
-
-	b.MouseLeave:Connect(function()
-		Tween(sc,.2,{Scale=1})
-		Tween(st,.2,{Thickness=1.5,Transparency=.3})
-		Tween(glow,.2,{BackgroundTransparency=.88,Size=UDim2.fromOffset(92,92),Position=UDim2.new(.5,-46,0,-3)})
-		Tween(img,.2,{Size=UDim2.fromOffset(50,50),Position=UDim2.new(.5,-25,.5,-25)})
-	end)
-
-	b.Activated:Connect(function()
-		pcall(function()
-			if setclipboard then setclipboard(d[3]) end
-		end)
-		notify('Copied '..d[1]..' link!')
-	end)
+local title=N('TextLabel',{Parent=root,LayoutOrder=2,Size=UDim2.new(1,0,0,42),BackgroundTransparency=1,Text='SOCIAL LINKS',Font=Enum.Font.GothamBlack,TextSize=11,TextColor3=Color3.fromRGB(242,244,250),TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top})
+local subTitle=N('TextLabel',{Parent=root,LayoutOrder=2,Position=UDim2.fromOffset(0,17),Size=UDim2.new(1,0,0,18),BackgroundTransparency=1,Text='CONNECT • SHARE • SUPPORT',Font=Enum.Font.GothamBold,TextSize=7,TextColor3=Color3.fromRGB(115,121,140),TextXAlignment=Enum.TextXAlignment.Left})
+local row=N('Frame',{Parent=root,LayoutOrder=3,Size=UDim2.new(1,0,0,142),BackgroundTransparency=1})
+local layout=N('UIListLayout',{Parent=row,FillDirection=Enum.FillDirection.Horizontal,HorizontalAlignment=Enum.HorizontalAlignment.Center,VerticalAlignment=Enum.VerticalAlignment.Center,Padding=UDim.new(0,24)})
+local socials={{'DISCORD','rbxassetid://79178042116025','https://discord.gg/zFN6Nd99fC'},{'FACEBOOK','rbxassetid://121038275317096','https://www.facebook.com/dao.huy.lam.09/'},{'TIKTOK','rbxassetid://71597520923112','https://www.tiktok.com/@daolam.trh'}}
+for _,d in ipairs(socials)do
+ local h=N('Frame',{Parent=row,Size=UDim2.fromOffset(96,132),BackgroundTransparency=1})
+ local glow=N('Frame',{Parent=h,Size=UDim2.fromOffset(88,88),Position=UDim2.new(.5,-44,0,2),BackgroundColor3=accent(),BackgroundTransparency=.82,BorderSizePixel=0});Circle(glow)
+ local b=N('TextButton',{Parent=h,Size=UDim2.fromOffset(82,82),Position=UDim2.new(.5,-41,0,5),AutoButtonColor=false,Text='',BackgroundColor3=Color3.fromRGB(9,10,17),BorderSizePixel=0});Circle(b)
+ local st=Stroke(b,1.7,.15)
+ local inner=N('Frame',{Parent=b,AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),Size=UDim2.fromOffset(70,70),BackgroundTransparency=1,BorderSizePixel=0});Circle(inner);local innerSt=Stroke(inner,1,.65)
+ local sc=N('UIScale',{Parent=b})
+ local img=N('ImageLabel',{Parent=b,Size=UDim2.fromOffset(48,48),Position=UDim2.new(.5,-24,.5,-24),BackgroundTransparency=1,Image=d[2],ImageColor3=accent(),ScaleType=Enum.ScaleType.Fit})
+ local label=N('TextLabel',{Parent=h,Position=UDim2.new(0,0,0,95),Size=UDim2.new(1,0,0,18),BackgroundTransparency=1,Text=d[1],Font=Enum.Font.GothamBold,TextSize=8,TextColor3=Color3.fromRGB(235,237,244),TextXAlignment=Enum.TextXAlignment.Center})
+ local hint=N('TextLabel',{Parent=h,Position=UDim2.new(0,0,0,112),Size=UDim2.new(1,0,0,14),BackgroundTransparency=1,Text='COPY LINK',Font=Enum.Font.GothamMedium,TextSize=6,TextColor3=Color3.fromRGB(95,101,118),TextXAlignment=Enum.TextXAlignment.Center})
+ b.MouseEnter:Connect(function()
+   Tween(sc,.2,{Scale=1.12},Enum.EasingStyle.Back);Tween(st,.2,{Thickness=2.4,Transparency=0});Tween(innerSt,.2,{Thickness=1.5,Transparency=.25});Tween(glow,.2,{Size=UDim2.fromOffset(96,96),Position=UDim2.new(.5,-48,0,-2),BackgroundTransparency=.68},Enum.EasingStyle.Quad);Tween(img,.2,{Size=UDim2.fromOffset(55,55),Position=UDim2.new(.5,-27.5,.5,-27.5)},Enum.EasingStyle.Back);Tween(label,.2,{TextColor3=accent()})
+ end)
+ b.MouseLeave:Connect(function()
+   Tween(sc,.2,{Scale=1});Tween(st,.2,{Thickness=1.7,Transparency=.15});Tween(innerSt,.2,{Thickness=1,Transparency=.65});Tween(glow,.2,{Size=UDim2.fromOffset(88,88),Position=UDim2.new(.5,-44,0,2),BackgroundTransparency=.82});Tween(img,.2,{Size=UDim2.fromOffset(48,48),Position=UDim2.new(.5,-24,.5,-24)});Tween(label,.2,{TextColor3=Color3.fromRGB(235,237,244)})
+ end)
+ b.Activated:Connect(function()
+   Tween(sc,.1,{Scale=.94},Enum.EasingStyle.Quad);task.delay(.1,function()Tween(sc,.18,{Scale=1.08},Enum.EasingStyle.Back)end)
+   pcall(function()if setclipboard then setclipboard(d[3])end end);notify('Copied '..d[1]..' link!')
+ end)
 end
 
--- Theme/rainbow controller.
--- Theme mode continuously follows Config.ThemeColor.
--- Rainbow mode cycles the same decorative elements through HSV colors.
-local hue=0
-local connection
+local footer=N('TextLabel',{Parent=root,LayoutOrder=4,Size=UDim2.new(1,0,0,24),BackgroundTransparency=1,Text='FISHHUB  •  SOCIAL CENTER',Font=Enum.Font.GothamBold,TextSize=7,TextColor3=Color3.fromRGB(80,86,103),TextXAlignment=Enum.TextXAlignment.Center})
 
-local function applyColor(c)
-	for _,v in ipairs(animated) do
-		v.st.Color=c
-		v.img.ImageColor3=c
-		v.glow.BackgroundColor3=c
-		v.label.TextColor3=Color3.fromRGB(235,237,244)
-	end
-	profileStroke.Color=c
-	avStroke.Color=c
-	accentStrip.BackgroundColor3=c
-	creatorLabel.TextColor3=c
-	fallback.TextColor3=c
-	separator.BackgroundColor3=c
-end
-
-connection=RunService.RenderStepped:Connect(function(dt)
-	if not root.Parent then
-		connection:Disconnect()
-		return
-	end
-
-	local c
-	if rainbowEnabled() then
-		hue=(hue+dt*.16)%1
-		c=Color3.fromHSV(hue,.85,1)
-	else
-		c=accent()
-	end
-
-	applyColor(c)
+local rainbowRunning=true
+task.spawn(function()
+ local hue=0
+ while rainbowRunning and root.Parent do
+   local rainbow=(Config.Rainbow==true or Config.RainbowEnabled==true or Config.RainbowMode==true)
+   local c
+   if rainbow then hue=(hue+0.004)%1;c=Color3.fromHSV(hue,.9,1) else c=accent() end
+   profileGlow.BackgroundColor3=c;profileLine.BackgroundColor3=c;avGlow.BackgroundColor3=c
+   profileStroke.Color=c;avStroke.Color=c;creator.TextColor3=c;title.TextColor3=rainbow and c or Color3.fromRGB(242,244,250)
+   for _,obj in ipairs(row:GetDescendants())do
+     if obj:IsA('UIStroke') then obj.Color=c elseif obj:IsA('ImageLabel') then obj.ImageColor3=c end
+   end
+   task.wait(.03)
+ end
 end)
 
 return {Root=root}
