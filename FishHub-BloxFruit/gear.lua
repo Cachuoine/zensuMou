@@ -56,10 +56,6 @@ return function(ctx)
     assert(Config, "FishHub gear.lua: missing Config")
     assert(gearBtn, "FishHub gear.lua: Main did not provide Gear button")
 
-    ------------------------------------------------------------------------
-    -- STATE
-    ------------------------------------------------------------------------
-
     local isRainbowRunning = false
     local rainbowTransitionActive = false
     local rainbowTransitionSerial = 0
@@ -73,11 +69,8 @@ return function(ctx)
     local pickerDragging = nil
     local rainbowSpeedDragging = false
     local listeningKey = false
+    local keyCaptureConnection = nil
     local destroyed = false
-
-    ------------------------------------------------------------------------
-    -- STYLE HELPERS
-    ------------------------------------------------------------------------
 
     local function safeInsert(list, object)
         if type(list) == "table" and object then
@@ -209,10 +202,6 @@ return function(ctx)
         return label
     end
 
-    ------------------------------------------------------------------------
-    -- SETTINGS WINDOW
-    ------------------------------------------------------------------------
-
     local settingsWindow = Instance.new("Frame")
     settingsWindow.Name = "SettingsWindow"
     settingsWindow.Parent = gui
@@ -332,10 +321,6 @@ return function(ctx)
     settingsLayout.Padding = UDim.new(0, 8)
     settingsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
-    ------------------------------------------------------------------------
-    -- SECTION DIVIDER
-    ------------------------------------------------------------------------
-
     local function CreateSectionDivider(title, order)
         local container = Instance.new("Frame")
         container.Parent = settingsScroll
@@ -380,10 +365,6 @@ return function(ctx)
         return container
     end
 
-    ------------------------------------------------------------------------
-    -- THEME PICKER
-    ------------------------------------------------------------------------
-
     CreateSectionDivider("THEME", 1)
 
     local colorPalette = Instance.new("Frame")
@@ -400,7 +381,6 @@ return function(ctx)
     local paletteStroke = stroke(colorPalette, Config.ThemeColor, 1, 0.12)
     gradient(colorPalette, Color3.fromRGB(24, 27, 39), Color3.fromRGB(14, 16, 23), 90)
 
-    -- THEME COLOR header: restored to the original visible top row.
     local paletteTitle = createLabel(
         colorPalette,
         "THEME COLOR",
@@ -669,10 +649,6 @@ return function(ctx)
 
     UpdateThemePicker()
 
-    ------------------------------------------------------------------------
-    -- APPLY THEME BUTTON
-    ------------------------------------------------------------------------
-
     local applyThemeBtn = Instance.new("TextButton")
     applyThemeBtn.Parent = settingsScroll
     applyThemeBtn.Size = UDim2.new(1, -10, 0, 34)
@@ -704,10 +680,6 @@ return function(ctx)
             {Size = UDim2.new(1, -10, 0, 34)}
         ):Play()
     end)
-
-    ------------------------------------------------------------------------
-    -- RAINBOW TOGGLE
-    ------------------------------------------------------------------------
 
     local rainbowToggleCard, rainbowToggleStrokeCard = createCard(
         settingsScroll,
@@ -767,10 +739,6 @@ return function(ctx)
     rainbowClickArea.Text = ""
     rainbowClickArea.AutoButtonColor = false
     rainbowClickArea.ZIndex = 210
-
-    ------------------------------------------------------------------------
-    -- CONTROL / RAINBOW SPEED
-    ------------------------------------------------------------------------
 
     CreateSectionDivider("CONTROL", 5.5)
 
@@ -942,10 +910,6 @@ return function(ctx)
         end
     end)
 
-    ------------------------------------------------------------------------
-    -- DEBUG
-    ------------------------------------------------------------------------
-
     local debugToggleCard = createCard(
         settingsScroll,
         44,
@@ -1007,10 +971,6 @@ return function(ctx)
     debugClickArea.AutoButtonColor = false
     debugClickArea.ZIndex = 210
 
-    ------------------------------------------------------------------------
-    -- HOTKEY
-    ------------------------------------------------------------------------
-
     CreateSectionDivider("HOTKEY", 6.5)
 
     local hotkeyCard = createCard(
@@ -1071,46 +1031,46 @@ return function(ctx)
         ):Play()
     end)
 
-    hotkeyButtonBox.MouseButton1Click:Connect(function()
+    local function stopKeyCapture(restoreText)
+        if keyCaptureConnection then
+            keyCaptureConnection:Disconnect()
+            keyCaptureConnection = nil
+        end
+        listeningKey = false
+        if restoreText then
+            hotkeyButtonBox.Text = Config.ToggleKey and Config.ToggleKey.Name or "UNASSIGNED"
+            hotkeyButtonBox.TextColor3 = Config.ThemeColor
+        end
+    end
+
+    hotkeyButtonBox.Activated:Connect(function()
         if listeningKey then return end
 
         listeningKey = true
         hotkeyButtonBox.Text = "PRESS KEY..."
         hotkeyButtonBox.TextColor3 = Color3.fromRGB(255, 205, 80)
 
-        local connection
-
-        connection = UserInputService.InputBegan:Connect(function(
-            input,
-            gameProcessed
-        )
-            if gameProcessed then
+        keyCaptureConnection = UserInputService.InputBegan:Connect(function(input)
+            if input.UserInputType ~= Enum.UserInputType.Keyboard
+                or input.KeyCode == Enum.KeyCode.Unknown then
                 return
             end
 
-            if input.UserInputType ~= Enum.UserInputType.Keyboard then
+            if input.KeyCode == Enum.KeyCode.Escape then
+                stopKeyCapture(true)
                 return
             end
 
             Config.ToggleKey = input.KeyCode
             hotkeyButtonBox.Text = tostring(input.KeyCode.Name)
             hotkeyButtonBox.TextColor3 = Config.ThemeColor
-            listeningKey = false
+            stopKeyCapture(false)
 
             ShowNotification(
                 "Hotkey changed to: " .. tostring(input.KeyCode.Name)
             )
-
-            if connection then
-                connection:Disconnect()
-                connection = nil
-            end
         end)
     end)
-
-    ------------------------------------------------------------------------
-    -- THEME ENGINE
-    ------------------------------------------------------------------------
 
     ApplyGlobalTheme = function(newColor)
         if typeof(newColor) ~= "Color3" then
@@ -1215,10 +1175,6 @@ return function(ctx)
 
     UpdateToggleIndicators(Config.ThemeColor)
     RefreshPickerLock()
-
-    ------------------------------------------------------------------------
-    -- RAINBOW ENGINE
-    ------------------------------------------------------------------------
 
     task.spawn(function()
         while gui and gui.Parent and not destroyed do
@@ -1341,10 +1297,6 @@ return function(ctx)
             task.wait(0.03)
         end
     end)
-
-    ------------------------------------------------------------------------
-    -- RAINBOW TOGGLE
-    ------------------------------------------------------------------------
 
     rainbowClickArea.MouseButton1Click:Connect(function()
         if isThemeLoading() or rainbowTransitionActive then
@@ -1519,10 +1471,6 @@ return function(ctx)
         end
     end)
 
-    ------------------------------------------------------------------------
-    -- DEBUG TOGGLE
-    ------------------------------------------------------------------------
-
     local function SetDebugVisibility(enabled)
         Config.ShowDebug = enabled == true
 
@@ -1560,10 +1508,6 @@ return function(ctx)
             ShowNotification("Debug Info Disabled!")
         end
     end)
-
-    ------------------------------------------------------------------------
-    -- APPLY THEME
-    ------------------------------------------------------------------------
 
     applyThemeBtn.MouseButton1Click:Connect(function()
         if isThemeLoading() or rainbowTransitionActive then
@@ -1655,10 +1599,6 @@ return function(ctx)
         end)
     end)
 
-    ------------------------------------------------------------------------
-    -- SETTINGS OPEN / CLOSE
-    ------------------------------------------------------------------------
-
     local function PositionSettings()
         if not settingsWindow or not settingsWindow.Parent then
             return
@@ -1689,6 +1629,9 @@ return function(ctx)
     end)
 
     local function CloseSettings()
+        if listeningKey then
+            stopKeyCapture(true)
+        end
         if settingsWindow and settingsWindow.Parent then
             settingsWindow.Visible = false
         end
@@ -1713,18 +1656,10 @@ return function(ctx)
         end
     end)
 
-    ------------------------------------------------------------------------
-    -- INITIAL VISUAL STATE
-    ------------------------------------------------------------------------
-
     SetDebugVisibility(Config.ShowDebug)
     RefreshPickerLock()
     UpdateThemePicker()
     UpdateToggleIndicators(Config.ThemeColor)
-
-    ------------------------------------------------------------------------
-    -- CONTROLLER API
-    ------------------------------------------------------------------------
 
     return {
         Toggle = ToggleSettings,
