@@ -27,10 +27,6 @@ end
 
 tab.ClipsDescendants = true
 
---//======================================================
---// THEME
---//======================================================
-
 local function theme()
     local stroke = main and main:FindFirstChildOfClass("UIStroke")
     return stroke and stroke.Color or Color3.fromRGB(104, 82, 255)
@@ -99,10 +95,6 @@ local dynamicStrokes = {}
 local dynamicAccents = {}
 local dynamicText = {}
 
---//======================================================
---// SCROLL CONTAINER
---//======================================================
-
 local scroll = Instance.new("ScrollingFrame")
 scroll.Name = "HomeScroll"
 scroll.Size = UDim2.new(1, 0, 1, 0)
@@ -137,10 +129,6 @@ list.HorizontalAlignment = Enum.HorizontalAlignment.Center
 list.SortOrder = Enum.SortOrder.LayoutOrder
 list.Parent = root
 
---//======================================================
---// WELCOME HERO
---//======================================================
-
 local welcome = Instance.new("Frame")
 welcome.Name = "WelcomeCard"
 welcome.Size = UDim2.new(1, 0, 0, 126)
@@ -159,6 +147,17 @@ local heroGradient = addGradient(
     Color3.fromRGB(6, 7, 11),
     15
 )
+
+local heroHighlight = Instance.new("Frame")
+heroHighlight.Name = "HeroHighlight"
+heroHighlight.Size = UDim2.new(0.72, 0, 0, 2)
+heroHighlight.Position = UDim2.new(0, 17, 0, 0)
+heroHighlight.BackgroundColor3 = theme()
+heroHighlight.BackgroundTransparency = 0.42
+heroHighlight.BorderSizePixel = 0
+heroHighlight.Parent = welcome
+corner(heroHighlight, 2)
+table.insert(dynamicAccents, heroHighlight)
 
 local heroGlow = Instance.new("Frame")
 heroGlow.Name = "AccentGlow"
@@ -258,10 +257,6 @@ gameTag.Size = UDim2.new(0, 0, 1, 0)
 gameTag.AutomaticSize = Enum.AutomaticSize.X
 gameTag.Position = UDim2.new(0, 17, 0, 0)
 
---//======================================================
---// SECTION BUILDER
---//======================================================
-
 local function section(titleText, height)
     local holder = Instance.new("Frame")
     holder.Name = titleText:gsub("%s+", "")
@@ -330,10 +325,6 @@ local function section(titleText, height)
 
     return inner
 end
-
---//======================================================
---// PLAYER STATUS
---//======================================================
 
 local status = section("PLAYER STATUS", 154)
 
@@ -527,10 +518,6 @@ local function refreshReputation()
     reputation.Text = formatNumber(bountyHonorValue)
 end
 
---//======================================================
---// INFORMATION
---//======================================================
-
 local info = section("INFORMATION", 160)
 
 local avatarHolder = Instance.new("Frame")
@@ -614,10 +601,6 @@ local ex = label(
 ex.Position = UDim2.new(0, 98, 0, 77)
 ex.Size = UDim2.new(1, -110, 0, 17)
 
---//======================================================
---// SMALL LIVE STATUS
---//======================================================
-
 local live = Instance.new("Frame")
 live.Name = "LiveStatus"
 live.Size = UDim2.new(1, -24, 0, 26)
@@ -645,10 +628,6 @@ local liveText = label(
 )
 liveText.Position = UDim2.new(0, 22, 0, 0)
 liveText.Size = UDim2.new(1, -28, 1, 0)
-
---//======================================================
---// INTRO ANIMATION
---//======================================================
 
 welcome.Position = UDim2.new(0, 0, 0, 7)
 welcome.BackgroundTransparency = 1
@@ -688,10 +667,6 @@ task.defer(function()
     end
 end)
 
---//======================================================
---// THEME SYNC
---//======================================================
-
 task.spawn(function()
     while tab.Parent do
         local accentColor = theme()
@@ -700,6 +675,7 @@ task.spawn(function()
         dot.BackgroundColor3 = accentColor
         gameTag.TextColor3 = Color3.fromRGB(222, 224, 232)
         heroGlow.BackgroundColor3 = accentColor
+        heroHighlight.BackgroundColor3 = accentColor
         un.TextColor3 = accentColor
         avatarAccent.BackgroundColor3 = accentColor
         liveDot.BackgroundColor3 = accentColor
@@ -736,10 +712,6 @@ task.spawn(function()
     end
 end)
 
---//======================================================
---// LIVE PLAYER DATA
---//======================================================
-
 task.spawn(function()
     while tab.Parent do
         levelValue = findValue("Level", "level")
@@ -764,19 +736,11 @@ task.spawn(function()
     end
 end)
 
---//======================================================
---// TEAM CHANGE REFRESH
---//======================================================
-
 player:GetPropertyChangedSignal("Team"):Connect(function()
     if tab.Parent then
         refreshReputation()
     end
 end)
-
---//======================================================
---// HOVER FEEDBACK
---//======================================================
 
 local function hoverCard(card)
     local original = card.BackgroundColor3
