@@ -519,9 +519,9 @@ return function(ctx)
     local pickerLocked = false
 
     local function RefreshPickerLock()
-        pickerLocked = isRainbowRunning == true
-        svButton.Active = not pickerLocked
-        hueButton.Active = not pickerLocked
+        pickerLocked = false
+        svButton.Active = true
+        hueButton.Active = true
     end
 
     local function UpdateThemePicker()
@@ -606,13 +606,30 @@ return function(ctx)
         return pickerLocked == true
     end
 
+    local function StopRainbowForManualColor()
+        if not isRainbowRunning then
+            return
+        end
+
+        rainbowTransitionSerial += 1
+        isRainbowRunning = false
+        rainbowTransitionActive = false
+        pickerDragging = nil
+        staticThemeColor = Config.ThemeColor
+        pickerHue, pickerSaturation, pickerValue = staticThemeColor:ToHSV()
+        RefreshPickerLock()
+        UpdateThemePicker()
+    end
+
     svButton.MouseButton1Down:Connect(function()
+        StopRainbowForManualColor()
         if IsPickerLocked() then return end
         pickerDragging = "SV"
         UpdateSVFromPosition(GetMousePosition())
     end)
 
     hueButton.MouseButton1Down:Connect(function()
+        StopRainbowForManualColor()
         if IsPickerLocked() then return end
         pickerDragging = "HUE"
         UpdateHueFromPosition(GetMousePosition())
@@ -1441,6 +1458,7 @@ return function(ctx)
 
                 pickerHue, pickerSaturation, pickerValue = restoreColor:ToHSV()
                 selectedThemeColor = restoreColor
+                UpdateThemePicker()
 
                 rainbowTransitionActive = false
                 RefreshPickerLock()
