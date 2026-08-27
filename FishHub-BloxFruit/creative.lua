@@ -18,6 +18,8 @@ local root=N('Frame',{Parent=Tab,Size=UDim2.new(1,-10,0,0),AutomaticSize=Enum.Au
 N('UIPadding',{Parent=root,PaddingTop=UDim.new(0,8),PaddingBottom=UDim.new(0,16),PaddingLeft=UDim.new(0,5),PaddingRight=UDim.new(0,5)})
 N('UIListLayout',{Parent=root,SortOrder=Enum.SortOrder.LayoutOrder,HorizontalAlignment=Enum.HorizontalAlignment.Center,Padding=UDim.new(0,10)})
 local profile=N('Frame',{Parent=root,LayoutOrder=1,Size=UDim2.new(1,0,0,138),BackgroundColor3=Color3.fromRGB(9,10,17),BorderSizePixel=0});Round(profile,16);Stroke(profile,1.3,.28)
+local profileGradient=N('UIGradient',{Parent=profile,Rotation=18,Color=ColorSequence.new(Color3.fromRGB(20,22,35),Color3.fromRGB(8,9,15))})
+local profileGlow=N('Frame',{Parent=profile,Position=UDim2.new(1,-92,0,-58),Size=UDim2.fromOffset(150,150),BackgroundColor3=accent(),BackgroundTransparency=.9,BorderSizePixel=0});Circle(profileGlow);N('UIGradient',{Parent=profileGlow,Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,.3),NumberSequenceKeypoint.new(1,1)})})
 local avHolder=N('Frame',{Parent=profile,Position=UDim2.fromOffset(17,17),Size=UDim2.fromOffset(104,104),BackgroundColor3=Color3.fromRGB(6,7,11),BorderSizePixel=0});Circle(avHolder);Stroke(avHolder,2,.15)
 local av=N('ImageLabel',{Parent=avHolder,AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),Size=UDim2.fromOffset(96,96),BackgroundTransparency=1,Image='',ScaleType=Enum.ScaleType.Crop});Circle(av)
 local fallback=N('TextLabel',{Parent=avHolder,Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Text='R',Font=Enum.Font.GothamBlack,TextSize=30,TextColor3=accent()});fallback.ZIndex=3
