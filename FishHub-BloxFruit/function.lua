@@ -83,7 +83,6 @@ local list = New("UIListLayout", {
     Padding = UDim.new(0, 10)
 })
 
--- Header kept in the same place/role as the old search section.
 local head = New("Frame", {
     Parent = root,
     LayoutOrder = 1,
@@ -93,6 +92,33 @@ local head = New("Frame", {
 })
 Corner(head, 14)
 local headStroke = Stroke(head, 1, 0.35)
+
+New("UIGradient", {
+    Parent = head,
+    Rotation = 18,
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(18, 20, 31)),
+        ColorSequenceKeypoint.new(0.62, Color3.fromRGB(9, 10, 16)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(6, 7, 12))
+    })
+})
+
+local headerGlow = New("Frame", {
+    Parent = head,
+    Position = UDim2.new(1, -105, 0, -56),
+    Size = UDim2.fromOffset(150, 150),
+    BackgroundColor3 = accent(),
+    BackgroundTransparency = 0.9,
+    BorderSizePixel = 0
+})
+Corner(headerGlow, 99)
+New("UIGradient", {
+    Parent = headerGlow,
+    Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.35),
+        NumberSequenceKeypoint.new(1, 1)
+    })
+})
 
 local accentBar = New("Frame", {
     Parent = head,
@@ -302,6 +328,7 @@ task.spawn(function()
         accentBar.BackgroundColor3 = a
         headerDot.BackgroundColor3 = a
         headStroke.Color = a
+        headerGlow.BackgroundColor3 = a
 
         for _, item in ipairs(cards) do
             item.stroke.Color = a
