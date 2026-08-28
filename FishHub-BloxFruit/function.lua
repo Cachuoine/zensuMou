@@ -216,14 +216,15 @@ local grid = New("UIGridLayout", {
     SortOrder = Enum.SortOrder.LayoutOrder
 })
 
+-- Danh sách các module tương ứng với các file script trên GitHub của bạn
 local modules = {
-    {"SHOP", "Shop", "Shop and item utilities."},
-    {"SETTING FARM", "SettingFarm", "Farming preferences."},
-    {"FARM", "Farm", "Farming functions and controls."},
-    {"ITEM & QUEST", "ItemQuest", "Items and quest utilities."},
-    {"ISLAND", "Island", "Island travel and navigation."},
-    {"FRUIT", "Fruit", "Fruit utilities and helpers."},
-    {"SETTING", "Setting", "FishHub settings and controls."},
+    {"SHOP", "shop", "Shop and item utilities."},
+    {"SETTING FARM", "settingfarm", "Farming preferences."},
+    {"FARM", "farm", "Farming functions and controls."},
+    {"ITEM", "item", "Items and quest utilities."},
+    {"ISLAND", "island", "Island travel and navigation."},
+    {"FRUIT", "fruit", "Fruit utilities and helpers."},
+    {"SETTING", "setting", "FishHub settings and controls."},
 }
 
 local cards = {}
@@ -234,17 +235,31 @@ local function notify(message)
     end
 end
 
-local function loadModule(key)
-    if type(context.LoadFunction) == "function" then
-        local ok, err = pcall(context.LoadFunction, key)
-        if not ok then notify(tostring(err)) end
-    elseif type(context.Navigate) == "function" then
-        pcall(context.Navigate, key)
+-- Hàm tải script trực tiếp từ URL GitHub của bạn khi click vào card
+local function loadModule(fileName)
+    local url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/" .. fileName .. ".lua"
+    local success, result = pcall(function()
+        return game:HttpGet(url)
+    end)
+    
+    if success and result then
+        local fn, err = loadstring(result)
+        if fn then
+            -- Truyền tiếp context hiện tại (Tab, Config, v.v.) sang script con
+            local ok, scriptModule = pcall(fn, context)
+            if not ok then
+                notify("Error running " .. fileName .. ": " .. tostring(scriptModule))
+            end
+        else
+            notify("Error compiling " .. fileName .. ": " .. tostring(err))
+        end
+    else
+        notify("Failed to load URL for " .. fileName)
     end
 end
 
 local function makeCard(index, data)
-    local title, key, description = data[1], data[2], data[3]
+    local title, fileName, description = data[1], data[2], data[3]
 
     local card = New("TextButton", {
         Parent = holder,
@@ -363,7 +378,7 @@ local function makeCard(index, data)
         scale = scale,
         iconGlow = iconGlow,
         name = string.lower(title),
-        key = key
+        fileName = fileName
     }
     cards[#cards + 1] = state
 
@@ -386,7 +401,7 @@ local function makeCard(index, data)
     end)
 
     card.Activated:Connect(function()
-        loadModule(key)
+        loadModule(fileName)
     end)
 
     task.delay(index * 0.045, function()
