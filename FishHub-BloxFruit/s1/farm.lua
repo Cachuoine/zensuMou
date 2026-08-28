@@ -57,12 +57,10 @@ New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), Backgrou
 
 -- Fix nút Back gọi hàm quay lại menu function chính
 backBtn.Activated:Connect(function()
-    if type(context.BackToMain) == "function" then
-        context.BackToMain()
+    if type(context.Back) == "function" then
+        context.Back()
     elseif type(context.LoadFunction) == "function" then
         context.LoadFunction("function")
-    elseif type(context.Navigate) == "function" then
-        context.Navigate("Function")
     end
 end)
 
