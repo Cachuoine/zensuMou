@@ -109,13 +109,31 @@ N('TextLabel',{Parent=chip,Size=UDim2.fromOffset(96,16),BackgroundTransparency=1
 N('TextLabel',{Parent=header,Position=UDim2.fromOffset(TEXT_X,78),Size=UDim2.new(1,-(TEXT_X+16),0,50),BackgroundTransparency=1,Text='FishHub interface — social links.\nTap a circle below to copy the link.',Font=Enum.Font.GothamMedium,TextSize=9.5,TextColor3=Color3.fromRGB(148,153,168),TextWrapped=true,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top})
 
 local USERNAME='thankhuyenhuy'
-task.spawn(function()
-	local id;local ok,res=pcall(function()return Players:GetUserIdFromNameAsync(USERNAME)end)
-	if ok then id=res end
-	if not id then return end
-	local ok2,img=pcall(function()return Players:GetUserThumbnailAsync(id,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size150x150)end)
-	if ok2 and img and img~='' then av.Image=img;fallback.Visible=false end
-end)
+-- cache avatar (userId + ảnh) vào bảng global tồn tại xuyên suốt phiên chơi,
+-- để lần sau bấm lại tab Creative là hiện ảnh NGAY, không phải chờ gọi API lại
+local envTable=(type(getgenv)=='function' and getgenv())or _G
+envTable.__FishHubCreativeCache=envTable.__FishHubCreativeCache or {}
+local avatarCache=envTable.__FishHubCreativeCache
+
+if avatarCache.image then
+	-- đã có sẵn trong cache -> gán tức thì, không delay
+	av.Image=avatarCache.image
+	fallback.Visible=false
+else
+	task.spawn(function()
+		local id=avatarCache.userId
+		if not id then
+			local ok,res=pcall(function()return Players:GetUserIdFromNameAsync(USERNAME)end)
+			if ok then id=res;avatarCache.userId=id end
+		end
+		if not id then return end
+		local ok2,img=pcall(function()return Players:GetUserThumbnailAsync(id,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size150x150)end)
+		if ok2 and img and img~='' then
+			avatarCache.image=img
+			if av and av.Parent then av.Image=img;fallback.Visible=false end
+		end
+	end)
+end
 
 ------------------------------------------------------------
 -- SECTION TITLE
