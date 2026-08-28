@@ -246,6 +246,7 @@ renderFunctionMenu = function()
         if success and result then
             local fn, err = loadstring(result)
             if fn then
+                -- Truyền ngược lại hàm render menu chính để xử lý nút Back hoàn hảo
                 context.BackToFunction = renderFunctionMenu
                 pcall(fn, context)
             else
@@ -437,7 +438,3 @@ renderFunctionMenu = function()
 end
 
 renderFunctionMenu()
-
-return {
-    Root = root
-}
