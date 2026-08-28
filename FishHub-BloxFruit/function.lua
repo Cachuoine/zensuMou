@@ -217,41 +217,27 @@ local grid = New("UIGridLayout", {
 })
 
 local modules = {
-    {"SHOP", "shop", "Shop and item utilities."},
-    {"SETTING FARM", "settingfarm", "Farming preferences."},
-    {"FARM", "farm", "Farming functions and controls."},
-    {"ITEM", "item", "Items and quest utilities."},
-    {"ISLAND", "island", "Island travel and navigation."},
-    {"FRUIT", "fruit", "Fruit utilities and helpers."},
-    {"SETTING", "setting", "FishHub settings and controls."},
+    {"SHOP", "Shop", "Shop and item utilities."},
+    {"SETTING FARM", "SettingFarm", "Farming preferences."},
+    {"FARM", "Farm", "Farming functions and controls."},
+    {"ITEM", "ItemQuest", "Items and quest utilities."},
+    {"ISLAND", "Island", "Island travel and navigation."},
+    {"FRUIT", "Fruit", "Fruit utilities and helpers."},
+    {"SETTING", "Setting", "FishHub settings and controls."},
 }
 
 local cards = {}
 
-local function loadModule(fileName)
-    local url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/" .. fileName .. ".lua"
-    local success, result = pcall(function()
-        return game:HttpGet(url)
-    end)
-    
-    if success and result then
-        local fn, err = loadstring(result)
-        if fn then
-            -- Tạo một bản sao context và nhét hàm Back để quay lại chính file function này
-            local subContext = {}
-            for k, v in pairs(context) do subContext[k] = v end
-            
-            subContext.Back = function()
-                loadModule("function") -- Hoặc load lại file function
-            end
-            
-            pcall(fn, subContext)
-        end
+local function openModule(key)
+    if type(context.LoadFunction) == "function" then
+        context.LoadFunction(key)
+    elseif type(context.Navigate) == "function" then
+        context.Navigate(key)
     end
 end
 
 local function makeCard(index, data)
-    local title, fileName, description = data[1], data[2], data[3]
+    local title, key, description = data[1], data[2], data[3]
 
     local card = New("TextButton", {
         Parent = holder,
@@ -370,7 +356,7 @@ local function makeCard(index, data)
         scale = scale,
         iconGlow = iconGlow,
         name = string.lower(title),
-        fileName = fileName
+        key = key
     }
     cards[#cards + 1] = state
 
@@ -393,7 +379,7 @@ local function makeCard(index, data)
     end)
 
     card.Activated:Connect(function()
-        loadModule(fileName)
+        openModule(key)
     end)
 
     task.delay(index * 0.045, function()
