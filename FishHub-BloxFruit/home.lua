@@ -32,14 +32,6 @@ local function theme()
     return stroke and stroke.Color or Color3.fromRGB(104, 82, 255)
 end
 
-local function darken(color, amount)
-    return Color3.new(
-        math.clamp(color.R - amount, 0, 1),
-        math.clamp(color.G - amount, 0, 1),
-        math.clamp(color.B - amount, 0, 1)
-    )
-end
-
 local function corner(parent, radius)
     local c = Instance.new("UICorner")
     c.CornerRadius = UDim.new(0, radius)
@@ -307,7 +299,8 @@ local function section(titleText, height)
     return inner
 end
 
-local status = section("PLAYER STATUS", 154)
+-- Mở rộng chiều cao khung PLAYER STATUS để chứa thêm thông tin Tộc (Race)
+local status = section("PLAYER STATUS", 198)
 
 local function findValue(...)
     local names = {...}
@@ -386,9 +379,9 @@ local function formatPlain(value)
     return tostring(math.floor(number))
 end
 
-local function createStat(titleText, valueText, x, y)
+local function createStat(titleText, valueText, x, y, width)
     local card = Instance.new("Frame")
-    card.Size = UDim2.new(0.5, -10, 0, 38)
+    card.Size = UDim2.new(width or 0.5, -10, 0, 38)
     card.Position = UDim2.new(x, 5, 0, y)
     card.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
     card.BorderSizePixel = 0
@@ -464,6 +457,98 @@ local _, fragments = createStat(
     52
 )
 
+-- Hàm quét Tộc & Cấp độ V1, V2, V3, V4 cực chuẩn cho Blox Fruit
+local function GetBloxFruitRaceInfo()
+    local pData = player:FindFirstChild("Data")
+    if not pData then
+        return "Human", "V1", nil
+    end
+
+    local raceObj = pData:FindFirstChild("Race")
+    local raceName = raceObj and tostring(raceObj.Value) or "Human"
+
+    local stage = "V1"
+    local tierLevel = nil
+
+    pcall(function()
+        -- 1. Kiểm tra các thuộc tính đánh thức V4 / Cấp độ trực tiếp
+        local awakenVal = pData:FindFirstChild("RaceAwaken") or pData:FindFirstChild("AwakeningTier") or pData:FindFirstChild("V4Tier")
+        if awakenVal then
+            local val = awakenVal.Value
+            if type(val) == "boolean" and val == true then
+                stage = "V4"
+            elseif type(val) == "number" then
+                if val >= 4 then
+                    stage = "V4"
+                    tierLevel = val
+                elseif val == 3 then
+                    stage = "V3"
+                elseif val == 2 then
+                    stage = "V2"
+                elseif val == 1 then
+                    stage = "V1"
+                end
+            elseif type(val) == "string" and val ~= "" then
+                stage = val
+            end
+        end
+
+        -- 2. Kiểm tra các biến đặc trưng V2, V3, V4 thường thấy trong Data
+        if pData:FindFirstChild("HasV3") and pData.HasV3.Value == true then
+            stage = "V3"
+        end
+        if pData:FindFirstChild("HasV2") and pData.HasV2.Value == true and stage == "V1" then
+            stage = "V2"
+        end
+
+        -- Quét qua các giá trị dạng số nguyên V2/V3/V4 nếu có
+        for _, checkName in ipairs({"RaceStage", "RaceLevel", "Evolution", "Stage"}) do
+            local obj = pData:FindFirstChild(checkName)
+            if obj then
+                local num = tonumber(obj.Value)
+                if num then
+                    if num == 4 then stage = "V4"
+                    elseif num == 3 then stage = "V3"
+                    elseif num == 2 then stage = "V2"
+                    elseif num == 1 then stage = "V1" end
+                end
+            end
+        end
+
+        -- 3. Quét thư mục RaceInfo nếu game lưu dạng folder con
+        local raceInfoFolder = pData:FindFirstChild("RaceInfo") or pData:FindFirstChild("Awakening")
+        if raceInfoFolder then
+            local tierVal = raceInfoFolder:FindFirstChild("Level") or raceInfoFolder:FindFirstChild("Tier") or raceInfoFolder:FindFirstChild("Stage")
+            if tierVal then
+                local tNum = tonumber(tierVal.Value)
+                if tNum then
+                    tierLevel = tNum
+                    if tNum >= 4 then stage = "V4"
+                    elseif tNum == 3 then stage = "V3"
+                    elseif tNum == 2 then stage = "V2"
+                    elseif tNum == 1 then stage = "V1" end
+                end
+            end
+        end
+
+        -- 4. Phòng hờ trường hợp V4 kích hoạt mà chưa gán tier
+        if stage == "V4" and tierLevel == nil then
+            tierLevel = 0
+        end
+    end)
+
+    return raceName, stage, tierLevel
+end
+
+-- Thêm ô hiển thị Tộc (Race) nằm ngay trong phần PLAYER STATUS (chiếm full chiều rộng)
+local raceTitle, raceStatValue = createStat(
+    "BLOQ FRUIT RACE",
+    "Loading...",
+    0,
+    97,
+    1.0
+)
+
 local function getTeamKind()
     local team = player.Team
 
@@ -508,9 +593,9 @@ local function refreshReputation()
 end
 
 -- ==============================================================================
--- PHẦN THÔNG TIN CÁ NHÂN & BLOX FRUIT RACE DETECTOR
+-- PHẦN THÔNG TIN CÁ NHÂN (INFORMATION)
 -- ==============================================================================
-local info = section("INFORMATION", 160)
+local info = section("INFORMATION", 154)
 
 local avatarGlow = Instance.new("Frame")
 avatarGlow.Name = "AvatarGlow"
@@ -574,66 +659,15 @@ un.Position = UDim2.new(0, 98, 0, 35)
 un.Size = UDim2.new(1, -110, 0, 18)
 table.insert(dynamicText, un)
 
--- Hàm quét Tộc & Cấp độ V4 chính xác trong Blox Fruit
-local function GetBloxFruitRaceInfo()
-    local pData = player:FindFirstChild("Data")
-    if not pData then
-        return "Human", "V1", nil
-    end
-
-    local raceObj = pData:FindFirstChild("Race")
-    local raceName = raceObj and tostring(raceObj.Value) or "Human"
-
-    local awakenVal = pData:FindFirstChild("RaceAwaken")
-    local stage = "V1"
-    local tierLevel = nil
-
-    pcall(function()
-        if awakenVal then
-            if type(awakenVal.Value) == "boolean" and awakenVal.Value == true then
-                stage = "V4"
-            elseif type(awakenVal.Value) == "number" and awakenVal.Value >= 1 then
-                stage = "V4"
-            elseif type(awakenVal.Value) == "string" and awakenVal.Value ~= "" then
-                stage = awakenVal.Value
-            end
-        end
-    end)
-
-    pcall(function()
-        local raceInfoFolder = pData:FindFirstChild("RaceInfo")
-        if raceInfoFolder then
-            local tierVal = raceInfoFolder:FindFirstChild("Level") or raceInfoFolder:FindFirstChild("Tier")
-            if tierVal then
-                tierLevel = tonumber(tierVal.Value)
-            end
-        end
-        
-        if not tierLevel then
-            local tVal = pData:FindFirstChild("AwakeningTier") or pData:FindFirstChild("V4Tier")
-            if tVal then
-                tierLevel = tonumber(tVal.Value)
-            end
-        end
-    end)
-
-    if stage == "V4" and tierLevel == nil then
-        tierLevel = 0
-    end
-
-    return raceName, stage, tierLevel
-end
-
--- Hiển thị thông tin Race & Tier tại vị trí UID cũ (hoặc kết hợp)
-local uid = label(
+local userIdLabel = label(
     info,
-    "RACE  •  Loading...",
+    "USER ID  •  " .. tostring(player.UserId),
     9,
     Color3.fromRGB(135, 140, 155),
     Enum.Font.GothamMedium
 )
-uid.Position = UDim2.new(0, 98, 0, 56)
-uid.Size = UDim2.new(1, -110, 0, 17)
+userIdLabel.Position = UDim2.new(0, 98, 0, 56)
+userIdLabel.Size = UDim2.new(1, -110, 0, 17)
 
 local executorName = "Unknown"
 pcall(function()
@@ -658,7 +692,7 @@ ex.Size = UDim2.new(1, -110, 0, 17)
 local live = Instance.new("Frame")
 live.Name = "LiveStatus"
 live.Size = UDim2.new(1, -24, 0, 26)
-live.Position = UDim2.new(0, 12, 0, 119)
+live.Position = UDim2.new(0, 12, 0, 115)
 live.BackgroundColor3 = Color3.fromRGB(11, 12, 18)
 live.BorderSizePixel = 0
 live.Parent = info
@@ -799,14 +833,14 @@ task.spawn(function()
 
         refreshReputation()
 
-        -- Cập nhật thông tin Race và Tier
+        -- Cập nhật thông tin Tộc & Cấp độ chính xác
         local success, raceName, stage, tier = pcall(GetBloxFruitRaceInfo)
         if success then
-            local raceText = string.format("RACE  •  %s (%s)", raceName, stage)
+            local raceDisplay = string.upper(raceName) .. " — " .. string.upper(stage)
             if stage == "V4" and tier ~= nil then
-                raceText = raceText .. string.format(" [Tier %d]", math.clamp(tier, 0, 10))
+                raceDisplay = raceDisplay .. string.format(" [Tier %d]", math.clamp(tier, 0, 10))
             end
-            uid.Text = raceText
+            raceStatValue.Text = raceDisplay
         end
 
         task.wait(0.35)
@@ -858,6 +892,12 @@ end
 
 for _, object in ipairs(status:GetChildren()) do
     if object:IsA("Frame") then
+        hoverCard(object)
+    end
+end
+
+for _, object in ipairs(info:GetChildren()) do
+    if object:IsA("Frame") and object.Name ~= "LiveStatus" then
         hoverCard(object)
     end
 end
