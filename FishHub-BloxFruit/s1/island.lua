@@ -53,16 +53,14 @@ New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = U
 local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 200), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
 Corner(contentFrame, 12)
 local contentStroke = Stroke(contentFrame, 1, 0.6)
-New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "Shop Content Items & Upgrades", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.fromRGB(200, 205, 220) })
 
--- Fix nút Back gọi hàm quay lại menu function chính
+-- THAY ĐỔI TÊN TEXT NÀY TÙY THEO TỪNG FILE (Ví dụ: Shop Content, Setting Farm Content, v.v.)
+New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "MODULE CONTENT PANEL", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.fromRGB(200, 205, 220) })
+
+-- Xử lý nút Back quay lại giao diện Function trung tâm mượt mà
 backBtn.Activated:Connect(function()
-    if type(context.BackToMain) == "function" then
-        context.BackToMain()
-    elseif type(context.LoadFunction) == "function" then
-        context.LoadFunction("function")
-    elseif type(context.Navigate) == "function" then
-        context.Navigate("Function")
+    if type(context.BackToFunction) == "function" then
+        context.BackToFunction()
     end
 end)
 
