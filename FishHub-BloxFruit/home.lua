@@ -159,9 +159,6 @@ heroHighlight.Parent = welcome
 corner(heroHighlight, 2)
 table.insert(dynamicAccents, heroHighlight)
 
--- Đã tắt các bong bóng sáng trang trí trong thẻ Home theo yêu cầu.
--- Không tạo heroGlow/heroGlow2 để giao diện không còn vùng sáng hình tròn.
-
 local accent = Instance.new("Frame")
 accent.Name = "AccentBar"
 accent.Size = UDim2.new(0, 4, 1, -34)
@@ -404,7 +401,6 @@ local function createStat(titleText, valueText, x, y)
     local cardScale = Instance.new("UIScale")
     cardScale.Parent = card
 
-
     local title = label(
         card,
         titleText,
@@ -503,14 +499,17 @@ local function refreshReputation()
     )
 
     if kind == "Marines" then
-        reputationTitle.Text = "MARINES/HONOR"
+        reputationTitle.Text = "HONOR/MARINES"
     else
-        reputationTitle.Text = "PIRATES/BOUNTY"
+        reputationTitle.Text = "BOUNTY/PIRATES"
     end
 
     reputation.Text = formatNumber(bountyHonorValue)
 end
 
+-- ==============================================================================
+-- PHẦN THÔNG TIN CÁ NHÂN & BLOX FRUIT RACE DETECTOR
+-- ==============================================================================
 local info = section("INFORMATION", 160)
 
 local avatarGlow = Instance.new("Frame")
@@ -575,9 +574,60 @@ un.Position = UDim2.new(0, 98, 0, 35)
 un.Size = UDim2.new(1, -110, 0, 18)
 table.insert(dynamicText, un)
 
+-- Hàm quét Tộc & Cấp độ V4 chính xác trong Blox Fruit
+local function GetBloxFruitRaceInfo()
+    local pData = player:FindFirstChild("Data")
+    if not pData then
+        return "Human", "V1", nil
+    end
+
+    local raceObj = pData:FindFirstChild("Race")
+    local raceName = raceObj and tostring(raceObj.Value) or "Human"
+
+    local awakenVal = pData:FindFirstChild("RaceAwaken")
+    local stage = "V1"
+    local tierLevel = nil
+
+    pcall(function()
+        if awakenVal then
+            if type(awakenVal.Value) == "boolean" and awakenVal.Value == true then
+                stage = "V4"
+            elseif type(awakenVal.Value) == "number" and awakenVal.Value >= 1 then
+                stage = "V4"
+            elseif type(awakenVal.Value) == "string" and awakenVal.Value ~= "" then
+                stage = awakenVal.Value
+            end
+        end
+    end)
+
+    pcall(function()
+        local raceInfoFolder = pData:FindFirstChild("RaceInfo")
+        if raceInfoFolder then
+            local tierVal = raceInfoFolder:FindFirstChild("Level") or raceInfoFolder:FindFirstChild("Tier")
+            if tierVal then
+                tierLevel = tonumber(tierVal.Value)
+            end
+        end
+        
+        if not tierLevel then
+            local tVal = pData:FindFirstChild("AwakeningTier") or pData:FindFirstChild("V4Tier")
+            if tVal then
+                tierLevel = tonumber(tVal.Value)
+            end
+        end
+    end)
+
+    if stage == "V4" and tierLevel == nil then
+        tierLevel = 0
+    end
+
+    return raceName, stage, tierLevel
+end
+
+-- Hiển thị thông tin Race & Tier tại vị trí UID cũ (hoặc kết hợp)
 local uid = label(
     info,
-    "USER ID  •  " .. player.UserId,
+    "RACE  •  Loading...",
     9,
     Color3.fromRGB(135, 140, 155),
     Enum.Font.GothamMedium
@@ -586,7 +636,6 @@ uid.Position = UDim2.new(0, 98, 0, 56)
 uid.Size = UDim2.new(1, -110, 0, 17)
 
 local executorName = "Unknown"
-
 pcall(function()
     if identifyexecutor then
         local a, b = identifyexecutor()
@@ -691,7 +740,7 @@ task.spawn(function()
         accent.BackgroundColor3 = accentColor
         dot.BackgroundColor3 = accentColor
         gameTag.TextColor3 = Color3.fromRGB(222, 224, 232)
-                heroHighlight.BackgroundColor3 = accentColor
+        heroHighlight.BackgroundColor3 = accentColor
 
         un.TextColor3 = accentColor
         avatarAccent.BackgroundColor3 = accentColor
@@ -729,6 +778,7 @@ task.spawn(function()
     end
 end)
 
+-- Vòng lặp cập nhật chỉ số cấp độ, tiền tệ và Race/Tier liên tục theo thời gian thực
 task.spawn(function()
     while tab.Parent do
         levelValue = findValue("Level", "level")
@@ -748,6 +798,16 @@ task.spawn(function()
         fragments.Text = formatNumber(fragmentsValue)
 
         refreshReputation()
+
+        -- Cập nhật thông tin Race và Tier
+        local success, raceName, stage, tier = pcall(GetBloxFruitRaceInfo)
+        if success then
+            local raceText = string.format("RACE  •  %s (%s)", raceName, stage)
+            if stage == "V4" and tier ~= nil then
+                raceText = raceText .. string.format(" [Tier %d]", math.clamp(tier, 0, 10))
+            end
+            uid.Text = raceText
+        end
 
         task.wait(0.35)
     end
