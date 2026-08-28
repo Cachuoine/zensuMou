@@ -53,14 +53,14 @@ New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = U
 local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 200), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
 Corner(contentFrame, 12)
 local contentStroke = Stroke(contentFrame, 1, 0.6)
-New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "Fruit Sniper & Utilities Content", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.fromRGB(200, 205, 220) })
+New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "SHOP CONTENT", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.fromRGB(200, 205, 220) })
 
--- Fix nút Back gọi hàm quay lại menu function chính
+-- Cơ chế quay lại tab Function chính xác theo hệ thống gốc
 backBtn.Activated:Connect(function()
-    if type(context.Back) == "function" then
-        context.Back()
-    elseif type(context.LoadFunction) == "function" then
-        context.LoadFunction("function")
+    if type(context.LoadFunction) == "function" then
+        context.LoadFunction("Function")
+    elseif type(context.Navigate) == "function" then
+        context.Navigate("Function")
     end
 end)
 
