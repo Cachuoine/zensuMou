@@ -159,43 +159,8 @@ heroHighlight.Parent = welcome
 corner(heroHighlight, 2)
 table.insert(dynamicAccents, heroHighlight)
 
-local heroGlow = Instance.new("Frame")
-heroGlow.Name = "AccentGlow"
-heroGlow.Size = UDim2.new(0, 150, 0, 150)
-heroGlow.Position = UDim2.new(1, -90, 0, -70)
-heroGlow.BackgroundColor3 = theme()
-heroGlow.BackgroundTransparency = 0.86
-heroGlow.BorderSizePixel = 0
-heroGlow.Parent = welcome
-corner(heroGlow, 100)
-
-local glowGradient = Instance.new("UIGradient")
-glowGradient.Transparency = NumberSequence.new({
-    NumberSequenceKeypoint.new(0, 0.05),
-    NumberSequenceKeypoint.new(1, 1)
-})
-glowGradient.Parent = heroGlow
-
-table.insert(dynamicAccents, heroGlow)
-
-local heroGlow2 = Instance.new("Frame")
-heroGlow2.Name = "AccentGlow2"
-heroGlow2.Size = UDim2.new(0, 110, 0, 110)
-heroGlow2.Position = UDim2.new(0, -55, 1, -60)
-heroGlow2.BackgroundColor3 = theme()
-heroGlow2.BackgroundTransparency = 0.92
-heroGlow2.BorderSizePixel = 0
-heroGlow2.Parent = welcome
-corner(heroGlow2, 100)
-
-local glowGradient2 = Instance.new("UIGradient")
-glowGradient2.Transparency = NumberSequence.new({
-    NumberSequenceKeypoint.new(0, 0.1),
-    NumberSequenceKeypoint.new(1, 1)
-})
-glowGradient2.Parent = heroGlow2
-
-table.insert(dynamicAccents, heroGlow2)
+-- Đã tắt các bong bóng sáng trang trí trong thẻ Home theo yêu cầu.
+-- Không tạo heroGlow/heroGlow2 để giao diện không còn vùng sáng hình tròn.
 
 local accent = Instance.new("Frame")
 accent.Name = "AccentBar"
@@ -439,27 +404,6 @@ local function createStat(titleText, valueText, x, y)
     local cardScale = Instance.new("UIScale")
     cardScale.Parent = card
 
-    local iconBox = Instance.new("Frame")
-    iconBox.Size = UDim2.new(0, 26, 0, 26)
-    iconBox.Position = UDim2.new(0, 6, 0.5, -13)
-    iconBox.BackgroundColor3 = Color3.fromRGB(18, 20, 29)
-    iconBox.BorderSizePixel = 0
-    iconBox.Parent = card
-    corner(iconBox, 8)
-
-    local iconStroke = addStroke(iconBox, 0.6, 1)
-    table.insert(dynamicStrokes, iconStroke)
-
-    local iconLabel = label(
-        iconBox,
-        string.sub(titleText, 1, 1),
-        11,
-        theme(),
-        Enum.Font.GothamBlack
-    )
-    iconLabel.Size = UDim2.new(1, 0, 1, 0)
-    iconLabel.TextXAlignment = Enum.TextXAlignment.Center
-    table.insert(dynamicText, iconLabel)
 
     local title = label(
         card,
@@ -468,8 +412,8 @@ local function createStat(titleText, valueText, x, y)
         Color3.fromRGB(120, 125, 140),
         Enum.Font.GothamBold
     )
-    title.Size = UDim2.new(1, -46, 0, 12)
-    title.Position = UDim2.new(0, 40, 0, 6)
+    title.Size = UDim2.new(1, -16, 0, 12)
+    title.Position = UDim2.new(0, 8, 0, 6)
 
     local value = label(
         card,
@@ -478,8 +422,8 @@ local function createStat(titleText, valueText, x, y)
         Color3.fromRGB(242, 244, 250),
         Enum.Font.GothamBlack
     )
-    value.Size = UDim2.new(1, -46, 0, 16)
-    value.Position = UDim2.new(0, 40, 0, 18)
+    value.Size = UDim2.new(1, -16, 0, 16)
+    value.Position = UDim2.new(0, 8, 0, 18)
 
     return title, value
 end
@@ -503,24 +447,24 @@ local levelTitle, level = createStat(
     7
 )
 
+local reputationTitle, reputation = createStat(
+    "BOUNTY/PIRATES",
+    "0",
+    0.5,
+    7
+)
+
 local _, beli = createStat(
     "BELI",
     formatNumber(beliValue),
     0.5,
-    7
+    52
 )
 
 local _, fragments = createStat(
     "FRAGMENTS",
     formatNumber(fragmentsValue),
     0,
-    52
-)
-
-local reputationTitle, reputation = createStat(
-    "BOUNTY",
-    "0",
-    0.5,
     52
 )
 
@@ -559,9 +503,9 @@ local function refreshReputation()
     )
 
     if kind == "Marines" then
-        reputationTitle.Text = "HONOR"
+        reputationTitle.Text = "HONOR/MARINES"
     else
-        reputationTitle.Text = "BOUNTY"
+        reputationTitle.Text = "BOUNTY/PIRATES"
     end
 
     reputation.Text = formatNumber(bountyHonorValue)
@@ -747,8 +691,8 @@ task.spawn(function()
         accent.BackgroundColor3 = accentColor
         dot.BackgroundColor3 = accentColor
         gameTag.TextColor3 = Color3.fromRGB(222, 224, 232)
-        heroGlow.BackgroundColor3 = accentColor
-        heroHighlight.BackgroundColor3 = accentColor
+                heroHighlight.BackgroundColor3 = accentColor
+
         un.TextColor3 = accentColor
         avatarAccent.BackgroundColor3 = accentColor
         liveDot.BackgroundColor3 = accentColor
