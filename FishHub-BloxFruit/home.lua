@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local context = ...
 local player = (context and context.Player) or Players.LocalPlayer
@@ -299,12 +300,11 @@ local function section(titleText, height)
     return inner
 end
 
--- Mở rộng chiều cao khung PLAYER STATUS để chứa thêm thông tin Tộc (Race)
+-- Khung PLAYER STATUS
 local status = section("PLAYER STATUS", 198)
 
 local function findValue(...)
     local names = {...}
-
     local containers = {
         player:FindFirstChild("leaderstats"),
         player:FindFirstChild("Data"),
@@ -333,49 +333,29 @@ local function findValue(...)
 end
 
 local function formatNumber(value)
-    if not value then
-        return "0"
-    end
-
+    if not value then return "0" end
     local raw = value.Value
     local number = tonumber(raw)
-
-    if not number then
-        return tostring(raw or 0)
-    end
-
+    if not number then return tostring(raw or 0) end
     local text = tostring(math.floor(number))
     local sign = ""
-
     if text:sub(1, 1) == "-" then
         sign = "-"
         text = text:sub(2)
     end
-
     while true do
         local replaced, count = text:gsub("^(%d+)(%d%d%d)", "%1,%2")
         text = replaced
-
-        if count == 0 then
-            break
-        end
+        if count == 0 then break end
     end
-
     return sign .. text
 end
 
 local function formatPlain(value)
-    if not value then
-        return "0"
-    end
-
+    if not value then return "0" end
     local raw = value.Value
     local number = tonumber(raw)
-
-    if not number then
-        return tostring(raw or 0)
-    end
-
+    if not number then return tostring(raw or 0) end
     return tostring(math.floor(number))
 end
 
@@ -394,23 +374,11 @@ local function createStat(titleText, valueText, x, y, width)
     local cardScale = Instance.new("UIScale")
     cardScale.Parent = card
 
-    local title = label(
-        card,
-        titleText,
-        8,
-        Color3.fromRGB(120, 125, 140),
-        Enum.Font.GothamBold
-    )
+    local title = label(card, titleText, 8, Color3.fromRGB(120, 125, 140), Enum.Font.GothamBold)
     title.Size = UDim2.new(1, -16, 0, 12)
     title.Position = UDim2.new(0, 8, 0, 6)
 
-    local value = label(
-        card,
-        valueText,
-        12,
-        Color3.fromRGB(242, 244, 250),
-        Enum.Font.GothamBlack
-    )
+    local value = label(card, valueText, 12, Color3.fromRGB(242, 244, 250), Enum.Font.GothamBlack)
     value.Size = UDim2.new(1, -16, 0, 16)
     value.Position = UDim2.new(0, 8, 0, 18)
 
@@ -420,181 +388,134 @@ end
 local levelValue = findValue("Level", "level")
 local beliValue = findValue("Beli", "Money", "money")
 local fragmentsValue = findValue("Fragments", "Fragment", "fragments")
-local bountyHonorValue = findValue(
-    "Bounty/Honor",
-    "BountyHonor",
-    "Bounty",
-    "bounty",
-    "Honor",
-    "honor"
-)
+local bountyHonorValue = findValue("Bounty/Honor", "BountyHonor", "Bounty", "bounty", "Honor", "honor")
 
-local levelTitle, level = createStat(
-    "LEVEL",
-    formatPlain(levelValue),
-    0,
-    7
-)
+local levelTitle, level = createStat("LEVEL", formatPlain(levelValue), 0, 7)
+local reputationTitle, reputation = createStat("BOUNTY/PIRATES", "0", 0.5, 7)
+local _, beli = createStat("BELI", formatNumber(beliValue), 0.5, 52)
+local _, fragments = createStat("FRAGMENTS", formatNumber(fragmentsValue), 0, 52)
 
-local reputationTitle, reputation = createStat(
-    "BOUNTY/PIRATES",
-    "0",
-    0.5,
-    7
-)
-
-local _, beli = createStat(
-    "BELI",
-    formatNumber(beliValue),
-    0.5,
-    52
-)
-
-local _, fragments = createStat(
-    "FRAGMENTS",
-    formatNumber(fragmentsValue),
-    0,
-    52
-)
-
--- Hàm quét Tộc & Cấp độ V1, V2, V3, V4 cực chuẩn cho Blox Fruit
+-- CẬP NHẬT: Quét sâu chính xác cấu trúc dữ liệu Tộc và cấp độ V (V1/V2/V3/V4) trong Blox Fruit
 local function GetBloxFruitRaceInfo()
-    local pData = player:FindFirstChild("Data")
+    local pData = player:FindFirstChild("Data") or player:FindFirstChild("data")
     if not pData then
         return "Human", "V1", nil
     end
 
-    local raceObj = pData:FindFirstChild("Race")
+    -- Lấy tên Tộc gốc
+    local raceObj = pData:FindFirstChild("Race") or pData:FindFirstChild("Tribe")
     local raceName = raceObj and tostring(raceObj.Value) or "Human"
 
     local stage = "V1"
     local tierLevel = nil
 
     pcall(function()
-        -- 1. Kiểm tra các thuộc tính đánh thức V4 / Cấp độ trực tiếp
-        local awakenVal = pData:FindFirstChild("RaceAwaken") or pData:FindFirstChild("AwakeningTier") or pData:FindFirstChild("V4Tier")
-        if awakenVal then
-            local val = awakenVal.Value
-            if type(val) == "boolean" and val == true then
-                stage = "V4"
-            elseif type(val) == "number" then
-                if val >= 4 then
+        -- 1. Kiểm tra qua Remotes / CommF_ nếu có sẵn hàm server trả về thông tin tộc
+        local successInvoke, remoteResult = pcall(function()
+            return ReplicatedStorage.Remotes.CommF_:InvokeServer("GetRaceInfo")
+        end)
+        if successInvoke and type(remoteResult) == "table" then
+            if remoteResult.Stage then stage = tostring(remoteResult.Stage) end
+            if remoteResult.Tier then tierLevel = tonumber(remoteResult.Tier) end
+        end
+
+        -- 2. Quét sâu các biến đặc trưng trong thư mục Data của Blox Fruit
+        -- Thường Blox Fruits lưu cấp độ tộc qua giá trị số hoặc chuỗi đặc biệt
+        local vCheckList = {"RaceStage", "Stage", "V", "Evolution", "CurrentStage", "RaceLevel", "AwakeningTier", "V4Tier", "RaceAwaken"}
+        for _, name in ipairs(vCheckList) do
+            local obj = pData:FindFirstChild(name)
+            if obj then
+                local val = obj.Value
+                if type(val) == "number" then
+                    if val == 4 or val >= 4 then stage = "V4"; tierLevel = val
+                    elseif val == 3 then stage = "V3"
+                    elseif val == 2 then stage = "V2"
+                    elseif val == 1 then stage = "V1" end
+                elseif type(val) == "string" and val ~= "" then
+                    stage = val
+                elseif type(val) == "boolean" and val == true and name == "RaceAwaken" then
                     stage = "V4"
-                    tierLevel = val
-                elseif val == 3 then
-                    stage = "V3"
-                elseif val == 2 then
-                    stage = "V2"
-                elseif val == 1 then
-                    stage = "V1"
                 end
-            elseif type(val) == "string" and val ~= "" then
-                stage = val
             end
         end
 
-        -- 2. Kiểm tra các biến đặc trưng V2, V3, V4 thường thấy trong Data
-        if pData:FindFirstChild("HasV3") and pData.HasV3.Value == true then
+        -- Kiểm tra các cờ bật V3/V2 dạng boolean phổ biến
+        local hasV3 = pData:FindFirstChild("HasV3")
+        if hasV3 and hasV3.Value == true then
             stage = "V3"
         end
-        if pData:FindFirstChild("HasV2") and pData.HasV2.Value == true and stage == "V1" then
+
+        local hasV2 = pData:FindFirstChild("HasV2")
+        if hasV2 and hasV2.Value == true and stage == "V1" then
             stage = "V2"
         end
 
-        -- Quét qua các giá trị dạng số nguyên V2/V3/V4 nếu có
-        for _, checkName in ipairs({"RaceStage", "RaceLevel", "Evolution", "Stage"}) do
-            local obj = pData:FindFirstChild(checkName)
-            if obj then
-                local num = tonumber(obj.Value)
-                if num then
-                    if num == 4 then stage = "V4"
-                    elseif num == 3 then stage = "V3"
-                    elseif num == 2 then stage = "V2"
-                    elseif num == 1 then stage = "V1" end
-                end
-            end
-        end
-
-        -- 3. Quét thư mục RaceInfo nếu game lưu dạng folder con
-        local raceInfoFolder = pData:FindFirstChild("RaceInfo") or pData:FindFirstChild("Awakening")
+        -- Kiểm tra folder con RaceInfo nếu có
+        local raceInfoFolder = pData:FindFirstChild("RaceInfo")
         if raceInfoFolder then
-            local tierVal = raceInfoFolder:FindFirstChild("Level") or raceInfoFolder:FindFirstChild("Tier") or raceInfoFolder:FindFirstChild("Stage")
-            if tierVal then
-                local tNum = tonumber(tierVal.Value)
-                if tNum then
-                    tierLevel = tNum
-                    if tNum >= 4 then stage = "V4"
-                    elseif tNum == 3 then stage = "V3"
-                    elseif tNum == 2 then stage = "V2"
-                    elseif tNum == 1 then stage = "V1" end
+            for _, child in ipairs(raceInfoFolder:GetChildren()) do
+                if child.Name == "Level" or child.Name == "Tier" or child.Name == "Stage" then
+                    local num = tonumber(child.Value)
+                    if num then
+                        tierLevel = num
+                        if num >= 4 then stage = "V4"
+                        elseif num == 3 then stage = "V3"
+                        elseif num == 2 then stage = "V2"
+                        elseif num == 1 then stage = "V1" end
+                    end
                 end
             end
         end
 
-        -- 4. Phòng hờ trường hợp V4 kích hoạt mà chưa gán tier
-        if stage == "V4" and tierLevel == nil then
+        -- Định dạng lại chuẩn V nếu dữ liệu trả về dạng số thuần (ví dụ: 3 thành V3)
+        if tostring(stage):match("^%d+$") then
+            local numStage = tonumber(stage)
+            if numStage then
+                stage = "V" .. numStage
+            end
+        elseif not tostring(stage):upper():find("V") then
+            -- Nếu biến chỉ lưu số cấp độ dạng khác
+            if stage == 3 or stage == "3" then stage = "V3"
+            elseif stage == 2 or stage == "2" then stage = "V2"
+            elseif stage == 4 or stage == "4" then stage = "V4" end
+        end
+
+        if stage == "V4" and not tierLevel then
             tierLevel = 0
         end
     end)
 
-    return raceName, stage, tierLevel
+    return raceName, string.upper(stage), tierLevel
 end
 
--- Thêm ô hiển thị Tộc (Race) nằm ngay trong phần PLAYER STATUS (chiếm full chiều rộng)
-local raceTitle, raceStatValue = createStat(
-    "BLOQ FRUIT RACE",
-    "Loading...",
-    0,
-    97,
-    1.0
-)
+-- Hiển thị ô Tộc và Cấp độ nằm trọn trong PLAYER STATUS
+local raceTitle, raceStatValue = createStat("BLOX FRUIT RACE", "Loading...", 0, 97, 1.0)
 
 local function getTeamKind()
     local team = player.Team
-
-    if not team then
-        return "Unknown"
-    end
-
+    if not team then return "Unknown" end
     local name = string.lower(team.Name)
-
-    if string.find(name, "pirate", 1, true)
-        or string.find(name, "pira", 1, true) then
+    if string.find(name, "pirate", 1, true) or string.find(name, "pira", 1, true) then
         return "Pirates"
     end
-
-    if string.find(name, "marine", 1, true)
-        or string.find(name, "mari", 1, true) then
+    if string.find(name, "marine", 1, true) or string.find(name, "mari", 1, true) then
         return "Marines"
     end
-
     return team.Name
 end
 
 local function refreshReputation()
     local kind = getTeamKind()
-
-    bountyHonorValue = findValue(
-        "Bounty/Honor",
-        "BountyHonor",
-        "Bounty",
-        "bounty",
-        "Honor",
-        "honor"
-    )
-
+    bountyHonorValue = findValue("Bounty/Honor", "BountyHonor", "Bounty", "bounty", "Honor", "honor")
     if kind == "Marines" then
         reputationTitle.Text = "HONOR/MARINES"
     else
         reputationTitle.Text = "BOUNTY/PIRATES"
     end
-
     reputation.Text = formatNumber(bountyHonorValue)
 end
 
--- ==============================================================================
--- PHẦN THÔNG TIN CÁ NHÂN (INFORMATION)
--- ==============================================================================
+-- Khung INFORMATION
 local info = section("INFORMATION", 154)
 
 local avatarGlow = Instance.new("Frame")
@@ -638,34 +559,16 @@ avatarAccent.Parent = avatarHolder
 corner(avatarAccent, 10)
 table.insert(dynamicAccents, avatarAccent)
 
-local dn = label(
-    info,
-    player.DisplayName,
-    15,
-    Color3.fromRGB(245, 246, 252),
-    Enum.Font.GothamBold
-)
+local dn = label(info, player.DisplayName, 15, Color3.fromRGB(245, 246, 252), Enum.Font.GothamBold)
 dn.Position = UDim2.new(0, 98, 0, 11)
 dn.Size = UDim2.new(1, -110, 0, 22)
 
-local un = label(
-    info,
-    "@" .. player.Name,
-    10,
-    theme(),
-    Enum.Font.GothamBold
-)
+local un = label(info, "@" .. player.Name, 10, theme(), Enum.Font.GothamBold)
 un.Position = UDim2.new(0, 98, 0, 35)
 un.Size = UDim2.new(1, -110, 0, 18)
 table.insert(dynamicText, un)
 
-local userIdLabel = label(
-    info,
-    "USER ID  •  " .. tostring(player.UserId),
-    9,
-    Color3.fromRGB(135, 140, 155),
-    Enum.Font.GothamMedium
-)
+local userIdLabel = label(info, "USER ID  •  " .. tostring(player.UserId), 9, Color3.fromRGB(135, 140, 155), Enum.Font.GothamMedium)
 userIdLabel.Position = UDim2.new(0, 98, 0, 56)
 userIdLabel.Size = UDim2.new(1, -110, 0, 17)
 
@@ -679,13 +582,7 @@ pcall(function()
     end
 end)
 
-local ex = label(
-    info,
-    "EXECUTOR  •  " .. executorName,
-    9,
-    Color3.fromRGB(135, 140, 155),
-    Enum.Font.GothamMedium
-)
+local ex = label(info, "EXECUTOR  •  " .. executorName, 9, Color3.fromRGB(135, 140, 155), Enum.Font.GothamMedium)
 ex.Position = UDim2.new(0, 98, 0, 77)
 ex.Size = UDim2.new(1, -110, 0, 17)
 
@@ -711,21 +608,13 @@ task.spawn(function()
     while liveDot.Parent do
         tween(liveDot, {BackgroundTransparency = 0.1}, 0.9, Enum.EasingStyle.Sine):Play()
         task.wait(0.9)
-
         if not liveDot.Parent then break end
-
         tween(liveDot, {BackgroundTransparency = 0.75}, 0.9, Enum.EasingStyle.Sine):Play()
         task.wait(0.9)
     end
 end)
 
-local liveText = label(
-    live,
-    "ONLINE  •  SESSION ACTIVE",
-    8,
-    Color3.fromRGB(145, 150, 165),
-    Enum.Font.GothamBold
-)
+local liveText = label(live, "ONLINE  •  SESSION ACTIVE", 8, Color3.fromRGB(145, 150, 165), Enum.Font.GothamBold)
 liveText.Position = UDim2.new(0, 22, 0, 0)
 liveText.Size = UDim2.new(1, -28, 1, 0)
 
@@ -734,34 +623,13 @@ welcome.BackgroundTransparency = 1
 
 task.defer(function()
     task.wait(0.05)
-
-    tween(
-        welcome,
-        {
-            Position = UDim2.new(0, 0, 0, 0),
-            BackgroundTransparency = 0
-        },
-        0.45
-    ):Play()
-
-    for _, object in ipairs({
-        brand,
-        welcomeText,
-        description,
-        gamePill
-    }) do
+    tween(welcome, {Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 0}, 0.45):Play()
+    for _, object in ipairs({brand, welcomeText, description, gamePill}) do
         local oldTransparency = object:IsA("GuiObject") and object.BackgroundTransparency or 0
-        if object:IsA("GuiObject") then
-            object.BackgroundTransparency = 1
-        end
-
+        if object:IsA("GuiObject") then object.BackgroundTransparency = 1 end
         task.delay(0.08, function()
             if object and object.Parent and object:IsA("GuiObject") then
-                tween(
-                    object,
-                    {BackgroundTransparency = oldTransparency},
-                    0.35
-                ):Play()
+                tween(object, {BackgroundTransparency = oldTransparency}, 0.35):Play()
             end
         end)
     end
@@ -770,134 +638,84 @@ end)
 task.spawn(function()
     while tab.Parent do
         local accentColor = theme()
-
         accent.BackgroundColor3 = accentColor
         dot.BackgroundColor3 = accentColor
         gameTag.TextColor3 = Color3.fromRGB(222, 224, 232)
         heroHighlight.BackgroundColor3 = accentColor
-
         un.TextColor3 = accentColor
         avatarAccent.BackgroundColor3 = accentColor
         liveDot.BackgroundColor3 = accentColor
 
         for _, item in ipairs(dynamicLines) do
-            if item.line and item.line.Parent then
-                item.line.BackgroundColor3 = accentColor
-            end
-
-            if item.title and item.title.Parent then
-                item.title.TextColor3 = accentColor
-            end
+            if item.line and item.line.Parent then item.line.BackgroundColor3 = accentColor end
+            if item.title and item.title.Parent then item.title.TextColor3 = accentColor end
         end
 
         for _, object in ipairs(dynamicAccents) do
-            if object and object.Parent then
-                object.BackgroundColor3 = accentColor
-            end
+            if object and object.Parent then object.BackgroundColor3 = accentColor end
         end
 
         for _, object in ipairs(dynamicText) do
-            if object and object.Parent then
-                object.TextColor3 = accentColor
-            end
+            if object and object.Parent then object.TextColor3 = accentColor end
         end
 
         for _, s in ipairs(dynamicStrokes) do
-            if s and s.Parent then
-                s.Color = accentColor
-            end
+            if s and s.Parent then s.Color = accentColor end
         end
 
         task.wait(0.08)
     end
 end)
 
--- Vòng lặp cập nhật chỉ số cấp độ, tiền tệ và Race/Tier liên tục theo thời gian thực
+-- Vòng lặp cập nhật thông số và Tộc trực tiếp theo thời gian thực
 task.spawn(function()
     while tab.Parent do
         levelValue = findValue("Level", "level")
         beliValue = findValue("Beli", "Money", "money")
         fragmentsValue = findValue("Fragments", "Fragment", "fragments")
-        bountyHonorValue = findValue(
-            "Bounty/Honor",
-            "BountyHonor",
-            "Bounty",
-            "bounty",
-            "Honor",
-            "honor"
-        )
+        bountyHonorValue = findValue("Bounty/Honor", "BountyHonor", "Bounty", "bounty", "Honor", "honor")
 
         level.Text = formatPlain(levelValue)
         beli.Text = formatNumber(beliValue)
         fragments.Text = formatNumber(fragmentsValue)
-
         refreshReputation()
 
-        -- Cập nhật thông tin Tộc & Cấp độ chính xác
         local success, raceName, stage, tier = pcall(GetBloxFruitRaceInfo)
         if success then
             local raceDisplay = string.upper(raceName) .. " — " .. string.upper(stage)
-            if stage == "V4" and tier ~= nil then
+            if stage == "V4" and tier ~= nil and tier > 0 then
                 raceDisplay = raceDisplay .. string.format(" [Tier %d]", math.clamp(tier, 0, 10))
             end
             raceStatValue.Text = raceDisplay
         end
 
-        task.wait(0.35)
+        task.wait(0.5)
     end
 end)
 
 player:GetPropertyChangedSignal("Team"):Connect(function()
-    if tab.Parent then
-        refreshReputation()
-    end
+    if tab.Parent then refreshReputation() end
 end)
 
 local function hoverCard(card)
     local original = card.BackgroundColor3
     local scaleObj = card:FindFirstChildOfClass("UIScale")
-
     card.MouseEnter:Connect(function()
         if not card.Parent then return end
-
-        tween(
-            card,
-            {
-                BackgroundColor3 = Color3.fromRGB(16, 17, 24)
-            },
-            0.18
-        ):Play()
-
-        if scaleObj then
-            tween(scaleObj, {Scale = 1.03}, 0.18, Enum.EasingStyle.Back):Play()
-        end
+        tween(card, {BackgroundColor3 = Color3.fromRGB(16, 17, 24)}, 0.18):Play()
+        if scaleObj then tween(scaleObj, {Scale = 1.03}, 0.18, Enum.EasingStyle.Back):Play() end
     end)
-
     card.MouseLeave:Connect(function()
         if not card.Parent then return end
-
-        tween(
-            card,
-            {
-                BackgroundColor3 = original
-            },
-            0.18
-        ):Play()
-
-        if scaleObj then
-            tween(scaleObj, {Scale = 1}, 0.18):Play()
-        end
+        tween(card, {BackgroundColor3 = original}, 0.18):Play()
+        if scaleObj then tween(scaleObj, {Scale = 1}, 0.18):Play() end
     end)
 end
 
 for _, object in ipairs(status:GetChildren()) do
-    if object:IsA("Frame") then
-        hoverCard(object)
-    end
+    if object:IsA("Frame") then hoverCard(object) end
 end
 
 for _, object in ipairs(info:GetChildren()) do
-    if object:IsA("Frame") and object.Name ~= "LiveStatus" then
-        hoverCard(object)
-    end
+    if object:IsA("Frame") and object.Name ~= "LiveStatus" then hoverCard(object) end
 end
