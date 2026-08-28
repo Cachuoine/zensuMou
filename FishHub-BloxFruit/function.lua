@@ -237,28 +237,24 @@ renderFunctionMenu = function()
         end
     end
 
-local function loadModule(fileName)
-    local url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/" .. fileName .. ".lua"
-    local success, result = pcall(function()
-        return game:HttpGet(url)
-    end)
-
-    if success and result then
-        if string.find(result, "404: Not Found") then
-            notify("Lỗi 404: Không tìm thấy file " .. fileName .. ".lua trên Git!")
-            return
-        end
-        local fn, err = loadstring(result)
-        if fn then
-            context.BackToFunction = renderFunctionMenu
-            pcall(fn, context)
+    local function loadModule(fileName)
+        local url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/" .. fileName .. ".lua"
+        local success, result = pcall(function()
+            return game:HttpGet(url)
+        end)
+        
+        if success and result then
+            local fn, err = loadstring(result)
+            if fn then
+                context.BackToFunction = renderFunctionMenu
+                pcall(fn, context)
+            else
+                notify("Loadstring error: " .. tostring(err))
+            end
         else
-            notify("Lỗi biên dịch code: " .. tostring(err))
+            notify("Failed to fetch module: " .. fileName)
         end
-    else
-        notify("Không thể kết nối lấy nội dung module!")
     end
-end
 
     local function makeCard(index, data)
         local title, fileName, description = data[1], data[2], data[3]
