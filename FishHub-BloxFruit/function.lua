@@ -216,7 +216,6 @@ local grid = New("UIGridLayout", {
     SortOrder = Enum.SortOrder.LayoutOrder
 })
 
--- Danh sách các module tương ứng với các file script trên GitHub của bạn
 local modules = {
     {"SHOP", "shop", "Shop and item utilities."},
     {"SETTING FARM", "settingfarm", "Farming preferences."},
@@ -229,13 +228,6 @@ local modules = {
 
 local cards = {}
 
-local function notify(message)
-    if type(context.ShowNotification) == "function" then
-        pcall(context.ShowNotification, message)
-    end
-end
-
--- Hàm tải script trực tiếp từ URL GitHub của bạn khi click vào card
 local function loadModule(fileName)
     local url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/" .. fileName .. ".lua"
     local success, result = pcall(function()
@@ -245,16 +237,8 @@ local function loadModule(fileName)
     if success and result then
         local fn, err = loadstring(result)
         if fn then
-            -- Truyền tiếp context hiện tại (Tab, Config, v.v.) sang script con
-            local ok, scriptModule = pcall(fn, context)
-            if not ok then
-                notify("Error running " .. fileName .. ": " .. tostring(scriptModule))
-            end
-        else
-            notify("Error compiling " .. fileName .. ": " .. tostring(err))
+            pcall(fn, context)
         end
-    else
-        notify("Failed to load URL for " .. fileName)
     end
 end
 
