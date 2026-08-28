@@ -237,7 +237,15 @@ local function loadModule(fileName)
     if success and result then
         local fn, err = loadstring(result)
         if fn then
-            pcall(fn, context)
+            -- Tạo một bản sao context và nhét hàm Back để quay lại chính file function này
+            local subContext = {}
+            for k, v in pairs(context) do subContext[k] = v end
+            
+            subContext.Back = function()
+                loadModule("function") -- Hoặc load lại file function
+            end
+            
+            pcall(fn, subContext)
         end
     end
 end
