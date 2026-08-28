@@ -120,6 +120,33 @@ New("UIGradient", {
     })
 })
 
+local headerGlow2 = New("Frame", {
+    Parent = head,
+    Position = UDim2.new(0, -45, 1, -35),
+    Size = UDim2.fromOffset(100, 100),
+    BackgroundColor3 = accent(),
+    BackgroundTransparency = 0.94,
+    BorderSizePixel = 0
+})
+Corner(headerGlow2, 99)
+New("UIGradient", {
+    Parent = headerGlow2,
+    Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.1),
+        NumberSequenceKeypoint.new(1, 1)
+    })
+})
+
+local headerHighlight = New("Frame", {
+    Parent = head,
+    Position = UDim2.fromOffset(28, 0),
+    Size = UDim2.new(1, -56, 0, 2),
+    BackgroundColor3 = accent(),
+    BackgroundTransparency = 0.55,
+    BorderSizePixel = 0
+})
+Corner(headerHighlight, 2)
+
 local accentBar = New("Frame", {
     Parent = head,
     Position = UDim2.fromOffset(12, 14),
@@ -162,6 +189,16 @@ local headerDot = New("Frame", {
     BorderSizePixel = 0
 })
 Corner(headerDot, 99)
+
+task.spawn(function()
+    while headerDot.Parent do
+        Tween(headerDot, 0.9, {BackgroundTransparency = 0.1}, Enum.EasingStyle.Sine)
+        task.wait(0.9)
+        if not headerDot.Parent then break end
+        Tween(headerDot, 0.9, {BackgroundTransparency = 0.7}, Enum.EasingStyle.Sine)
+        task.wait(0.9)
+    end
+end)
 
 local holder = New("Frame", {
     Parent = root,
@@ -215,12 +252,22 @@ local function makeCard(index, data)
         AutoButtonColor = false,
         Text = "",
         BackgroundColor3 = Color3.fromRGB(9, 10, 15),
+        BackgroundTransparency = 1,
         BorderSizePixel = 0
     })
     Corner(card, 14)
 
+    New("UIGradient", {
+        Parent = card,
+        Rotation = 100,
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(14, 15, 23)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 9, 14))
+        })
+    })
+
     local stroke = Stroke(card, 1, 0.68)
-    local scale = New("UIScale", {Parent = card, Scale = 1})
+    local scale = New("UIScale", {Parent = card, Scale = 0.92})
 
     local shine = New("Frame", {
         Parent = card,
@@ -231,6 +278,17 @@ local function makeCard(index, data)
     })
     Corner(shine, 4)
 
+    local iconGlow = New("Frame", {
+        Parent = card,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.fromOffset(15 + 19, 16 + 19),
+        Size = UDim2.fromOffset(50, 50),
+        BackgroundColor3 = accent(),
+        BackgroundTransparency = 0.88,
+        BorderSizePixel = 0
+    })
+    Corner(iconGlow, 99)
+
     local iconBox = New("Frame", {
         Parent = card,
         Position = UDim2.fromOffset(15, 16),
@@ -240,6 +298,15 @@ local function makeCard(index, data)
     })
     Corner(iconBox, 11)
     local iconStroke = Stroke(iconBox, 1, 0.72)
+
+    New("UIGradient", {
+        Parent = iconBox,
+        Rotation = 90,
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(24, 26, 38)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(14, 15, 22))
+        })
+    })
 
     New("TextLabel", {
         Parent = iconBox,
@@ -277,7 +344,7 @@ local function makeCard(index, data)
         TextYAlignment = Enum.TextYAlignment.Top
     })
 
-    New("TextLabel", {
+    local chevron = New("TextLabel", {
         Parent = card,
         Position = UDim2.new(1, -29, 0, 15),
         Size = UDim2.fromOffset(18, 18),
@@ -294,16 +361,19 @@ local function makeCard(index, data)
         iconStroke = iconStroke,
         shine = shine,
         scale = scale,
+        iconGlow = iconGlow,
         name = string.lower(title),
         key = key
     }
     cards[#cards + 1] = state
 
     card.MouseEnter:Connect(function()
-        Tween(scale, 0.18, {Scale = 1.025}, Enum.EasingStyle.Back)
+        Tween(scale, 0.18, {Scale = 1.045}, Enum.EasingStyle.Back)
         Tween(stroke, 0.18, {Transparency = 0.05, Thickness = 1.5})
         Tween(iconBox, 0.18, {BackgroundColor3 = Color3.fromRGB(23, 26, 38)})
         Tween(shine, 0.18, {Size = UDim2.new(0, 5, 1, 0)})
+        Tween(iconGlow, 0.18, {BackgroundTransparency = 0.72})
+        Tween(chevron, 0.18, {Position = UDim2.new(1, -25, 0, 15)})
     end)
 
     card.MouseLeave:Connect(function()
@@ -311,10 +381,20 @@ local function makeCard(index, data)
         Tween(stroke, 0.18, {Transparency = 0.68, Thickness = 1})
         Tween(iconBox, 0.18, {BackgroundColor3 = Color3.fromRGB(17, 19, 28)})
         Tween(shine, 0.18, {Size = UDim2.new(0, 3, 1, 0)})
+        Tween(iconGlow, 0.18, {BackgroundTransparency = 0.88})
+        Tween(chevron, 0.18, {Position = UDim2.new(1, -29, 0, 15)})
     end)
 
     card.Activated:Connect(function()
         loadModule(key)
+    end)
+
+    -- hiệu ứng xuất hiện tuần tự khi mở tab, mượt hơn hẳn so với bung ra tức thì
+    task.delay(index * 0.045, function()
+        if card and card.Parent then
+            Tween(card, 0.3, {BackgroundTransparency = 0}, Enum.EasingStyle.Quart)
+            Tween(scale, 0.32, {Scale = 1}, Enum.EasingStyle.Back)
+        end
     end)
 end
 
@@ -329,11 +409,14 @@ task.spawn(function()
         headerDot.BackgroundColor3 = a
         headStroke.Color = a
         headerGlow.BackgroundColor3 = a
+        headerGlow2.BackgroundColor3 = a
+        headerHighlight.BackgroundColor3 = a
 
         for _, item in ipairs(cards) do
             item.stroke.Color = a
             item.iconStroke.Color = a
             item.shine.BackgroundColor3 = a
+            item.iconGlow.BackgroundColor3 = a
         end
 
         task.wait(0.2)
