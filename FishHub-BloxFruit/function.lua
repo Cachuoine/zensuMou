@@ -6,6 +6,7 @@ if type(context) ~= "table" or not context.Tab then return end
 
 local Tab = context.Tab
 local Config = context.Config or {}
+
 local function accent()
     return typeof(Config.ThemeColor) == "Color3"
         and Config.ThemeColor
@@ -21,11 +22,10 @@ local function New(className, props)
 end
 
 local function Corner(parent, radius)
-    local c = New("UICorner", {
+    return New("UICorner", {
         Parent = parent,
         CornerRadius = UDim.new(0, radius)
     })
-    return c
 end
 
 local function Stroke(parent, thickness, transparency)
@@ -52,9 +52,27 @@ local function Tween(obj, duration, props, style, direction)
     return t
 end
 
-local renderFunctionMenu
+-- ================= ROOT STATE =================
+-- currentUnload: hàm dọn dẹp (nếu có) của trang con đang mở, gọi trước khi
+-- quay lại menu chính hoặc mở trang con khác.
+local currentUnload = nil
 
-renderFunctionMenu = function()
+local function safeUnload()
+    if type(currentUnload) == "function" then
+        pcall(currentUnload)
+    end
+    currentUnload = nil
+end
+
+-- Bảng đăng ký các module con. Mỗi entry là 1 hàm build(subContext) trả về
+-- (rootFrame, unloadFn?) hoặc chỉ rootFrame.
+local ModuleBuilders = {}
+local openModule -- forward declare (định nghĩa bên dưới)
+
+-- ================= MAIN MENU RENDER =================
+local function renderMainMenu()
+    safeUnload()
+
     for _, child in ipairs(Tab:GetChildren()) do
         child:Destroy()
     end
@@ -220,45 +238,19 @@ renderFunctionMenu = function()
     })
 
     local modules = {
-        {"SHOP", "Shop", "Shop and item utilities."},
-        {"SETTING FARM", "SettingFarm", "Farming preferences."},
-        {"FARM", "Farm", "Farming functions and controls."},
-        {"ITEM & QUEST", "ItemQuest", "Items and quest utilities."},
-        {"ISLAND", "Island", "Island travel and navigation."},
-        {"FRUIT", "Fruit", "Fruit utilities and helpers."},
-        {"SETTING", "Setting", "FishHub settings and controls."},
+        {"SHOP", "shop", "Shop and item utilities."},
+        {"SETTING FARM", "settingfarm", "Farming preferences."},
+        {"FARM", "farm", "Farming functions and controls."},
+        {"ITEM", "item", "Items and quest utilities."},
+        {"ISLAND", "island", "Island travel and navigation."},
+        {"FRUIT", "fruit", "Fruit utilities and helpers."},
+        {"SETTING", "setting", "FishHub settings and controls."},
     }
 
     local cards = {}
 
-    local function notify(message)
-        if type(context.ShowNotification) == "function" then
-            pcall(context.ShowNotification, message)
-        end
-    end
-
-    local function loadModule(fileName)
-        local url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/" .. fileName .. ".lua"
-        local success, result = pcall(function()
-            return game:HttpGet(url)
-        end)
-        
-        if success and result then
-            local fn, err = loadstring(result)
-            if fn then
-                -- Truyền ngược lại hàm render menu chính để xử lý nút Back hoàn hảo
-                context.BackToFunction = renderFunctionMenu
-                pcall(fn, context)
-            else
-                notify("Loadstring error: " .. tostring(err))
-            end
-        else
-            notify("Failed to fetch module: " .. fileName)
-        end
-    end
-
     local function makeCard(index, data)
-        local title, fileName, description = data[1], data[2], data[3]
+        local title, moduleKey, description = data[1], data[2], data[3]
 
         local card = New("TextButton", {
             Parent = holder,
@@ -377,7 +369,7 @@ renderFunctionMenu = function()
             scale = scale,
             iconGlow = iconGlow,
             name = string.lower(title),
-            fileName = fileName
+            moduleKey = moduleKey
         }
         cards[#cards + 1] = state
 
@@ -400,7 +392,7 @@ renderFunctionMenu = function()
         end)
 
         card.Activated:Connect(function()
-            loadModule(fileName)
+            openModule(moduleKey)
         end)
 
         task.delay(index * 0.045, function()
@@ -437,4 +429,234 @@ renderFunctionMenu = function()
     end)
 end
 
-renderFunctionMenu()
+-- ================= SUB PAGE SHELL =================
+-- Tạo khung chung cho 1 trang con: top bar (Back + Search) + content frame.
+-- builderFn(contentFrame, subContext) được gọi để build nội dung riêng của module.
+local function renderSubPage(titleText, moduleKey, builderFn)
+    safeUnload()
+
+    for _, child in ipairs(Tab:GetChildren()) do
+        child:Destroy()
+    end
+
+    Tab.BackgroundTransparency = 1
+    Tab.BorderSizePixel = 0
+    Tab.ScrollBarThickness = 0
+    Tab.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+    local root = New("Frame", {
+        Parent = Tab,
+        Size = UDim2.new(1, -10, 0, 0),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        BackgroundTransparency = 1
+    })
+    New("UIPadding", {
+        Parent = root,
+        PaddingTop = UDim.new(0, 8),
+        PaddingBottom = UDim.new(0, 12),
+        PaddingLeft = UDim.new(0, 5),
+        PaddingRight = UDim.new(0, 5)
+    })
+    New("UIListLayout", {
+        Parent = root,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 10)
+    })
+
+    local topBar = New("Frame", {
+        Parent = root,
+        LayoutOrder = 1,
+        Size = UDim2.new(1, 0, 0, 45),
+        BackgroundTransparency = 1
+    })
+
+    local backBtn = New("TextButton", {
+        Parent = topBar,
+        Size = UDim2.fromOffset(45, 45),
+        BackgroundColor3 = Color3.fromRGB(12, 13, 19),
+        AutoButtonColor = false,
+        Text = ""
+    })
+    Corner(backBtn, 10)
+    local backStroke = Stroke(backBtn, 1, 0.4)
+    New("TextLabel", {
+        Parent = backBtn,
+        Size = UDim2.fromScale(1, 1),
+        BackgroundTransparency = 1,
+        Text = "←",
+        Font = Enum.Font.GothamBold,
+        TextSize = 18,
+        TextColor3 = accent()
+    })
+
+    backBtn.MouseEnter:Connect(function()
+        Tween(backStroke, 0.15, {Transparency = 0.05})
+    end)
+    backBtn.MouseLeave:Connect(function()
+        Tween(backStroke, 0.15, {Transparency = 0.4})
+    end)
+
+    local titleBox = New("Frame", {
+        Parent = topBar,
+        Position = UDim2.new(0, 55, 0, 0),
+        Size = UDim2.new(1, -55, 1, 0),
+        BackgroundColor3 = Color3.fromRGB(12, 13, 19)
+    })
+    Corner(titleBox, 10)
+    local titleStroke = Stroke(titleBox, 1, 0.4)
+
+    New("TextLabel", {
+        Parent = titleBox,
+        Position = UDim2.fromOffset(14, 0),
+        Size = UDim2.new(1, -24, 1, 0),
+        BackgroundTransparency = 1,
+        Text = titleText,
+        Font = Enum.Font.GothamBold,
+        TextSize = 13,
+        TextColor3 = Color3.fromRGB(240, 242, 248),
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    local contentFrame = New("Frame", {
+        Parent = root,
+        LayoutOrder = 2,
+        Size = UDim2.new(1, 0, 0, 0),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        BackgroundColor3 = Color3.fromRGB(9, 10, 15),
+        BackgroundTransparency = 0.5
+    })
+    Corner(contentFrame, 12)
+    local contentStroke = Stroke(contentFrame, 1, 0.6)
+    New("UIPadding", {
+        Parent = contentFrame,
+        PaddingTop = UDim.new(0, 12),
+        PaddingBottom = UDim.new(0, 12),
+        PaddingLeft = UDim.new(0, 12),
+        PaddingRight = UDim.new(0, 12)
+    })
+
+    -- Nút Back: quay lại menu chính (giữ cấu trúc: tab -> nội dung -> back -> các tab)
+    backBtn.Activated:Connect(function()
+        renderMainMenu()
+    end)
+
+    task.spawn(function()
+        while root.Parent do
+            local a = accent()
+            backStroke.Color = a
+            titleStroke.Color = a
+            contentStroke.Color = a
+            task.wait(0.2)
+        end
+    end)
+
+    -- subContext kế thừa context gốc, thêm helper riêng cho module
+    local subContext = setmetatable({
+        Tab = Tab,
+        Config = Config,
+        ContentFrame = contentFrame,
+        New = New,
+        Corner = Corner,
+        Stroke = Stroke,
+        Tween = Tween,
+        accent = accent,
+        BackToMain = renderMainMenu,
+    }, { __index = context })
+
+    if type(builderFn) == "function" then
+        local ok, unloadFn = pcall(builderFn, contentFrame, subContext)
+        if ok and type(unloadFn) == "function" then
+            currentUnload = unloadFn
+        elseif not ok then
+            warn("[FishHub] Module '" .. moduleKey .. "' lỗi khi build:", unloadFn)
+            New("TextLabel", {
+                Parent = contentFrame,
+                Size = UDim2.new(1, 0, 0, 60),
+                BackgroundTransparency = 1,
+                Text = "Đã xảy ra lỗi khi tải module này.",
+                Font = Enum.Font.GothamMedium,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(200, 90, 90)
+            })
+        end
+    end
+end
+
+-- ================= MODULE BUILDERS =================
+-- Mỗi builder chỉ cần vẽ nội dung vào contentFrame. Back đã được xử lý sẵn ở
+-- renderSubPage nên các module KHÔNG cần tự làm nút back nữa.
+
+local function placeholderBuilder(labelText)
+    return function(contentFrame, subContext)
+        subContext.New("TextLabel", {
+            Parent = contentFrame,
+            Size = UDim2.new(1, 0, 0, 160),
+            BackgroundTransparency = 1,
+            Text = labelText,
+            Font = Enum.Font.GothamBold,
+            TextSize = 14,
+            TextColor3 = Color3.fromRGB(200, 205, 220),
+            TextWrapped = true
+        })
+    end
+end
+
+ModuleBuilders["shop"] = {
+    title = "SHOP",
+    build = placeholderBuilder("Shop Content Items & Upgrades"),
+}
+ModuleBuilders["settingfarm"] = {
+    title = "SETTING FARM",
+    build = placeholderBuilder("Setting Farm Content"),
+}
+ModuleBuilders["farm"] = {
+    title = "FARM",
+    build = placeholderBuilder("Farm Content"),
+}
+ModuleBuilders["item"] = {
+    title = "ITEM",
+    build = placeholderBuilder("Item Content"),
+}
+ModuleBuilders["island"] = {
+    title = "ISLAND",
+    build = placeholderBuilder("Island Content"),
+}
+ModuleBuilders["fruit"] = {
+    title = "FRUIT",
+    build = placeholderBuilder("Fruit Content"),
+}
+ModuleBuilders["setting"] = {
+    title = "SETTING",
+    build = placeholderBuilder("FishHub Settings"),
+}
+
+-- ================= OPEN MODULE =================
+openModule = function(moduleKey)
+    local entry = ModuleBuilders[moduleKey]
+    if not entry then
+        warn("[FishHub] Không tìm thấy module:", moduleKey)
+        return
+    end
+    renderSubPage(entry.title, moduleKey, entry.build)
+end
+
+-- Expose để tương thích ngược nếu file khác gọi context.LoadFunction("shop") v.v.
+context.LoadFunction = function(key)
+    if key == "function" or key == "Function" or key == nil then
+        renderMainMenu()
+    else
+        openModule(key)
+    end
+end
+context.Navigate = context.LoadFunction
+context.BackToMain = renderMainMenu
+context.OpenModule = openModule
+
+-- Khởi động: hiển thị menu chính
+renderMainMenu()
+
+return {
+    Root = Tab,
+    BackToMain = renderMainMenu,
+    OpenModule = openModule,
+}
