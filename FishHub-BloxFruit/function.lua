@@ -217,34 +217,33 @@ local grid = New("UIGridLayout", {
 })
 
 local modules = {
-    {"SHOP", "Shop", "Shop and item utilities."},
-    {"SETTING FARM", "SettingFarm", "Farming preferences."},
-    {"FARM", "Farm", "Farming functions and controls."},
-    {"ITEM & QUEST", "ItemQuest", "Items and quest utilities."},
-    {"ISLAND", "Island", "Island travel and navigation."},
-    {"FRUIT", "Fruit", "Fruit utilities and helpers."},
-    {"SETTING", "Setting", "FishHub settings and controls."},
+    {"SHOP", "shop", "Shop and item utilities."},
+    {"SETTING FARM", "settingfarm", "Farming preferences."},
+    {"FARM", "farm", "Farming functions and controls."},
+    {"ITEM", "item", "Items and quest utilities."},
+    {"ISLAND", "island", "Island travel and navigation."},
+    {"FRUIT", "fruit", "Fruit utilities and helpers."},
+    {"SETTING", "setting", "FishHub settings and controls."},
 }
 
 local cards = {}
 
-local function notify(message)
-    if type(context.ShowNotification) == "function" then
-        pcall(context.ShowNotification, message)
-    end
-end
-
-local function loadModule(key)
-    if type(context.LoadFunction) == "function" then
-        local ok, err = pcall(context.LoadFunction, key)
-        if not ok then notify(tostring(err)) end
-    elseif type(context.Navigate) == "function" then
-        pcall(context.Navigate, key)
+local function loadModule(fileName)
+    local url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/" .. fileName .. ".lua"
+    local success, result = pcall(function()
+        return game:HttpGet(url)
+    end)
+    
+    if success and result then
+        local fn, err = loadstring(result)
+        if fn then
+            pcall(fn, context)
+        end
     end
 end
 
 local function makeCard(index, data)
-    local title, key, description = data[1], data[2], data[3]
+    local title, fileName, description = data[1], data[2], data[3]
 
     local card = New("TextButton", {
         Parent = holder,
@@ -363,7 +362,7 @@ local function makeCard(index, data)
         scale = scale,
         iconGlow = iconGlow,
         name = string.lower(title),
-        key = key
+        fileName = fileName
     }
     cards[#cards + 1] = state
 
@@ -386,10 +385,9 @@ local function makeCard(index, data)
     end)
 
     card.Activated:Connect(function()
-        loadModule(key)
+        loadModule(fileName)
     end)
 
-    -- hiệu ứng xuất hiện tuần tự khi mở tab, mượt hơn hẳn so với bung ra tức thì
     task.delay(index * 0.045, function()
         if card and card.Parent then
             Tween(card, 0.3, {BackgroundTransparency = 0}, Enum.EasingStyle.Quart)
