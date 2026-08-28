@@ -178,6 +178,25 @@ glowGradient.Parent = heroGlow
 
 table.insert(dynamicAccents, heroGlow)
 
+local heroGlow2 = Instance.new("Frame")
+heroGlow2.Name = "AccentGlow2"
+heroGlow2.Size = UDim2.new(0, 110, 0, 110)
+heroGlow2.Position = UDim2.new(0, -55, 1, -60)
+heroGlow2.BackgroundColor3 = theme()
+heroGlow2.BackgroundTransparency = 0.92
+heroGlow2.BorderSizePixel = 0
+heroGlow2.Parent = welcome
+corner(heroGlow2, 100)
+
+local glowGradient2 = Instance.new("UIGradient")
+glowGradient2.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 0.1),
+    NumberSequenceKeypoint.new(1, 1)
+})
+glowGradient2.Parent = heroGlow2
+
+table.insert(dynamicAccents, heroGlow2)
+
 local accent = Instance.new("Frame")
 accent.Name = "AccentBar"
 accent.Size = UDim2.new(0, 4, 1, -34)
@@ -390,6 +409,21 @@ local function formatNumber(value)
     return sign .. text
 end
 
+local function formatPlain(value)
+    if not value then
+        return "0"
+    end
+
+    local raw = value.Value
+    local number = tonumber(raw)
+
+    if not number then
+        return tostring(raw or 0)
+    end
+
+    return tostring(math.floor(number))
+end
+
 local function createStat(titleText, valueText, x, y)
     local card = Instance.new("Frame")
     card.Size = UDim2.new(0.5, -10, 0, 38)
@@ -399,38 +433,53 @@ local function createStat(titleText, valueText, x, y)
     card.Parent = status
     corner(card, 9)
 
-    local cardStroke = addStroke(card, 0.88, 1)
+    local cardStroke = addStroke(card, 0.85, 1)
     table.insert(dynamicStrokes, cardStroke)
 
-    local indicator = Instance.new("Frame")
-    indicator.Size = UDim2.new(0, 3, 0, 20)
-    indicator.Position = UDim2.new(0, 7, 0.5, -10)
-    indicator.BackgroundColor3 = theme()
-    indicator.BorderSizePixel = 0
-    indicator.Parent = card
-    corner(indicator, 4)
-    table.insert(dynamicAccents, indicator)
+    local cardScale = Instance.new("UIScale")
+    cardScale.Parent = card
+
+    local iconBox = Instance.new("Frame")
+    iconBox.Size = UDim2.new(0, 26, 0, 26)
+    iconBox.Position = UDim2.new(0, 6, 0.5, -13)
+    iconBox.BackgroundColor3 = Color3.fromRGB(18, 20, 29)
+    iconBox.BorderSizePixel = 0
+    iconBox.Parent = card
+    corner(iconBox, 8)
+
+    local iconStroke = addStroke(iconBox, 0.6, 1)
+    table.insert(dynamicStrokes, iconStroke)
+
+    local iconLabel = label(
+        iconBox,
+        string.sub(titleText, 1, 1),
+        11,
+        theme(),
+        Enum.Font.GothamBlack
+    )
+    iconLabel.Size = UDim2.new(1, 0, 1, 0)
+    iconLabel.TextXAlignment = Enum.TextXAlignment.Center
+    table.insert(dynamicText, iconLabel)
 
     local title = label(
         card,
         titleText,
         8,
-        Color3.fromRGB(115, 120, 135),
+        Color3.fromRGB(120, 125, 140),
         Enum.Font.GothamBold
     )
-    title.Size = UDim2.new(0.55, 0, 1, 0)
-    title.Position = UDim2.new(0, 16, 0, 0)
+    title.Size = UDim2.new(1, -46, 0, 12)
+    title.Position = UDim2.new(0, 40, 0, 6)
 
     local value = label(
         card,
         valueText,
-        10,
-        Color3.fromRGB(240, 242, 248),
-        Enum.Font.GothamBold
+        12,
+        Color3.fromRGB(242, 244, 250),
+        Enum.Font.GothamBlack
     )
-    value.Size = UDim2.new(0.45, -10, 1, 0)
-    value.Position = UDim2.new(0.55, 0, 0, 0)
-    value.TextXAlignment = Enum.TextXAlignment.Right
+    value.Size = UDim2.new(1, -46, 0, 16)
+    value.Position = UDim2.new(0, 40, 0, 18)
 
     return title, value
 end
@@ -449,7 +498,7 @@ local bountyHonorValue = findValue(
 
 local levelTitle, level = createStat(
     "LEVEL",
-    formatNumber(levelValue),
+    formatPlain(levelValue),
     0,
     7
 )
@@ -519,6 +568,18 @@ local function refreshReputation()
 end
 
 local info = section("INFORMATION", 160)
+
+local avatarGlow = Instance.new("Frame")
+avatarGlow.Name = "AvatarGlow"
+avatarGlow.Size = UDim2.new(0, 94, 0, 94)
+avatarGlow.Position = UDim2.new(0, 2, 0, 2)
+avatarGlow.BackgroundColor3 = theme()
+avatarGlow.BackgroundTransparency = 0.9
+avatarGlow.BorderSizePixel = 0
+avatarGlow.ZIndex = 0
+avatarGlow.Parent = info
+corner(avatarGlow, 22)
+table.insert(dynamicAccents, avatarGlow)
 
 local avatarHolder = Instance.new("Frame")
 avatarHolder.Size = UDim2.new(0, 74, 0, 74)
@@ -618,6 +679,18 @@ liveDot.BorderSizePixel = 0
 liveDot.Parent = live
 corner(liveDot, 10)
 table.insert(dynamicAccents, liveDot)
+
+task.spawn(function()
+    while liveDot.Parent do
+        tween(liveDot, {BackgroundTransparency = 0.1}, 0.9, Enum.EasingStyle.Sine):Play()
+        task.wait(0.9)
+
+        if not liveDot.Parent then break end
+
+        tween(liveDot, {BackgroundTransparency = 0.75}, 0.9, Enum.EasingStyle.Sine):Play()
+        task.wait(0.9)
+    end
+end)
 
 local liveText = label(
     live,
@@ -726,7 +799,7 @@ task.spawn(function()
             "honor"
         )
 
-        level.Text = formatNumber(levelValue)
+        level.Text = formatPlain(levelValue)
         beli.Text = formatNumber(beliValue)
         fragments.Text = formatNumber(fragmentsValue)
 
@@ -744,6 +817,7 @@ end)
 
 local function hoverCard(card)
     local original = card.BackgroundColor3
+    local scaleObj = card:FindFirstChildOfClass("UIScale")
 
     card.MouseEnter:Connect(function()
         if not card.Parent then return end
@@ -755,6 +829,10 @@ local function hoverCard(card)
             },
             0.18
         ):Play()
+
+        if scaleObj then
+            tween(scaleObj, {Scale = 1.03}, 0.18, Enum.EasingStyle.Back):Play()
+        end
     end)
 
     card.MouseLeave:Connect(function()
@@ -767,6 +845,10 @@ local function hoverCard(card)
             },
             0.18
         ):Play()
+
+        if scaleObj then
+            tween(scaleObj, {Scale = 1}, 0.18):Play()
+        end
     end)
 end
 
