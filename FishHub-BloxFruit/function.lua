@@ -389,7 +389,6 @@ local function makeCard(index, data)
         loadModule(key)
     end)
 
-    -- hiệu ứng xuất hiện tuần tự khi mở tab, mượt hơn hẳn so với bung ra tức thì
     task.delay(index * 0.045, function()
         if card and card.Parent then
             Tween(card, 0.3, {BackgroundTransparency = 0}, Enum.EasingStyle.Quart)
