@@ -25,6 +25,7 @@ local function Stroke(parent, thickness, transparency)
     return New("UIStroke", { Parent = parent, Color = accent(), Thickness = thickness or 1, Transparency = transparency or 0.5, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
 end
 
+-- Xóa sạch nội dung cũ của Tab để render giao diện sub-module
 for _, child in ipairs(Tab:GetChildren()) do child:Destroy() end
 
 Tab.BackgroundTransparency = 1
@@ -47,14 +48,16 @@ local searchBox = New("Frame", { Parent = topBar, Position = UDim2.new(0, 55, 0,
 Corner(searchBox, 10)
 local searchStroke = Stroke(searchBox, 1, 0.4)
 New("TextLabel", { Parent = searchBox, Position = UDim2.new(0, 12, 0, 0), Size = UDim2.new(0, 20, 1, 0), BackgroundTransparency = 1, Text = "🔍", TextSize = 14 })
-New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search shop items...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
+New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search options...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
 
 local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 250), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
 Corner(contentFrame, 12)
 local contentStroke = Stroke(contentFrame, 1, 0.6)
 
-New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "SHOP & ITEM UTILITIES", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.fromRGB(200, 205, 220) })
+-- THAY ĐỔI TÊN NÀY CHO TỪNG FILE TƯƠNG ỨNG (Shop, Setting Farm, Farm, v.v.)
+New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "MODULE ACTIVE PANEL", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.fromRGB(200, 205, 220) })
 
+-- Gọi trực tiếp hàm quay lại menu chính mượt mà khi ấn nút Back
 backBtn.Activated:Connect(function()
     if type(context.BackToFunction) == "function" then
         context.BackToFunction()
@@ -70,5 +73,3 @@ task.spawn(function()
         task.wait(0.2)
     end
 end)
-
-return { Root = root }
