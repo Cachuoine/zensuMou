@@ -46,18 +46,15 @@ New("TextLabel", { Parent = backBtn, Size = UDim2.fromScale(1, 1), BackgroundTra
 local searchBox = New("Frame", { Parent = topBar, Position = UDim2.new(0, 55, 0, 0), Size = UDim2.new(1, -55, 1, 0), BackgroundColor3 = Color3.fromRGB(12, 13, 19) })
 Corner(searchBox, 10)
 local searchStroke = Stroke(searchBox, 1, 0.4)
-
 New("TextLabel", { Parent = searchBox, Position = UDim2.new(0, 12, 0, 0), Size = UDim2.new(0, 20, 1, 0), BackgroundTransparency = 1, Text = "🔍", TextSize = 14 })
-New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
+New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search fruits...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
 
-local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 200), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
+local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 250), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
 Corner(contentFrame, 12)
 local contentStroke = Stroke(contentFrame, 1, 0.6)
 
--- THAY ĐỔI TÊN TEXT NÀY TÙY THEO TỪNG FILE (Ví dụ: Shop Content, Setting Farm Content, v.v.)
-New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "MODULE CONTENT PANEL", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.fromRGB(200, 205, 220) })
+New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "FRUIT UTILITIES & HELPERS", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.fromRGB(200, 205, 220) })
 
--- Xử lý nút Back quay lại giao diện Function trung tâm mượt mà
 backBtn.Activated:Connect(function()
     if type(context.BackToFunction) == "function" then
         context.BackToFunction()
