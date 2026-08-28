@@ -156,7 +156,7 @@ local accentBar = New("Frame", {
 })
 Corner(accentBar, 4)
 
-New("TextLabel", {
+local titleLabel = New("TextLabel", {
     Parent = head,
     Position = UDim2.fromOffset(28, 9),
     Size = UDim2.new(1, -42, 0, 25),
@@ -168,7 +168,7 @@ New("TextLabel", {
     TextXAlignment = Enum.TextXAlignment.Left
 })
 
-New("TextLabel", {
+local subTitleLabel = New("TextLabel", {
     Parent = head,
     Position = UDim2.fromOffset(28, 36),
     Size = UDim2.new(1, -42, 0, 17),
@@ -200,6 +200,7 @@ task.spawn(function()
     end
 end)
 
+-- Holder chứa các card danh sách chính
 local holder = New("Frame", {
     Parent = root,
     LayoutOrder = 2,
@@ -216,34 +217,131 @@ local grid = New("UIGridLayout", {
     SortOrder = Enum.SortOrder.LayoutOrder
 })
 
+-- Holder riêng dành cho giao diện bên trong khi ấn vào một mục (có nút Quay lại)
+local subContentHolder = New("Frame", {
+    Parent = root,
+    LayoutOrder = 3,
+    Size = UDim2.new(1, 0, 0, 0),
+    AutomaticSize = Enum.AutomaticSize.Y,
+    BackgroundTransparency = 1,
+    Visible = false
+})
+
 local modules = {
-    {"SHOP", "shop", "Shop and item utilities."},
-    {"SETTING FARM", "settingfarm", "Farming preferences."},
-    {"FARM", "farm", "Farming functions and controls."},
-    {"ITEM", "item", "Items and quest utilities."},
-    {"ISLAND", "island", "Island travel and navigation."},
-    {"FRUIT", "fruit", "Fruit utilities and helpers."},
-    {"SETTING", "setting", "FishHub settings and controls."},
+    {"SHOP", "Shop", "Shop and item utilities."},
+    {"SETTING FARM", "SettingFarm", "Farming preferences."},
+    {"FARM", "Farm", "Farming functions and controls."},
+    {"ITEM & QUEST", "ItemQuest", "Items and quest utilities."},
+    {"ISLAND", "Island", "Island travel and navigation."},
+    {"FRUIT", "Fruit", "Fruit utilities and helpers."},
+    {"SETTING", "Setting", "FishHub settings and controls."},
 }
 
 local cards = {}
 
-local function loadModule(fileName)
-    local url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/" .. fileName .. ".lua"
-    local success, result = pcall(function()
-        return game:HttpGet(url)
+local function notify(message)
+    if type(context.ShowNotification) == "function" then
+        pcall(context.ShowNotification, message)
+    end
+end
+
+-- Hàm hiển thị nội dung chi tiết bên trong khi bấm vào card
+local function openSubContent(title, key, description)
+    -- Xóa nội dung cũ trong subContentHolder
+    for _, child in ipairs(subContentHolder:GetChildren()) do
+        child:Destroy()
+    end
+
+    -- Thay đổi tiêu đề ở Header chính cho phù hợp
+    titleLabel.Text = title
+    subTitleLabel.Text = string.upper(key) .. " MODULES & SETTINGS"
+
+    -- Tạo nút Quay lại (Back Button)
+    local backBtn = New("TextButton", {
+        Parent = subContentHolder,
+        LayoutOrder = 1,
+        Size = UDim2.new(1, 0, 0, 40),
+        BackgroundColor3 = Color3.fromRGB(14, 15, 23),
+        AutoButtonColor = false,
+        Text = "",
+        BorderSizePixel = 0
+    })
+    Corner(backBtn, 10)
+    local backStroke = Stroke(backBtn, 1, 0.6)
+
+    New("TextLabel", {
+        Parent = backBtn,
+        Position = UDim2.fromOffset(15, 0),
+        Size = UDim2.new(1, -30, 1, 0),
+        BackgroundTransparency = 1,
+        Text = "‹  Back to Functions",
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        TextColor3 = accent(),
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    -- Khung chứa các thành phần nội dung bên trong của module tương ứng
+    local contentBox = New("Frame", {
+        Parent = subContentHolder,
+        LayoutOrder = 2,
+        Size = UDim2.new(1, 0, 0, 150),
+        BackgroundColor3 = Color3.fromRGB(9, 10, 15),
+        BorderSizePixel = 0
+    })
+    Corner(contentBox, 12)
+    Stroke(contentBox, 1, 0.7)
+
+    New("TextLabel", {
+        Parent = contentBox,
+        Position = UDim2.fromOffset(15, 15),
+        Size = UDim2.new(1, -30, 0, 30),
+        BackgroundTransparency = 1,
+        Text = "Content for: " .. title,
+        Font = Enum.Font.GothamBold,
+        TextSize = 14,
+        TextColor3 = Color3.fromRGB(240, 242, 248),
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    New("TextLabel", {
+        Parent = contentBox,
+        Position = UDim2.fromOffset(15, 45),
+        Size = UDim2.new(1, -30, 0, 50),
+        BackgroundTransparency = 1,
+        Text = description .. "\n(You can add toggles, sliders, or specific options for " .. key .. " here.)",
+        Font = Enum.Font.GothamMedium,
+        TextSize = 10,
+        TextColor3 = Color3.fromRGB(130, 135, 150),
+        TextWrapped = true,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top
+    })
+
+    -- Xử lý sự kiện bấm nút Quay lại
+    backBtn.Activated:Connect(function()
+        Tween(subContentHolder, 0.2, {BackgroundTransparency = 1})
+        subContentHolder.Visible = false
+        holder.Visible = true
+
+        -- Khôi phục tiêu đề gốc của Header
+        titleLabel.Text = "FUNCTION"
+        subTitleLabel.Text = "TOOLS  •  MODULES  •  UTILITIES"
     end)
-    
-    if success and result then
-        local fn, err = loadstring(result)
-        if fn then
-            pcall(fn, context)
-        end
+
+    -- Ẩn danh sách card chính và hiện subContentHolder
+    holder.Visible = false
+    subContentHolder.Visible = true
+    subContentHolder.BackgroundTransparency = 0
+
+    -- Gọi hàm LoadFunction gốc nếu có hỗ trợ ngầm từ context
+    if type(context.LoadFunction) == "function" then
+        pcall(context.LoadFunction, key)
     end
 end
 
 local function makeCard(index, data)
-    local title, fileName, description = data[1], data[2], data[3]
+    local title, key, description = data[1], data[2], data[3]
 
     local card = New("TextButton", {
         Parent = holder,
@@ -362,7 +460,7 @@ local function makeCard(index, data)
         scale = scale,
         iconGlow = iconGlow,
         name = string.lower(title),
-        fileName = fileName
+        key = key
     }
     cards[#cards + 1] = state
 
@@ -384,8 +482,9 @@ local function makeCard(index, data)
         Tween(chevron, 0.18, {Position = UDim2.new(1, -29, 0, 15)})
     end)
 
+    -- Khi bấm vào card sẽ chuyển giao diện sang nội dung bên trong tương ứng
     card.Activated:Connect(function()
-        loadModule(fileName)
+        openSubContent(title, key, description)
     end)
 
     task.delay(index * 0.045, function()
