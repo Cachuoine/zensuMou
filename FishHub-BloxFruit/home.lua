@@ -505,7 +505,7 @@ local function refreshReputation()
     if kind == "Marines" then
         reputationTitle.Text = "MARINES/HONOR"
     else
-        reputationTitle.Text = "PIRATES/BOUNTY/"
+        reputationTitle.Text = "PIRATES/BOUNTY"
     end
 
     reputation.Text = formatNumber(bountyHonorValue)
