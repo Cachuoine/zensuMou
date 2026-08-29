@@ -156,23 +156,17 @@ local SUCCESS=Color3.fromRGB(56,222,140)
 
 for i,d in ipairs(socials)do
 	local PANEL_BG=Color3.fromRGB(11,12,20)
-	local card=N('Frame',{Parent=row,Size=UDim2.fromOffset(92,128),BackgroundColor3=PANEL_BG,BorderSizePixel=0,ClipsDescendants=true});Round(card,16)
+	local card=N('Frame',{Parent=row,Size=UDim2.fromOffset(92,128),BackgroundColor3=PANEL_BG,BorderSizePixel=0});Round(card,16)
 	local cardStroke=Stroke(card,1,.55,Color3.fromRGB(255,255,255))
 
-	-- Thêm logo chìm trang trí phía sau (màu cố định, không rainbow, không phụ thuộc theme)
-	local bgDeco=N('ImageLabel',{Parent=card,AnchorPoint=Vector2.new(1,1),Position=UDim2.new(1,15,1,15),Size=UDim2.fromOffset(65,65),BackgroundTransparency=1,Image=d.icon,ImageColor3=d.brand,ImageTransparency=0.85,ScaleType=Enum.ScaleType.Fit})
-
 	local iconCenter=UDim2.fromOffset(46,48)
-	-- Vòng ngoài cố định màu theo brand của từng mạng xã hội (không dùng rainbow, không dùng theme)
-	local ring=N('Frame',{Parent=card,AnchorPoint=Vector2.new(.5,.5),Position=iconCenter,Size=UDim2.fromOffset(74,74),BackgroundTransparency=1});Circle(ring)
-	local ringStroke=N('UIStroke',{Parent=ring,Thickness=2.4,Color=d.brand,Transparency=0.3,ApplyStrokeMode=Enum.ApplyStrokeMode.Border})
-	
-	local gap=N('Frame',{Parent=card,AnchorPoint=Vector2.new(.5,.5),Position=iconCenter,Size=UDim2.fromOffset(66,66),BackgroundColor3=PANEL_BG,BorderSizePixel=0});Circle(gap)
-	
+	local ring,ringStroke=StoryRing(card,iconCenter,74,66,PANEL_BG,2.4,.9+(i*.15))
 	local iconHolder=N('Frame',{Parent=card,AnchorPoint=Vector2.new(.5,.5),Position=iconCenter,Size=UDim2.fromOffset(60,60),BackgroundColor3=Color3.fromRGB(7,8,13),BorderSizePixel=0});Circle(iconHolder)
-	local innerStroke=Stroke(iconHolder,1.3,.2,d.brand)
+	local innerStroke=Stroke(iconHolder,1.3,.2)
 	local sc=N('UIScale',{Parent=card})
-	local img=N('ImageLabel',{Parent=iconHolder,AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),Size=UDim2.fromOffset(32,32),BackgroundTransparency=1,Image=d.icon,ImageColor3=d.brand,ScaleType=Enum.ScaleType.Fit})
+	
+	-- Đặt logo chuẩn vào chính giữa khung tròn (bỏ trống bên trong) với màu cố định theo brand của từng mạng xã hội
+	local img=N('ImageLabel',{Parent=iconHolder,AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),Size=UDim2.fromOffset(30,30),BackgroundTransparency=1,Image=d.icon,ImageColor3=d.brand,ScaleType=Enum.ScaleType.Fit})
 
 	N('TextLabel',{Parent=card,Position=UDim2.fromOffset(0,92),Size=UDim2.new(1,0,0,16),BackgroundTransparency=1,Text=d.name,Font=Enum.Font.GothamBold,TextSize=9,TextColor3=Color3.fromRGB(238,239,246),TextXAlignment=Enum.TextXAlignment.Center})
 	N('TextLabel',{Parent=card,Position=UDim2.fromOffset(0,108),Size=UDim2.new(1,0,0,14),BackgroundTransparency=1,Text='Tap to copy',Font=Enum.Font.GothamMedium,TextSize=7.5,TextColor3=Color3.fromRGB(110,115,130),TextXAlignment=Enum.TextXAlignment.Center})
@@ -183,17 +177,15 @@ for i,d in ipairs(socials)do
 		Tween(sc,.18,{Scale=1.05},Enum.EasingStyle.Back)
 		Tween(cardStroke,.18,{Transparency=.15})
 		Tween(card,.18,{BackgroundColor3=Color3.fromRGB(15,17,27)})
-		Tween(ringStroke,.18,{Thickness=3.2,Transparency=0.1})
+		Tween(ringStroke,.18,{Thickness=3.2})
 		Tween(innerStroke,.18,{Transparency=0,Thickness=1.7})
-		Tween(bgDeco,.18,{ImageTransparency=0.7})
 	end)
 	btn.MouseLeave:Connect(function()
 		Tween(sc,.18,{Scale=1})
 		Tween(cardStroke,.18,{Transparency=.55})
 		Tween(card,.18,{BackgroundColor3=PANEL_BG})
-		Tween(ringStroke,.18,{Thickness=2.4,Transparency=0.3})
+		Tween(ringStroke,.18,{Thickness=2.4})
 		Tween(innerStroke,.18,{Transparency=.2,Thickness=1.3})
-		Tween(bgDeco,.18,{ImageTransparency=0.85})
 	end)
 	btn.Activated:Connect(function()
 		pcall(function()if setclipboard then setclipboard(d.url)end end)
@@ -202,7 +194,7 @@ for i,d in ipairs(socials)do
 		Tween(sc,.15,{Scale=1.12},Enum.EasingStyle.Back)
 		task.delay(.55,function()
 			if innerStroke and innerStroke.Parent then
-				Tween(innerStroke,.35,{Color=d.brand,Transparency=.2,Thickness=1.3})
+				Tween(innerStroke,.35,{Color=accent(),Transparency=.2,Thickness=1.3})
 			end
 			if sc and sc.Parent then Tween(sc,.2,{Scale=1}) end
 		end)
