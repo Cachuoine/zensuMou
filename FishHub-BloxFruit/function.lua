@@ -6,19 +6,7 @@ if type(context) ~= "table" or not context.Tab then return end
 
 local Tab = context.Tab
 local Config = context.Config or {}
-context.Config = Config
-
--- ===== Đường dẫn gốc & tự tham chiếu =====
--- Nếu file này KHÔNG được host với tên "function.lua" trên GitHub, sửa FUNCTION_URL cho khớp tên thật.
-local BASE_URL = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/"
-local FUNCTION_URL = BASE_URL .. "function.lua"
-
 local function accent()
-    if Config.RainbowMode then
-        local speed = Config.RainbowSpeed or 0.15
-        local hue = (tick() * speed) % 1
-        return Color3.fromHSV(hue, 0.85, 1)
-    end
     return typeof(Config.ThemeColor) == "Color3"
         and Config.ThemeColor
         or Color3.fromRGB(0, 229, 255)
@@ -62,40 +50,6 @@ local function Tween(obj, duration, props, style, direction)
     )
     t:Play()
     return t
-end
-
--- ===== Bộ nạp script từ xa (dùng chung cho mở module + quay lại trang Function) =====
-local function loadRemote(url)
-    local ok, result = pcall(function()
-        return game:HttpGet(url)
-    end)
-    if not ok or not result then return false end
-
-    local fn = loadstring(result)
-    if not fn then return false end
-
-    return pcall(fn, context)
-end
-
-local function loadModule(fileName)
-    loadRemote(BASE_URL .. fileName .. ".lua")
-end
-
--- Các module con (shop.lua, farm.lua, item.lua, ...) sẽ gọi context.BackToFunction()
--- khi bấm nút Back để quay lại đúng trang Function này.
--- 2 alias LoadFunction/Navigate được thêm để tương thích với các file module đã tồn tại sẵn.
-context.BackToFunction = function()
-    loadRemote(FUNCTION_URL)
-end
-context.LoadFunction = function(name)
-    if not name or name == "function" or name == "Function" then
-        loadRemote(FUNCTION_URL)
-    else
-        loadModule(name)
-    end
-end
-context.Navigate = function(name)
-    context.LoadFunction(name)
 end
 
 for _, child in ipairs(Tab:GetChildren()) do
@@ -274,6 +228,20 @@ local modules = {
 
 local cards = {}
 
+local function loadModule(fileName)
+    local url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/" .. fileName .. ".lua"
+    local success, result = pcall(function()
+        return game:HttpGet(url)
+    end)
+    
+    if success and result then
+        local fn, err = loadstring(result)
+        if fn then
+            pcall(fn, context)
+        end
+    end
+end
+
 local function makeCard(index, data)
     local title, fileName, description = data[1], data[2], data[3]
 
@@ -449,7 +417,7 @@ task.spawn(function()
             item.iconGlow.BackgroundColor3 = a
         end
 
-        task.wait(0.05)
+        task.wait(0.2)
     end
 end)
 
