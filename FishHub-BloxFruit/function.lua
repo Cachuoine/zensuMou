@@ -359,7 +359,7 @@ loadFunction = function()
                 end
             end
 
-            task.wait() -- Giảm độ trễ xuống mức tối đa (cập nhật theo từng frame) để Rainbow mượt mà nhất
+            task.wait(0) -- Giảm độ trễ xuống mức tối đa (cập nhật theo từng frame) để Rainbow mượt mà nhất
         end
     end)
 end
