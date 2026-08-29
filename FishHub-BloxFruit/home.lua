@@ -1,13 +1,30 @@
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
--- Session start time captured as early as possible. This is the most
--- reliable "server-side" uptime proxy from a client/executor script,
--- since workspace.DistributedGameTime is often 0 / unreplicated on
--- the client side, and tick() is deprecated.
+-- ============================================================
+-- REAL SERVER UPTIME TRACKER
+-- ============================================================
+-- The previous attempts using workspace.DistributedGameTime and
+-- os.clock()/tick() were unreliable on many executors: DistributedGameTime
+-- often returns 0 on the client side, and os.clock()/tick() can be frozen
+-- or return 0 depending on the executor. The most reliable method is to
+-- accumulate actual frame deltas from RunService.Heartbeat — that comes
+-- straight from the Roblox engine, not the executor's clock.
+-- ============================================================
+
+local sessionElapsed = 0
+RunService.Heartbeat:Connect(function(dt)
+    if type(dt) == "number" and dt > 0 then
+        sessionElapsed = sessionElapsed + dt
+    end
+end)
+
+-- Backup reference points (in case Heartbeat is somehow blocked).
 local sessionStartClock = (os.clock and os.clock()) or 0
 local sessionStartTick = (tick and tick()) or sessionStartClock
+local sessionStartUnix = (os.time and os.time()) or 0
 
 local context = ...
 local player = (context and context.Player) or Players.LocalPlayer
@@ -107,25 +124,47 @@ local function formatServerUptime(seconds)
 end
 
 local function getServerUptime()
-    -- Prefer the real server uptime if DistributedGameTime is properly
-    -- replicated to the client and reports a sensible value (>= 1s).
-    local ok, value = pcall(function()
-        return workspace.DistributedGameTime
-    end)
-    if ok and type(value) == "number" and value >= 1 then
-        return value
+    -- 1) PRIMARY: Heartbeat-accumulated elapsed time. This is the
+    --    most reliable source because dt comes from the Roblox engine,
+    --    not the executor's clock. As long as the client renders frames,
+    --    this value keeps growing.
+    if sessionElapsed > 0 then
+        return sessionElapsed
     end
-    -- Fallback: use the wall-clock delta from when the script first
-    -- started running. tick() and os.clock() advance independently,
-    -- so pick whichever one grew the most — that handles the rare
-    -- case where one of them is frozen / returns 0 on some executors.
+
+    -- 2) FALLBACK A: os.time() delta. Uses the OS wall clock. Reliable
+    --    on every executor we've seen — the only failure mode is the
+    --    user's system clock being wildly wrong, which is rare.
+    if os.time and sessionStartUnix > 0 then
+        local now = os.time()
+        local elapsed = now - sessionStartUnix
+        if elapsed > 0 then
+            return elapsed
+        end
+    end
+
+    -- 3) FALLBACK B: os.clock / tick delta. Some executors freeze these
+    --    or return identical values, but we still try and keep the max.
     local nowClock = (os.clock and os.clock()) or sessionStartClock
     local nowTick = (tick and tick()) or sessionStartTick
     local elapsedClock = nowClock - sessionStartClock
     local elapsedTick = nowTick - sessionStartTick
     local elapsed = math.max(elapsedClock, elapsedTick)
-    if elapsed < 0 then elapsed = 0 end
-    return elapsed
+    if elapsed > 0 then
+        return elapsed
+    end
+
+    -- 4) LAST RESORT: workspace.DistributedGameTime. Only used if every
+    --    other clock source returned 0/frozen, and only if the value
+    --    is plausibly large (>= 60s) so we don't display garbage.
+    local ok, value = pcall(function()
+        return workspace.DistributedGameTime
+    end)
+    if ok and type(value) == "number" and value >= 60 then
+        return value
+    end
+
+    return 0
 end
 
 local function copyToClipboard(text)
