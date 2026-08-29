@@ -175,6 +175,7 @@ loadFunction = function()
     })
 
     local modules = {
+        {"SERVER STATUS", "server", "Live server status and info."},
         {"SHOP", "shop", "Shop and item utilities."},
         {"SETTING FARM", "settingfarm", "Farming preferences."},
         {"FARM", "farm", "Farming functions and controls."},
