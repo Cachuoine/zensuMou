@@ -46,18 +46,21 @@ New("TextLabel", { Parent = backBtn, Size = UDim2.fromScale(1, 1), BackgroundTra
 local searchBox = New("Frame", { Parent = topBar, Position = UDim2.new(0, 55, 0, 0), Size = UDim2.new(1, -55, 1, 0), BackgroundColor3 = Color3.fromRGB(12, 13, 19) })
 Corner(searchBox, 10)
 local searchStroke = Stroke(searchBox, 1, 0.4)
-New("TextLabel", { Parent = searchBox, Position = UDim2.new(0, 12, 0, 0), Size = UDim2.new(0, 20, 1, 0), BackgroundTransparency = 1, Text = "🔍", TextSize = 14 })
-New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search items & quests...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
 
-local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 250), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
+New("TextLabel", { Parent = searchBox, Position = UDim2.new(0, 12, 0, 0), Size = UDim2.new(0, 20, 1, 0), BackgroundTransparency = 1, Text = "🔍", TextSize = 14 })
+New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
+
+local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 200), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
 Corner(contentFrame, 12)
 local contentStroke = Stroke(contentFrame, 1, 0.6)
+New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "Module Content Area", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.fromRGB(200, 205, 220) })
 
-New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "ITEM & QUEST UTILITIES", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.fromRGB(200, 205, 220) })
-
+-- Xử lý nút Back gọn gàng, không bị lỗi kẹt
 backBtn.Activated:Connect(function()
-    if type(context.BackToFunction) == "function" then
-        context.BackToFunction()
+    if type(context.BackToMain) == "function" then
+        context.BackToMain()
+    elseif type(context.LoadFunction) == "function" then
+        context.LoadFunction()
     end
 end)
 
@@ -67,7 +70,7 @@ task.spawn(function()
         backStroke.Color = a
         searchStroke.Color = a
         contentStroke.Color = a
-        task.wait(0.2)
+        task.wait(0.5) -- Giảm tần suất chạy vòng lặp để chống lag/delay
     end
 end)
 
