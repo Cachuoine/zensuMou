@@ -152,7 +152,7 @@ local row=N('Frame',{Parent=root,LayoutOrder=3,Size=UDim2.new(1,0,0,132),Backgro
 N('UIListLayout',{Parent=row,FillDirection=Enum.FillDirection.Horizontal,HorizontalAlignment=Enum.HorizontalAlignment.Center,VerticalAlignment=Enum.VerticalAlignment.Center,Padding=UDim.new(0,14)})
 
 local socials={
-	{name='DISCORD',icon='rbxassetid://99376068381112',url='https://discord.gg/zFN6Nd99fC',brand=Color3.fromRGB(114,137,218)},
+	{name='DISCORD',icon='rbxassetid://130155530220808',url='https://discord.gg/zFN6Nd99fC',brand=Color3.fromRGB(114,137,218)},
 	{name='FACEBOOK',icon='rbxassetid://121702858306185',url='https://www.facebook.com/dao.huy.lam.09/',brand=Color3.fromRGB(66,140,244)},
 	{name='TIKTOK',icon='rbxassetid://131371324156072',url='https://www.tiktok.com/@daolam.trh',brand=Color3.fromRGB(56,222,222)},
 }
