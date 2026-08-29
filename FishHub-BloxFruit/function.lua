@@ -105,50 +105,6 @@ loadFunction = function()
         })
     })
 
-    local headerGlow = New("Frame", {
-        Parent = head,
-        Position = UDim2.new(1, -105, 0, -56),
-        Size = UDim2.fromOffset(150, 150),
-        BackgroundColor3 = accent(),
-        BackgroundTransparency = 0.9,
-        BorderSizePixel = 0
-    })
-    Corner(headerGlow, 99)
-    New("UIGradient", {
-        Parent = headerGlow,
-        Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 0.35),
-            NumberSequenceKeypoint.new(1, 1)
-        })
-    })
-
-    local headerGlow2 = New("Frame", {
-        Parent = head,
-        Position = UDim2.new(0, -45, 1, -35),
-        Size = UDim2.fromOffset(100, 100),
-        BackgroundColor3 = accent(),
-        BackgroundTransparency = 0.94,
-        BorderSizePixel = 0
-    })
-    Corner(headerGlow2, 99)
-    New("UIGradient", {
-        Parent = headerGlow2,
-        Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 0.1),
-            NumberSequenceKeypoint.new(1, 1)
-        })
-    })
-
-    local headerHighlight = New("Frame", {
-        Parent = head,
-        Position = UDim2.fromOffset(28, 0),
-        Size = UDim2.new(1, -56, 0, 2),
-        BackgroundColor3 = accent(),
-        BackgroundTransparency = 0.55,
-        BorderSizePixel = 0
-    })
-    Corner(headerHighlight, 2)
-
     local accentBar = New("Frame", {
         Parent = head,
         Position = UDim2.fromOffset(12, 14),
@@ -244,7 +200,6 @@ loadFunction = function()
                     subContext[k] = v
                 end
                 
-                -- Gán hàm quay lại an toàn
                 subContext.BackToMain = loadFunction
                 subContext.LoadFunction = loadFunction
                 subContext.Navigate = loadFunction
@@ -396,9 +351,6 @@ loadFunction = function()
             accentBar.BackgroundColor3 = a
             headerDot.BackgroundColor3 = a
             headStroke.Color = a
-            headerGlow.BackgroundColor3 = a
-            headerGlow2.BackgroundColor3 = a
-            headerHighlight.BackgroundColor3 = a
 
             for _, item in ipairs(cards) do
                 if item.stroke and item.stroke.Parent then
@@ -409,7 +361,7 @@ loadFunction = function()
                 end
             end
 
-            task.wait(0.1) -- Tăng thời gian chờ vòng lặp lên 0.5s để giảm tối đa lag/delay
+            task.wait(0.1)
         end
     end)
 end
