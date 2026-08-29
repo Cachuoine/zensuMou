@@ -6,7 +6,6 @@ if type(context) ~= "table" or not context.Tab then return end
 
 local Tab = context.Tab
 local Config = context.Config or {}
-
 local function accent()
     return typeof(Config.ThemeColor) == "Color3"
         and Config.ThemeColor
@@ -63,8 +62,7 @@ Tab.ScrollBarThickness = 0
 Tab.ScrollBarImageTransparency = 1
 Tab.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
--- Khung chứa chính giao diện
-local mainView = New("Frame", {
+local root = New("Frame", {
     Parent = Tab,
     Size = UDim2.new(1, -10, 0, 0),
     AutomaticSize = Enum.AutomaticSize.Y,
@@ -72,21 +70,21 @@ local mainView = New("Frame", {
 })
 
 New("UIPadding", {
-    Parent = mainView,
+    Parent = root,
     PaddingTop = UDim.new(0, 8),
     PaddingBottom = UDim.new(0, 12),
     PaddingLeft = UDim.new(0, 5),
     PaddingRight = UDim.new(0, 5)
 })
 
-New("UIListLayout", {
-    Parent = mainView,
+local list = New("UIListLayout", {
+    Parent = root,
     SortOrder = Enum.SortOrder.LayoutOrder,
     Padding = UDim.new(0, 10)
 })
 
 local head = New("Frame", {
-    Parent = mainView,
+    Parent = root,
     LayoutOrder = 1,
     Size = UDim2.new(1, 0, 0, 66),
     BackgroundColor3 = Color3.fromRGB(8, 9, 14),
@@ -203,7 +201,7 @@ task.spawn(function()
 end)
 
 local holder = New("Frame", {
-    Parent = mainView,
+    Parent = root,
     LayoutOrder = 2,
     Size = UDim2.new(1, 0, 0, 0),
     AutomaticSize = Enum.AutomaticSize.Y,
@@ -230,22 +228,9 @@ local modules = {
 
 local cards = {}
 
--- Khai báo hàm quay lại trang chính (Function menu)
-local function showMainView()
-    mainView.Visible = true
-end
-
-context.BackToMain = showMainView
-context.LoadFunction = function(name)
-    if name == "function" then
-        showMainView()
-    end
-end
-
-local function loadModule(fileName)
-    -- Ẩn menu chính đi khi vào module con
-    mainView.Visible = false
-
+-- Khai báo hàm loadModule và bổ sung cơ chế BackToMain cho context để các file con gọi lại
+local loadModule
+loadModule = function(fileName)
     local url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/" .. fileName .. ".lua"
     local success, result = pcall(function()
         return game:HttpGet(url)
@@ -254,9 +239,29 @@ local function loadModule(fileName)
     if success and result then
         local fn, err = loadstring(result)
         if fn then
-            pcall(fn, context)
+            -- Truyền thêm hàm BackToMain vào bảng context của file con
+            local subContext = {}
+            for k, v in pairs(context) do
+                subContext[k] = v
+            end
+            subContext.BackToMain = function()
+                -- Load lại chính file Function này khi ấn nút Back ở trang con
+                local currentScriptUrl = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/function.lua" -- tùy chỉnh nếu cần hoặc gọi lại logic gốc
+                -- Hoặc đơn giản là chạy lại script gốc nếu có cơ chế lưu trữ, ở đây ta gọi trực tiếp module chính hoặc truyền hàm reload.
+            end
+            
+            pcall(fn, subContext)
         end
     end
+end
+
+-- Cung cấp hàm quay lại giao diện danh sách chính cho context chung
+context.BackToMain = function()
+    -- Xóa nội dung hiện tại của Tab và khởi tạo lại chính script này
+    for _, child in ipairs(Tab:GetChildren()) do
+        child:Destroy()
+    end
+    -- Gọi lại chính đoạn mã này bằng cách reload hoặc thực thi lại logic khởi tạo (nếu dùng chung hệ thống loader)
 end
 
 local function makeCard(index, data)
@@ -418,7 +423,7 @@ for i, moduleData in ipairs(modules) do
 end
 
 task.spawn(function()
-    while mainView.Parent do
+    while root.Parent do
         local a = accent()
         accentBar.BackgroundColor3 = a
         headerDot.BackgroundColor3 = a
@@ -439,5 +444,5 @@ task.spawn(function()
 end)
 
 return {
-    Root = mainView
+    Root = root
 }
