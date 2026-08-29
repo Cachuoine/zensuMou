@@ -808,30 +808,18 @@ local function formatDuration(totalSeconds)
     return string.format("%02d:%02d:%02d", hours, minutes, seconds)
 end
 
--- GetServerTimeNow() returns an absolute epoch-like value (seconds since
--- the server's internal clock started), not "how long the server has run".
--- Anchor to the value we see the moment this script starts, then measure
--- the real elapsed difference on every tick.
-local serverTimeAnchorValue = 0
-local serverTimeAnchorOs = os.clock()
-
-pcall(function()
-    serverTimeAnchorValue = workspace:GetServerTimeNow()
-end)
-
+-- GetServerTimeNow() is a monotonically increasing value synced from the
+-- server (it's the client's synced view of the server's own os.clock()) —
+-- it already equals real time elapsed since the SERVER started, and is the
+-- same for every player in this server. Use it directly: no per-client
+-- anchor, so it never resets or drifts just because a player's script
+-- (re)loads later than others.
 local function refreshServerTime()
     local ok, now = pcall(function()
         return workspace:GetServerTimeNow()
     end)
 
-    local elapsed
-    if ok and now then
-        elapsed = now - serverTimeAnchorValue
-    else
-        elapsed = os.clock() - serverTimeAnchorOs
-    end
-
-    serverTimeValue.Text = formatDuration(elapsed)
+    serverTimeValue.Text = formatDuration(ok and now or 0)
 end
 
 -- Initial population, then keep it ticking every second in real time.
