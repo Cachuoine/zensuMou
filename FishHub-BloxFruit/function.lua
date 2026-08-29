@@ -175,14 +175,12 @@ loadFunction = function()
     })
 
     local modules = {
-        {"SERVER STATUS", "server", "Live server status and info."},
         {"SHOP", "shop", "Shop and item utilities."},
         {"SETTING FARM", "settingfarm", "Farming preferences."},
         {"FARM", "farm", "Farming functions and controls."},
-        {"ITEM", "item", "Items and quest utilities."},
+        {"STACK FARM", "stackfarm", "Stack farming functions."},
         {"ISLAND", "island", "Island travel and navigation."},
         {"FRUIT", "fruit", "Fruit utilities and helpers."},
-        {"PLAYER", "player", "Player tools and utilities."},
         {"SETTING", "setting", "FishHub settings and controls."},
     }
 
@@ -361,7 +359,7 @@ loadFunction = function()
                 end
             end
 
-            task.wait(0) -- Giảm độ trễ xuống mức tối đa (cập nhật theo từng frame) để Rainbow mượt mà nhất
+            task.wait(0)
         end
     end)
 end
