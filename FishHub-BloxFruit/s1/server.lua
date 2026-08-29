@@ -2,6 +2,8 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
+local UserInputService = game:GetService("UserInputService")
+local Clipboard = setclipboard or toclipboard
 
 local context = ...
 if type(context) ~= "table" or not context.Tab then return end
@@ -56,70 +58,81 @@ local searchStroke = Stroke(searchBox, 1, 0.4)
 New("TextLabel", { Parent = searchBox, Position = UDim2.new(0, 12, 0, 0), Size = UDim2.new(0, 20, 1, 0), BackgroundTransparency = 1, Text = "🔍", TextSize = 14 })
 New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search status...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
 
--- Main Content Container (Chia 2 phần Trái / Phải to đẹp)
-local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 260), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
+-- Khung chính phân chia Trái/Phải sang trọng, hiện đại
+local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 240), BackgroundColor3 = Color3.fromRGB(10, 11, 16), BackgroundTransparency = 0.3 })
 Corner(contentFrame, 12)
 local contentStroke = Stroke(contentFrame, 1, 0.6)
 
--- Bên trái luôn nhỏ hơn bên phải (Bên trái chiếm 32%, bên phải chiếm 68%)
-local leftPanel = New("Frame", { Parent = contentFrame, Size = UDim2.new(0.32, -5, 1, 0), Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1 })
-local rightPanel = New("Frame", { Parent = contentFrame, Size = UDim2.new(0.68, -5, 1, 0), Position = UDim2.new(0.32, 5, 0, 0), BackgroundTransparency = 1 })
+-- Bên trái luôn nhỏ hơn bên phải (Trái 28%, Phải 72%)
+local leftPanel = New("Frame", { Parent = contentFrame, Size = UDim2.new(0.28, -2, 1, 0), Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1 })
+local rightPanel = New("Frame", { Parent = contentFrame, Size = UDim2.new(0.72, -2, 1, 0), Position = UDim2.new(0.28, 2, 0, 0), BackgroundTransparency = 1 })
 
--- Đường kẻ dọc ngăn cách giữa trái và phải
-local divider = New("Frame", { Parent = contentFrame, Size = UDim2.new(0, 1, 1, -16), Position = UDim2.new(0.32, 0, 0, 8), BackgroundColor3 = Color3.fromRGB(40, 45, 60), BorderSizePixel = 0 })
+-- Đường kẻ dọc ngăn cách đẹp mắt
+local divider = New("Frame", { Parent = contentFrame, Size = UDim2.new(0, 1, 1, -20), Position = UDim2.new(0.28, 0, 0, 10), BackgroundColor3 = Color3.fromRGB(35, 40, 55), BorderSizePixel = 0 })
 
--- Cấu hình Phần Trái (Tab ID)
-New("UIPadding", { Parent = leftPanel, PaddingTop = UDim.new(0, 12), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 5) })
-New("UIListLayout", { Parent = leftPanel, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8) })
+-- Cấu hình Phần Trái (Hệ thống Tab chuẩn phong cách active phát sáng)
+New("UIPadding", { Parent = leftPanel, PaddingTop = UDim.new(0, 12), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 4) })
+New("UIListLayout", { Parent = leftPanel, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6) })
 
-New("TextLabel", { Parent = leftPanel, LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 20), BackgroundTransparency = 1, Text = "CATEGORIES", Font = Enum.Font.GothamBold, TextSize = 11, TextColor3 = Color3.fromRGB(140, 145, 165), TextXAlignment = Enum.TextXAlignment.Left })
+New("TextLabel", { Parent = leftPanel, LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 20), BackgroundTransparency = 1, Text = "MENU", Font = Enum.Font.GothamBold, TextSize = 10, TextColor3 = Color3.fromRGB(110, 115, 135), TextXAlignment = Enum.TextXAlignment.Left })
 
-local idTabButton = New("TextButton", { Parent = leftPanel, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = Color3.fromRGB(18, 20, 28), AutoButtonColor = false, Text = "" })
-Corner(idTabButton, 8)
-Stroke(idTabButton, 1, 0.7)
-New("TextLabel", { Parent = idTabButton, Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "  🆔 ID Panel", Font = Enum.Font.GothamBold, TextSize, TextSize = 12, TextColor3 = Color3.fromRGB(255, 255, 255), TextXAlignment = Enum.TextXAlignment.Left })
+-- Tab ID mẫu (Đang được chọn -> Phát sáng / Active state)
+local idTabBtn = New("TextButton", { Parent = leftPanel, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 36), BackgroundColor3 = Color3.fromRGB(22, 26, 38), AutoButtonColor = false, Text = "" })
+Corner(idTabBtn, 8)
+local idTabStroke = Stroke(idTabBtn, 1, 0.2) -- Viền sáng hơn giả dạng đang chọn tab này
+local idTabText = New("TextLabel", { Parent = idTabBtn, Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "  📌 ID Info", Font = Enum.Font.GothamBold, TextSize = 11, TextColor3 = Color3.fromRGB(255, 255, 255), TextXAlignment = Enum.TextXAlignment.Left })
 
--- Cấu hình Phần Phải (Hiển thị ID Game và ID Place chung 1 ô, hỗ trợ Click to Copy)
-New("UIPadding", { Parent = rightPanel, PaddingTop = UDim.new(0, 12), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10) })
+-- Cấu hình Phần Phải (Hiển thị chi tiết ID Game & Place từng số độc lập để copy)
+New("UIPadding", { Parent = rightPanel, PaddingTop = UDim.new(0, 12), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12) })
 New("UIListLayout", { Parent = rightPanel, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8) })
 
-New("TextLabel", { Parent = rightPanel, LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 20), BackgroundTransparency = 1, Text = "GAME & PLACE IDENTIFIERS (Click to Copy)", Font = Enum.Font.GothamBold, TextSize = 11, TextColor3 = Color3.fromRGB(140, 145, 165), TextXAlignment = Enum.TextXAlignment.Left })
-
--- Ô chứa ID Game và ID Place chung một ô
-local infoContainer = New("TextButton", { Parent = rightPanel, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 50), BackgroundColor3 = Color3.fromRGB(14, 16, 24), AutoButtonColor = false, Text = "" })
-Corner(infoContainer, 8)
-local infoStroke = Stroke(infoContainer, 1, 0.6)
+New("TextLabel", { Parent = rightPanel, LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 20), BackgroundTransparency = 1, Text = "CLICK SPECIFIC ID TO COPY", Font = Enum.Font.GothamBold, TextSize = 10, TextColor3 = Color3.fromRGB(110, 115, 135), TextXAlignment = Enum.TextXAlignment.Left })
 
 local gameIdVal = tostring(game.GameId)
 local placeIdVal = tostring(game.PlaceId)
 
-local infoTextLabel = New("TextLabel", { Parent = infoContainer, Size = UDim2.new(1, -20, 1, 0), Position = UDim2.new(0, 10, 0, 0), BackgroundTransparency = 1, Text = "Game ID: " .. gameIdVal .. "  |  Place ID: " .. placeIdVal, Font = Enum.Font.GothamMedium, TextSize = 11, TextColor3 = Color3.fromRGB(220, 225, 240), TextXAlignment = Enum.TextXAlignment.Left })
+-- Hàm tạo các dòng ID tinh tế, đẹp và tương tác click chính xác từng số
+local function createIdRow(labelTitle, idValue)
+    local row = New("Frame", { Parent = rightPanel, Size = UDim2.new(1, 0, 0, 42), BackgroundColor3 = Color3.fromRGB(14, 16, 24) })
+    Corner(row, 8)
+    local rowStroke = Stroke(row, 1, 0.7)
+    
+    New("TextLabel", { Parent = row, Position = UDim2.new(0, 12, 0, 0), Size = UDim2.new(0, 80, 1, 0), BackgroundTransparency = 1, Text = labelTitle, Font = Enum.Font.GothamMedium, TextSize = 11, TextColor3 = Color3.fromRGB(160, 165, 185), TextXAlignment = Enum.TextXAlignment.Left })
+    
+    -- Nút bấm bao quanh đúng phần hiển thị số ID để copy riêng biệt
+    local copyBtn = New("TextButton", { Parent = row, Position = UDim2.new(1, -165, 0, 6), Size = UDim2.new(0, 155, 1, -12), BackgroundColor3 = Color3.fromRGB(20, 23, 33), AutoButtonColor = false, Text = "" })
+    Corner(copyBtn, 6)
+    local copyStroke = Stroke(copyBtn, 1, 0.5)
+    
+    local idLabel = New("TextLabel", { Parent = copyBtn, Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = idValue, Font = Enum.Font.GothamBold, TextSize = 11, TextColor3 = Color3.fromRGB(230, 235, 250), TextXAlignment = Enum.TextXAlignment.Center })
+    
+    copyBtn.Activated:Connect(function()
+        if Clipboard then
+            Clipboard(idValue)
+        end
+        
+        -- Hiệu ứng phản hồi khi ấn vào số để copy
+        copyBtn.BackgroundColor3 = Color3.fromRGB(30, 38, 55)
+        idLabel.TextColor3 = accent()
+        
+        task.spawn(function()
+            task.wait(0.25)
+            copyBtn.BackgroundColor3 = Color3.fromRGB(20, 23, 33)
+            idLabel.TextColor3 = Color3.fromRGB(230, 235, 250)
+        end)
+        
+        pcall(function()
+            StarterGui:SetCore("SendNotification", {
+                Title = "Copied!",
+                Text = "Đã sao chép " .. labelTitle .. ": " .. idValue,
+                Duration = 2.5
+            })
+        end)
+    end)
+end
 
--- Chức năng khi ấn vào ô ID Game & Place sẽ copy vào Clipboard
-infoContainer.Activated:Connect(function()
-    local combinedText = "GameId: " .. gameIdVal .. " | PlaceId: " .. placeIdVal
-    pcall(function()
-        setclipboard(combinedText)
-    end)
-    
-    -- Hiệu ứng nhấp nháy khi copy thành công
-    infoContainer.BackgroundColor3 = Color3.fromRGB(28, 32, 48)
-    infoTextLabel.TextColor3 = accent()
-    
-    task.spawn(function()
-        task.wait(0.2)
-        infoContainer.BackgroundColor3 = Color3.fromRGB(14, 16, 24)
-        infoTextLabel.TextColor3 = Color3.fromRGB(220, 225, 240)
-    end)
-    
-    pcall(function()
-        StarterGui:SetCore("SendNotification", {
-            Title = "Copied IDs!",
-            Text = "Đã sao chép: " .. combinedText,
-            Duration = 3
-        })
-    end)
-end)
+createIdRow("Game ID", gameIdVal)
+createIdRow("Place ID", placeIdVal)
 
 backBtn.Activated:Connect(function()
     if type(context.BackToMain) == "function" then
@@ -139,8 +152,8 @@ connection = RunService.RenderStepped:Connect(function()
     backStroke.Color = a
     searchStroke.Color = a
     contentStroke.Color = a
-    infoStroke.Color = a
     arrowLabel.TextColor3 = a
+    idTabStroke.Color = a -- Giữ hiệu ứng tab đang chọn phát sáng theo màu theme/rainbow
 end)
 
 return { Root = root }
