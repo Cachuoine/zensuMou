@@ -1,3 +1,7 @@
+--[[ 
+    FishHub Blox Fruit - shop.lua
+    Boss man, updated with 4 tabs: sword shop, gun shop, fighting shop, miss.
+]]--
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -41,34 +45,79 @@ local root = New("Frame", { Parent = Tab, Size = UDim2.new(1, -10, 0, 0), Automa
 New("UIPadding", { Parent = root, PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, 5), PaddingRight = UDim.new(0, 5) })
 New("UIListLayout", { Parent = root, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 10) })
 
-local topBar = New("Frame", { Parent = root, LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 45), BackgroundTransparency = 1 })
+local container = New("Frame", { Parent = root, LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 320), BackgroundTransparency = 1 })
 
-local backBtn = New("TextButton", { Parent = topBar, Size = UDim2.fromOffset(45, 45), BackgroundColor3 = Color3.fromRGB(12, 13, 19), AutoButtonColor = false, Text = "" })
-Corner(backBtn, 10)
-local backStroke = Stroke(backBtn, 1, 0.4)
-local arrowLabel = New("TextLabel", { Parent = backBtn, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "←", Font = Enum.Font.GothamBold, TextSize = 18, TextColor3 = accent() })
+local menuFrame = New("Frame", { Parent = container, Size = UDim2.new(0.3, -5, 1, 0), BackgroundColor3 = Color3.fromRGB(12, 13, 19) })
+Corner(menuFrame, 10)
+local menuStroke = Stroke(menuFrame, 1, 0.4)
 
-local searchBox = New("Frame", { Parent = topBar, Position = UDim2.new(0, 55, 0, 0), Size = UDim2.new(1, -55, 1, 0), BackgroundColor3 = Color3.fromRGB(12, 13, 19) })
-Corner(searchBox, 10)
-local searchStroke = Stroke(searchBox, 1, 0.4)
+New("UIListLayout", { Parent = menuFrame, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8), HorizontalAlignment = Enum.HorizontalAlignment.Center })
+New("UIPadding", { Parent = menuFrame, PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10), PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6) })
 
-New("TextLabel", { Parent = searchBox, Position = UDim2.new(0, 12, 0, 0), Size = UDim2.new(0, 20, 1, 0), BackgroundTransparency = 1, Text = "🔍", TextSize = 14 })
-New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
+local divider = New("Frame", { Parent = container, Position = UDim2.new(0.3, 0, 0, 0), Size = UDim2.new(0, 2, 1, 0), BackgroundColor3 = accent(), BackgroundTransparency = 0.3 })
 
-local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 200), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
+local contentFrame = New("Frame", { Parent = container, Position = UDim2.new(0.3, 8, 0, 0), Size = UDim2.new(0.7, -8, 1, 0), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
 Corner(contentFrame, 12)
 local contentStroke = Stroke(contentFrame, 1, 0.6)
-New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "Module Content Area", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.fromRGB(200, 205, 220) })
 
-backBtn.Activated:Connect(function()
-    if type(context.BackToMain) == "function" then
-        context.BackToMain()
-    elseif type(context.LoadFunction) == "function" then
-        context.LoadFunction()
-    end
-end)
+local contentScroll = New("ScrollingFrame", { Parent = contentFrame, Size = UDim2.new(1, -10, 1, -10), Position = UDim2.new(0, 5, 0, 5), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 2, AutomaticCanvasSize = Enum.AutomaticSize.Y })
+New("UIListLayout", { Parent = contentScroll, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6) })
 
--- Thay thế task.wait(0.1) bằng RunService.RenderStepped để loại bỏ hoàn toàn độ trễ và cập nhật màu mượt mà
+local displayText = New("TextLabel", { Parent = contentScroll, Size = UDim2.new(1, 0, 0, 200), BackgroundTransparency = 1, Text = "Select a shop tap...", Font = Enum.Font.GothamMedium, TextSize = 13, TextColor3 = Color3.fromRGB(200, 205, 220), TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top })
+
+local tabsData = {
+    { Name = "sword shop", Url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/shop/sword.lua" },
+    { Name = "gun shop", Url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/shop/gun.lua" },
+    { Name = "fighting shop", Url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/shop/melee.lua" },
+    { Name = "miss", Url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/shop/missshop.lua" },
+}
+
+local activeTabButton = nil
+
+for _, data in ipairs(tabsData) do
+    local tabBtn = New("TextButton", { Parent = menuFrame, Size = UDim2.new(1, 0, 0, 38), BackgroundColor3 = Color3.fromRGB(18, 20, 30), AutoButtonColor = false, Text = data.Name:upper(), Font = Enum.Font.GothamBold, TextSize = 11, TextColor3 = Color3.fromRGB(180, 185, 200) })
+    Corner(tabBtn, 8)
+    Stroke(tabBtn, 1, 0.7)
+
+    tabBtn.MouseEnter:Connect(function()
+        if tabBtn ~= activeTabButton then
+            TweenService:Create(tabBtn, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(28, 32, 48) }):Play()
+        end
+    end)
+    tabBtn.MouseLeave:Connect(function()
+        if tabBtn ~= activeTabButton then
+            TweenService:Create(tabBtn, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(18, 20, 30) }):Play()
+        end
+    end)
+
+    tabBtn.Activated:Connect(function()
+        if activeTabButton == tabBtn then return end
+        activeTabButton = tabBtn
+
+        for _, child in ipairs(menuFrame:GetChildren()) do
+            if child:IsA("TextButton") then
+                TweenService:Create(child, TweenInfo.new(0.12), { BackgroundColor3 = Color3.fromRGB(18, 20, 30) }):Play()
+                child.TextColor3 = Color3.fromRGB(180, 185, 200)
+            end
+        end
+
+        TweenService:Create(tabBtn, TweenInfo.new(0.12), { BackgroundColor3 = accent() }):Play()
+        tabBtn.TextColor3 = Color3.fromRGB(15, 15, 20)
+
+        displayText.Text = "Loading shop inventory..."
+        task.spawn(function()
+            local success, result = pcall(function()
+                return game:HttpGet(data.Url)
+            end)
+            if success and result then
+                displayText.Text = result
+            else
+                displayText.Text = "Failed to load content for " .. data.Name
+            end
+        end)
+    end)
+end
+
 local connection
 connection = RunService.RenderStepped:Connect(function()
     if not root.Parent then
@@ -76,10 +125,13 @@ connection = RunService.RenderStepped:Connect(function()
         return
     end
     local a = accent()
-    backStroke.Color = a
-    searchStroke.Color = a
+    menuStroke.Color = a
     contentStroke.Color = a
-    arrowLabel.TextColor3 = a
+    divider.BackgroundColor3 = a
+    if activeTabButton then
+        activeTabButton.BackgroundColor3 = a
+        activeTabButton.TextColor3 = Color3.fromRGB(15, 15, 20)
+    end
 end)
 
 return { Root = root }
