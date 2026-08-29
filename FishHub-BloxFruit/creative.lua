@@ -38,7 +38,6 @@ local function RainbowStroke(strokeObj,speed)
 end
 
 -- Kiểu "IG story ring": vòng rainbow ngoài -> khoảng hở màu nền -> nội dung
--- centerPos, ringD, gapD, contentD đều tính theo offset trong 'parent'
 local function StoryRing(parent,centerPos,ringD,gapD,bgColor,ringThickness,speed)
 	local ring=N('Frame',{Parent=parent,AnchorPoint=Vector2.new(.5,.5),Position=centerPos,Size=UDim2.fromOffset(ringD,ringD),BackgroundTransparency=1});Circle(ring)
 	local ringStroke=N('UIStroke',{Parent=ring,Thickness=ringThickness or 3,Transparency=0,ApplyStrokeMode=Enum.ApplyStrokeMode.Border})
@@ -109,14 +108,11 @@ N('TextLabel',{Parent=chip,Size=UDim2.fromOffset(96,16),BackgroundTransparency=1
 N('TextLabel',{Parent=header,Position=UDim2.fromOffset(TEXT_X,78),Size=UDim2.new(1,-(TEXT_X+16),0,50),BackgroundTransparency=1,Text='FishHub interface — social links.\nTap a circle below to copy the link.',Font=Enum.Font.GothamMedium,TextSize=9.5,TextColor3=Color3.fromRGB(148,153,168),TextWrapped=true,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top})
 
 local USERNAME='thankhuyenhuy'
--- cache avatar (userId + ảnh) vào bảng global tồn tại xuyên suốt phiên chơi,
--- để lần sau bấm lại tab Creative là hiện ảnh NGAY, không phải chờ gọi API lại
 local envTable=(type(getgenv)=='function' and getgenv())or _G
 envTable.__FishHubCreativeCache=envTable.__FishHubCreativeCache or {}
 local avatarCache=envTable.__FishHubCreativeCache
 
 if avatarCache.image then
-	-- đã có sẵn trong cache -> gán tức thì, không delay
 	av.Image=avatarCache.image
 	fallback.Visible=false
 else
@@ -160,13 +156,21 @@ local SUCCESS=Color3.fromRGB(56,222,140)
 
 for i,d in ipairs(socials)do
 	local PANEL_BG=Color3.fromRGB(11,12,20)
-	local card=N('Frame',{Parent=row,Size=UDim2.fromOffset(92,128),BackgroundColor3=PANEL_BG,BorderSizePixel=0});Round(card,16)
+	local card=N('Frame',{Parent=row,Size=UDim2.fromOffset(92,128),BackgroundColor3=PANEL_BG,BorderSizePixel=0,ClipsDescendants=true});Round(card,16)
 	local cardStroke=Stroke(card,1,.55,Color3.fromRGB(255,255,255))
 
+	-- Thêm logo chìm trang trí phía sau (màu cố định, không rainbow, không phụ thuộc theme)
+	local bgDeco=N('ImageLabel',{Parent=card,AnchorPoint=Vector2.new(1,1),Position=UDim2.new(1,15,1,15),Size=UDim2.fromOffset(65,65),BackgroundTransparency=1,Image=d.icon,ImageColor3=d.brand,ImageTransparency=0.85,ScaleType=Enum.ScaleType.Fit})
+
 	local iconCenter=UDim2.fromOffset(46,48)
-	local ring,ringStroke=StoryRing(card,iconCenter,74,66,PANEL_BG,2.4,.9+(i*.15))
+	-- Vòng ngoài cố định màu theo brand của từng mạng xã hội (không dùng rainbow, không dùng theme)
+	local ring=N('Frame',{Parent=card,AnchorPoint=Vector2.new(.5,.5),Position=iconCenter,Size=UDim2.fromOffset(74,74),BackgroundTransparency=1});Circle(ring)
+	local ringStroke=N('UIStroke',{Parent=ring,Thickness=2.4,Color=d.brand,Transparency=0.3,ApplyStrokeMode=Enum.ApplyStrokeMode.Border})
+	
+	local gap=N('Frame',{Parent=card,AnchorPoint=Vector2.new(.5,.5),Position=iconCenter,Size=UDim2.fromOffset(66,66),BackgroundColor3=PANEL_BG,BorderSizePixel=0});Circle(gap)
+	
 	local iconHolder=N('Frame',{Parent=card,AnchorPoint=Vector2.new(.5,.5),Position=iconCenter,Size=UDim2.fromOffset(60,60),BackgroundColor3=Color3.fromRGB(7,8,13),BorderSizePixel=0});Circle(iconHolder)
-	local innerStroke=Stroke(iconHolder,1.3,.2)
+	local innerStroke=Stroke(iconHolder,1.3,.2,d.brand)
 	local sc=N('UIScale',{Parent=card})
 	local img=N('ImageLabel',{Parent=iconHolder,AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),Size=UDim2.fromOffset(32,32),BackgroundTransparency=1,Image=d.icon,ImageColor3=d.brand,ScaleType=Enum.ScaleType.Fit})
 
@@ -179,25 +183,26 @@ for i,d in ipairs(socials)do
 		Tween(sc,.18,{Scale=1.05},Enum.EasingStyle.Back)
 		Tween(cardStroke,.18,{Transparency=.15})
 		Tween(card,.18,{BackgroundColor3=Color3.fromRGB(15,17,27)})
-		Tween(ringStroke,.18,{Thickness=3.2})
+		Tween(ringStroke,.18,{Thickness=3.2,Transparency=0.1})
 		Tween(innerStroke,.18,{Transparency=0,Thickness=1.7})
+		Tween(bgDeco,.18,{ImageTransparency=0.7})
 	end)
 	btn.MouseLeave:Connect(function()
 		Tween(sc,.18,{Scale=1})
 		Tween(cardStroke,.18,{Transparency=.55})
 		Tween(card,.18,{BackgroundColor3=PANEL_BG})
-		Tween(ringStroke,.18,{Thickness=2.4})
+		Tween(ringStroke,.18,{Thickness=2.4,Transparency=0.3})
 		Tween(innerStroke,.18,{Transparency=.2,Thickness=1.3})
+		Tween(bgDeco,.18,{ImageTransparency=0.85})
 	end)
 	btn.Activated:Connect(function()
 		pcall(function()if setclipboard then setclipboard(d.url)end end)
 		notify('Copied '..d.name..' link!')
-		-- flash xanh báo copy thành công trên viền trong
 		Tween(innerStroke,.15,{Color=SUCCESS,Transparency=0,Thickness=2.2})
 		Tween(sc,.15,{Scale=1.12},Enum.EasingStyle.Back)
 		task.delay(.55,function()
 			if innerStroke and innerStroke.Parent then
-				Tween(innerStroke,.35,{Color=accent(),Transparency=.2,Thickness=1.3})
+				Tween(innerStroke,.35,{Color=d.brand,Transparency=.2,Thickness=1.3})
 			end
 			if sc and sc.Parent then Tween(sc,.2,{Scale=1}) end
 		end)
