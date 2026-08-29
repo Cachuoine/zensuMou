@@ -182,6 +182,7 @@ loadFunction = function()
         {"ITEM", "item", "Items and quest utilities."},
         {"ISLAND", "island", "Island travel and navigation."},
         {"FRUIT", "fruit", "Fruit utilities and helpers."},
+        {"PLAYER", "player", "Player tools and utilities."},
         {"SETTING", "setting", "FishHub settings and controls."},
     }
 
