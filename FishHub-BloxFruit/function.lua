@@ -235,13 +235,7 @@ loadFunction = function()
         local stroke = Stroke(card, 1, 0.68)
         local scale = New("UIScale", {Parent = card, Scale = 0.92})
 
-        local shine = New("Frame", {
-            Parent = card,
-            Size = UDim2.new(0, 3, 1, 0),
-            BackgroundColor3 = accent(),
-            BorderSizePixel = 0
-        })
-        Corner(shine, 4)
+        -- Đã xóa bỏ phần khởi tạo biến shine (dòng kẻ dọc ở card) theo yêu cầu
 
         local iconGlow = New("Frame", {
             Parent = card,
@@ -314,7 +308,6 @@ loadFunction = function()
         local state = {
             stroke = stroke,
             iconStroke = iconStroke,
-            shine = shine,
             iconGlow = iconGlow
         }
         cards[#cards + 1] = state
@@ -356,7 +349,6 @@ loadFunction = function()
                 if item.stroke and item.stroke.Parent then
                     item.stroke.Color = a
                     item.iconStroke.Color = a
-                    item.shine.BackgroundColor3 = a
                     item.iconGlow.BackgroundColor3 = a
                 end
             end
