@@ -148,19 +148,7 @@ local heroGradient = addGradient(
     15
 )
 
-local heroHighlight = Instance.new("Frame")
-heroHighlight.Name = "HeroHighlight"
-heroHighlight.Size = UDim2.new(0.72, 0, 0, 2)
-heroHighlight.Position = UDim2.new(0, 17, 0, 0)
-heroHighlight.BackgroundColor3 = theme()
-heroHighlight.BackgroundTransparency = 0.42
-heroHighlight.BorderSizePixel = 0
-heroHighlight.Parent = welcome
-corner(heroHighlight, 2)
-table.insert(dynamicAccents, heroHighlight)
-
--- Đã tắt các bong bóng sáng trang trí trong thẻ Home theo yêu cầu.
--- Không tạo heroGlow/heroGlow2 để giao diện không còn vùng sáng hình tròn.
+-- Đã xóa thanh kẻ ngang `heroHighlight` theo yêu cầu.
 
 local accent = Instance.new("Frame")
 accent.Name = "AccentBar"
@@ -403,7 +391,6 @@ local function createStat(titleText, valueText, x, y)
 
     local cardScale = Instance.new("UIScale")
     cardScale.Parent = card
-
 
     local title = label(
         card,
@@ -691,7 +678,6 @@ task.spawn(function()
         accent.BackgroundColor3 = accentColor
         dot.BackgroundColor3 = accentColor
         gameTag.TextColor3 = Color3.fromRGB(222, 224, 232)
-                heroHighlight.BackgroundColor3 = accentColor
 
         un.TextColor3 = accentColor
         avatarAccent.BackgroundColor3 = accentColor
