@@ -298,7 +298,7 @@ local function section(titleText, height)
     return inner
 end
 
-local status = section("PLAYER STATUS", 245)
+local status = section("PLAYER STATUS", 259)
 
 local function findValue(...)
     local names = {...}
@@ -808,12 +808,30 @@ local function formatDuration(totalSeconds)
     return string.format("%02d:%02d:%02d", hours, minutes, seconds)
 end
 
+-- GetServerTimeNow() returns an absolute epoch-like value (seconds since
+-- the server's internal clock started), not "how long the server has run".
+-- Anchor to the value we see the moment this script starts, then measure
+-- the real elapsed difference on every tick.
+local serverTimeAnchorValue = 0
+local serverTimeAnchorOs = os.clock()
+
+pcall(function()
+    serverTimeAnchorValue = workspace:GetServerTimeNow()
+end)
+
 local function refreshServerTime()
     local ok, now = pcall(function()
         return workspace:GetServerTimeNow()
     end)
 
-    serverTimeValue.Text = formatDuration(ok and now or 0)
+    local elapsed
+    if ok and now then
+        elapsed = now - serverTimeAnchorValue
+    else
+        elapsed = os.clock() - serverTimeAnchorOs
+    end
+
+    serverTimeValue.Text = formatDuration(elapsed)
 end
 
 -- Initial population, then keep it ticking every second in real time.
@@ -877,7 +895,7 @@ end
 
 local idRow = Instance.new("Frame")
 idRow.Name = "IdRow"
-idRow.Size = UDim2.new(1, -10, 0, 38)
+idRow.Size = UDim2.new(1, -10, 0, 52)
 idRow.Position = UDim2.new(0, 5, 0, 142)
 idRow.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
 idRow.BorderSizePixel = 0
@@ -892,7 +910,7 @@ idRowScale.Parent = idRow
 
 local idDivider = Instance.new("Frame")
 idDivider.Name = "Divider"
-idDivider.Size = UDim2.new(0, 1, 1, -14)
+idDivider.Size = UDim2.new(0, 1, 1, -18)
 idDivider.AnchorPoint = Vector2.new(0.5, 0.5)
 idDivider.Position = UDim2.new(0.5, 0, 0.5, 0)
 idDivider.BackgroundColor3 = theme()
@@ -916,22 +934,22 @@ local function makeIdButton(xScale, titleText, valueText)
     local title = label(
         btn,
         titleText,
-        8,
-        Color3.fromRGB(120, 125, 140),
+        10,
+        Color3.fromRGB(130, 135, 150),
         Enum.Font.GothamBold
     )
-    title.Size = UDim2.new(1, -16, 0, 12)
-    title.Position = UDim2.new(0, 8, 0, 6)
+    title.Size = UDim2.new(1, -16, 0, 14)
+    title.Position = UDim2.new(0, 10, 0, 8)
 
     local value = label(
         btn,
         valueText,
-        12,
-        Color3.fromRGB(242, 244, 250),
+        16,
+        Color3.fromRGB(245, 246, 252),
         Enum.Font.GothamBlack
     )
-    value.Size = UDim2.new(1, -16, 0, 16)
-    value.Position = UDim2.new(0, 8, 0, 18)
+    value.Size = UDim2.new(1, -16, 0, 22)
+    value.Position = UDim2.new(0, 10, 0, 24)
     value.TextTruncate = Enum.TextTruncate.AtEnd
 
     return btn, title, value
