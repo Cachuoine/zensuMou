@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
 
 local context = ...
 if type(context) ~= "table" or not context.Tab then return end
@@ -53,89 +54,72 @@ Corner(searchBox, 10)
 local searchStroke = Stroke(searchBox, 1, 0.4)
 
 New("TextLabel", { Parent = searchBox, Position = UDim2.new(0, 12, 0, 0), Size = UDim2.new(0, 20, 1, 0), BackgroundTransparency = 1, Text = "🔍", TextSize = 14 })
-local searchInput = New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search server...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
+New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search status...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
 
--- Main content container for Server Status
-local contentFrame = New("ScrollingFrame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 320), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5, AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollBarThickness = 2, ScrollBarImageColor3 = accent() })
+-- Main Content Container (Chia 2 phần Trái / Phải to đẹp)
+local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 260), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
 Corner(contentFrame, 12)
 local contentStroke = Stroke(contentFrame, 1, 0.6)
-New("UIPadding", { Parent = contentFrame, PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10) })
-New("UIListLayout", { Parent = contentFrame, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8) })
 
--- Helper function to copy text to clipboard safely
-local function notifyCopied(text)
+-- Bên trái luôn nhỏ hơn bên phải (Bên trái chiếm 32%, bên phải chiếm 68%)
+local leftPanel = New("Frame", { Parent = contentFrame, Size = UDim2.new(0.32, -5, 1, 0), Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1 })
+local rightPanel = New("Frame", { Parent = contentFrame, Size = UDim2.new(0.68, -5, 1, 0), Position = UDim2.new(0.32, 5, 0, 0), BackgroundTransparency = 1 })
+
+-- Đường kẻ dọc ngăn cách giữa trái và phải
+local divider = New("Frame", { Parent = contentFrame, Size = UDim2.new(0, 1, 1, -16), Position = UDim2.new(0.32, 0, 0, 8), BackgroundColor3 = Color3.fromRGB(40, 45, 60), BorderSizePixel = 0 })
+
+-- Cấu hình Phần Trái (Tab ID)
+New("UIPadding", { Parent = leftPanel, PaddingTop = UDim.new(0, 12), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 5) })
+New("UIListLayout", { Parent = leftPanel, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8) })
+
+New("TextLabel", { Parent = leftPanel, LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 20), BackgroundTransparency = 1, Text = "CATEGORIES", Font = Enum.Font.GothamBold, TextSize = 11, TextColor3 = Color3.fromRGB(140, 145, 165), TextXAlignment = Enum.TextXAlignment.Left })
+
+local idTabButton = New("TextButton", { Parent = leftPanel, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = Color3.fromRGB(18, 20, 28), AutoButtonColor = false, Text = "" })
+Corner(idTabButton, 8)
+Stroke(idTabButton, 1, 0.7)
+New("TextLabel", { Parent = idTabButton, Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "  🆔 ID Panel", Font = Enum.Font.GothamBold, TextSize, TextSize = 12, TextColor3 = Color3.fromRGB(255, 255, 255), TextXAlignment = Enum.TextXAlignment.Left })
+
+-- Cấu hình Phần Phải (Hiển thị ID Game và ID Place chung 1 ô, hỗ trợ Click to Copy)
+New("UIPadding", { Parent = rightPanel, PaddingTop = UDim.new(0, 12), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10) })
+New("UIListLayout", { Parent = rightPanel, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8) })
+
+New("TextLabel", { Parent = rightPanel, LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 20), BackgroundTransparency = 1, Text = "GAME & PLACE IDENTIFIERS (Click to Copy)", Font = Enum.Font.GothamBold, TextSize = 11, TextColor3 = Color3.fromRGB(140, 145, 165), TextXAlignment = Enum.TextXAlignment.Left })
+
+-- Ô chứa ID Game và ID Place chung một ô
+local infoContainer = New("TextButton", { Parent = rightPanel, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 50), BackgroundColor3 = Color3.fromRGB(14, 16, 24), AutoButtonColor = false, Text = "" })
+Corner(infoContainer, 8)
+local infoStroke = Stroke(infoContainer, 1, 0.6)
+
+local gameIdVal = tostring(game.GameId)
+local placeIdVal = tostring(game.PlaceId)
+
+local infoTextLabel = New("TextLabel", { Parent = infoContainer, Size = UDim2.new(1, -20, 1, 0), Position = UDim2.new(0, 10, 0, 0), BackgroundTransparency = 1, Text = "Game ID: " .. gameIdVal .. "  |  Place ID: " .. placeIdVal, Font = Enum.Font.GothamMedium, TextSize = 11, TextColor3 = Color3.fromRGB(220, 225, 240), TextXAlignment = Enum.TextXAlignment.Left })
+
+-- Chức năng khi ấn vào ô ID Game & Place sẽ copy vào Clipboard
+infoContainer.Activated:Connect(function()
+    local combinedText = "GameId: " .. gameIdVal .. " | PlaceId: " .. placeIdVal
     pcall(function()
-        if setclipboard then
-            setclipboard(tostring(text))
-        end
+        setclipboard(combinedText)
     end)
-end
-
--- Function to create server status card with 2 sections:
--- Left: ID tab, Right: Game ID and Place ID inside the same box separated cleanly, with click-to-copy functionality.
-local function createServerCard(layoutOrder, userIdText, gameIdVal, placeIdVal)
-    local card = New("Frame", { Parent = contentFrame, LayoutOrder = layoutOrder, Size = UDim2.new(1, 0, 0, 65), BackgroundColor3 = Color3.fromRGB(15, 17, 24), BackgroundTransparency = 0.3 })
-    Corner(card, 8)
-    local cardStroke = Stroke(card, 1, 0.7)
-
-    -- Left side: ID tab
-    local leftContainer = New("Frame", { Parent = card, Position = UDim2.new(0, 8, 0, 8), Size = UDim2.new(0, 95, 1, -16), BackgroundColor3 = Color3.fromRGB(20, 22, 32), BackgroundTransparency = 0.5 })
-    Corner(leftContainer, 6)
     
-    New("TextLabel", { Parent = leftContainer, Position = UDim2.new(0, 0, 0, 5), Size = UDim2.new(1, 0, 0, 15), BackgroundTransparency = 1, Text = "USER ID", Font = Enum.Font.GothamBold, TextSize = 10, TextColor3 = Color3.fromRGB(140, 145, 165), TextXAlignment = Enum.TextXAlignment.Center })
+    -- Hiệu ứng nhấp nháy khi copy thành công
+    infoContainer.BackgroundColor3 = Color3.fromRGB(28, 32, 48)
+    infoTextLabel.TextColor3 = accent()
     
-    local userIdLabel = New("TextButton", { Parent = leftContainer, Position = UDim2.new(0, 0, 0, 22), Size = UDim2.new(1, 0, 0, 20), BackgroundTransparency = 1, Text = tostring(userIdText), Font = Enum.Font.GothamMedium, TextSize = 11, TextColor3 = Color3.fromRGB(240, 242, 248), AutoButtonColor = false })
+    task.spawn(function()
+        task.wait(0.2)
+        infoContainer.BackgroundColor3 = Color3.fromRGB(14, 16, 24)
+        infoTextLabel.TextColor3 = Color3.fromRGB(220, 225, 240)
+    end)
     
-    userIdLabel.Activated:Connect(function()
-        notifyCopied(userIdText)
-        userIdLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
-        task.delay(0.3, function()
-            userIdLabel.TextColor3 = Color3.fromRGB(240, 242, 248)
-        end)
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "Copied IDs!",
+            Text = "Đã sao chép: " .. combinedText,
+            Duration = 3
+        })
     end)
-
-    -- Right side: Game ID and Place ID in one unified box, split into 2 rows
-    local rightContainer = New("Frame", { Parent = card, Position = UDim2.new(0, 110, 0, 8), Size = UDim2.new(1, -118, 1, -16), BackgroundColor3 = Color3.fromRGB(20, 22, 32), BackgroundTransparency = 0.5 })
-    Corner(rightContainer, 6)
-
-    -- Game ID Row (Top half)
-    local gameIdBtn = New("TextButton", { Parent = rightContainer, Position = UDim2.new(0, 8, 0, 4), Size = UDim2.new(1, -16, 0, 22), BackgroundTransparency = 1, Text = "", AutoButtonColor = false })
-    New("TextLabel", { Parent = gameIdBtn, Size = UDim2.new(0, 60, 1, 0), BackgroundTransparency = 1, Text = "Game ID:", Font = Enum.Font.GothamBold, TextSize = 11, TextColor3 = Color3.fromRGB(140, 145, 165), TextXAlignment = Enum.TextXAlignment.Left })
-    local gameIdValLabel = New("TextLabel", { Parent = gameIdBtn, Position = UDim2.new(0, 65, 0, 0), Size = UDim2.new(1, -65, 1, 0), BackgroundTransparency = 1, Text = tostring(gameIdVal), Font = Enum.Font.GothamMedium, TextSize = 11, TextColor3 = accent(), TextXAlignment = Enum.TextXAlignment.Left })
-
-    gameIdBtn.Activated:Connect(function()
-        notifyCopied(gameIdVal)
-        gameIdValLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
-        task.delay(0.3, function()
-            gameIdValLabel.TextColor3 = accent()
-        end)
-    end)
-
-    -- Divider line between Game ID and Place ID
-    New("Frame", { Parent = rightContainer, Position = UDim2.new(0, 8, 0.5, 0), Size = UDim2.new(1, -16, 0, 1), BackgroundColor3 = Color3.fromRGB(40, 45, 60), BackgroundTransparency = 0.5, BorderSizePixel = 0 })
-
-    -- Place ID Row (Bottom half)
-    local placeIdBtn = New("TextButton", { Parent = rightContainer, Position = UDim2.new(0, 8, 0, 28), Size = UDim2.new(1, -16, 0, 22), BackgroundTransparency = 1, Text = "", AutoButtonColor = false })
-    New("TextLabel", { Parent = placeIdBtn, Size = UDim2.new(0, 60, 1, 0), BackgroundTransparency = 1, Text = "Place ID:", Font = Enum.Font.GothamBold, TextSize = 11, TextColor3 = Color3.fromRGB(140, 145, 165), TextXAlignment = Enum.TextXAlignment.Left })
-    local placeIdValLabel = New("TextLabel", { Parent = placeIdBtn, Position = UDim2.new(0, 65, 0, 0), Size = UDim2.new(1, -65, 1, 0), BackgroundTransparency = 1, Text = tostring(placeIdVal), Font = Enum.Font.GothamMedium, TextSize = 11, TextColor3 = accent(), TextXAlignment = Enum.TextXAlignment.Left })
-
-    placeIdBtn.Activated:Connect(function()
-        notifyCopied(placeIdVal)
-        placeIdValLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
-        task.delay(0.3, function()
-            placeIdValLabel.TextColor3 = accent()
-        end)
-    end)
-
-    return card
-end
-
--- Populate initial server info card using local player and game data
-local currentUserId = Players.LocalPlayer and Players.LocalPlayer.UserId or 12345678
-local currentGameId = game.GameId
-local currentPlaceId = game.PlaceId
-
-createServerCard(1, currentUserId, currentGameId, currentPlaceId)
+end)
 
 backBtn.Activated:Connect(function()
     if type(context.BackToMain) == "function" then
@@ -155,6 +139,7 @@ connection = RunService.RenderStepped:Connect(function()
     backStroke.Color = a
     searchStroke.Color = a
     contentStroke.Color = a
+    infoStroke.Color = a
     arrowLabel.TextColor3 = a
 end)
 
