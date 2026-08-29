@@ -235,8 +235,6 @@ loadFunction = function()
         local stroke = Stroke(card, 1, 0.68)
         local scale = New("UIScale", {Parent = card, Scale = 0.92})
 
-        -- Đã xóa bỏ phần khởi tạo biến shine (dòng kẻ dọc ở card) theo yêu cầu
-
         local iconGlow = New("Frame", {
             Parent = card,
             AnchorPoint = Vector2.new(0.5, 0.5),
@@ -258,7 +256,7 @@ loadFunction = function()
         Corner(iconBox, 11)
         local iconStroke = Stroke(iconBox, 1, 0.72)
 
-        New("TextLabel", {
+        local titleLabelText = New("TextLabel", {
             Parent = iconBox,
             Size = UDim2.fromScale(1, 1),
             BackgroundTransparency = 1,
@@ -308,7 +306,9 @@ loadFunction = function()
         local state = {
             stroke = stroke,
             iconStroke = iconStroke,
-            iconGlow = iconGlow
+            iconGlow = iconGlow,
+            titleLabelText = titleLabelText,
+            chevron = chevron
         }
         cards[#cards + 1] = state
 
@@ -350,10 +350,16 @@ loadFunction = function()
                     item.stroke.Color = a
                     item.iconStroke.Color = a
                     item.iconGlow.BackgroundColor3 = a
+                    if item.titleLabelText then
+                        item.titleLabelText.TextColor3 = a
+                    end
+                    if item.chevron then
+                        item.chevron.TextColor3 = a
+                    end
                 end
             end
 
-            task.wait(0.1)
+            task.wait() -- Giảm độ trễ xuống mức tối đa (cập nhật theo từng frame) để Rainbow mượt mà nhất
         end
     end)
 end
