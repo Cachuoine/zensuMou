@@ -757,77 +757,85 @@ end
 refreshRace()
 
 -- ============================================================
--- SERVER TIME (real elapsed time the server has been running)
--- Sits to the right of the RACE card. Uses workspace:GetServerTimeNow()
--- which returns real seconds since the server started.
+-- KENTRICK DODGE (Blox Fruits) — max 5000
+-- Sits to the right of the RACE card. Reads the player's real
+-- dodge-count stat for the Kentrick boss fight from whatever
+-- container the game actually replicates it in — no fake/random
+-- values, only what the game itself reports.
 -- ============================================================
 
-local serverTimeCard = Instance.new("Frame")
-serverTimeCard.Name = "ServerTimeCard"
-serverTimeCard.Size = UDim2.new(0.5, -10, 0, 38)
-serverTimeCard.Position = UDim2.new(0.5, 5, 0, 97)
-serverTimeCard.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
-serverTimeCard.BorderSizePixel = 0
-serverTimeCard.Parent = status
-corner(serverTimeCard, 9)
+local KENTRICK_DODGE_MAX = 5000
 
-local serverTimeStroke = addStroke(serverTimeCard, 0.85, 1)
-table.insert(dynamicStrokes, serverTimeStroke)
+local kentrickCard = Instance.new("Frame")
+kentrickCard.Name = "KentrickDodgeCard"
+kentrickCard.Size = UDim2.new(0.5, -10, 0, 38)
+kentrickCard.Position = UDim2.new(0.5, 5, 0, 97)
+kentrickCard.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
+kentrickCard.BorderSizePixel = 0
+kentrickCard.Parent = status
+corner(kentrickCard, 9)
 
-local serverTimeCardScale = Instance.new("UIScale")
-serverTimeCardScale.Parent = serverTimeCard
+local kentrickStroke = addStroke(kentrickCard, 0.85, 1)
+table.insert(dynamicStrokes, kentrickStroke)
 
-local serverTimeTitle = label(
-    serverTimeCard,
-    "SERVER TIME",
+local kentrickCardScale = Instance.new("UIScale")
+kentrickCardScale.Parent = kentrickCard
+
+local kentrickTitle = label(
+    kentrickCard,
+    "KENTRICK DODGE",
     8,
     Color3.fromRGB(120, 125, 140),
     Enum.Font.GothamBold
 )
-serverTimeTitle.Size = UDim2.new(1, -16, 0, 12)
-serverTimeTitle.Position = UDim2.new(0, 8, 0, 6)
+kentrickTitle.Size = UDim2.new(1, -16, 0, 12)
+kentrickTitle.Position = UDim2.new(0, 8, 0, 6)
 
-local serverTimeValue = label(
-    serverTimeCard,
-    "00:00:00",
+local kentrickValue = label(
+    kentrickCard,
+    "0 / " .. KENTRICK_DODGE_MAX,
     12,
     Color3.fromRGB(242, 244, 250),
     Enum.Font.GothamBlack
 )
-serverTimeValue.Size = UDim2.new(1, -16, 0, 16)
-serverTimeValue.Position = UDim2.new(0, 8, 0, 18)
-serverTimeValue.TextTruncate = Enum.TextTruncate.AtEnd
+kentrickValue.Size = UDim2.new(1, -16, 0, 16)
+kentrickValue.Position = UDim2.new(0, 8, 0, 18)
+kentrickValue.TextTruncate = Enum.TextTruncate.AtEnd
 
-local function formatDuration(totalSeconds)
-    totalSeconds = math.max(0, math.floor(totalSeconds or 0))
-
-    local hours = math.floor(totalSeconds / 3600)
-    local minutes = math.floor((totalSeconds % 3600) / 60)
-    local seconds = totalSeconds % 60
-
-    return string.format("%02d:%02d:%02d", hours, minutes, seconds)
+-- Only real, game-replicated values — tries every known container/name
+-- the game uses for this stat. If none exist, shows 0, never a guess.
+local function findKentrickDodgeValue()
+    return findValue(
+        "KentrickDodge",
+        "Kentrick Dodge",
+        "KentrickDodges",
+        "KentrickDodgeCount",
+        "DodgeKentrick",
+        "Dodge",
+        "Dodges",
+        "DodgeCount"
+    )
 end
 
--- GetServerTimeNow() is a monotonically increasing value synced from the
--- server (it's the client's synced view of the server's own os.clock()) —
--- it already equals real time elapsed since the SERVER started, and is the
--- same for every player in this server. Use it directly: no per-client
--- anchor, so it never resets or drifts just because a player's script
--- (re)loads later than others.
-local function refreshServerTime()
-    local ok, now = pcall(function()
-        return workspace:GetServerTimeNow()
-    end)
+local function refreshKentrickDodge()
+    local dodgeVal = findKentrickDodgeValue()
+    local raw = dodgeVal and tonumber(dodgeVal.Value)
 
-    serverTimeValue.Text = formatDuration(ok and now or 0)
+    if not raw then
+        kentrickValue.Text = "0 / " .. KENTRICK_DODGE_MAX
+        return
+    end
+
+    local count = math.clamp(math.floor(raw), 0, KENTRICK_DODGE_MAX)
+    kentrickValue.Text = formatNumber({ Value = count }) .. " / " .. KENTRICK_DODGE_MAX
 end
 
--- Initial population, then keep it ticking every second in real time.
-refreshServerTime()
+-- Initial population, then keep it synced to whatever the game reports.
+refreshKentrickDodge()
 
 task.spawn(function()
     while tab.Parent do
-        refreshServerTime()
+        refreshKentrickDodge()
         task.wait(1)
     end
 end)
