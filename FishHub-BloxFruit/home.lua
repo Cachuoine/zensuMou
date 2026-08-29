@@ -605,24 +605,8 @@ local _, fragments = createStat(
 
 -- ============================================================
 -- RACE CARD (full-width, third row of PLAYER STATUS)
--- Always shows: race name + V1/V2/V3/V4 badge, plus T0..T10
--- tier badge when the version is V4.
---
--- Cách dùng:
---   • Để script tự đọc từ game: giữ RACE_CONFIG.FORCE = false.
---   • Ép cứng giá trị hiển thị: sửa 3 dòng dưới rồi bật FORCE = true.
---   • Hoặc CLICK trực tiếp trên UI (tên tộc / V / T) để đổi nhanh —
---     click sẽ tự bật FORCE = true để giá trị không bị auto-detect ghi đè.
+-- Shows: race name + V1/V2/V3/V4 badge, plus T0..T10 if V4.
 -- ============================================================
-
-local RACE_CONFIG = {
-    FORCE     = false,        -- true = luôn dùng giá trị bên dưới, bỏ qua auto-detect
-    RaceName  = "Human",      -- Human / Mink / Fishman / Skypiea / Cyborg / Ghoul
-    RaceVersion = 1,          -- 1 / 2 / 3 / 4
-    RaceTier  = 0,            -- 0..10 (chỉ hiển thị khi RaceVersion == 4)
-}
-
-local RACE_CYCLE_NAMES = { "Human", "Mink", "Fishman", "Skypiea", "Cyborg", "Ghoul" }
 
 local RACE_VERSION_COLORS = {
     V1 = { bg = Color3.fromRGB(95, 100, 118),   fg = Color3.fromRGB(232, 234, 242) },
@@ -666,25 +650,18 @@ local raceTitle = label(
 raceTitle.Size = UDim2.new(0, 60, 0, 12)
 raceTitle.Position = UDim2.new(0, 8, 0, 6)
 
--- Tên tộc: dùng TextButton để click chuyển tộc (Human → Mink → ...)
-local raceValue = Instance.new("TextButton")
-raceValue.Name = "RaceName"
-raceValue.AutoButtonColor = false
-raceValue.BackgroundTransparency = 1
-raceValue.BorderSizePixel = 0
-raceValue.Text = RACE_CONFIG.RaceName
-raceValue.TextSize = 12
-raceValue.TextColor3 = Color3.fromRGB(242, 244, 250)
-raceValue.Font = Enum.Font.GothamBlack
-raceValue.TextXAlignment = Enum.TextXAlignment.Left
-raceValue.TextYAlignment = Enum.TextYAlignment.Center
+local raceValue = label(
+    raceCard,
+    "Detecting...",
+    12,
+    Color3.fromRGB(242, 244, 250),
+    Enum.Font.GothamBlack
+)
 raceValue.Size = UDim2.new(0, 0, 0, 16)
-raceValue.AutomaticSize = Enum.AutomaticSize.X
 raceValue.Position = UDim2.new(0, 8, 0, 18)
+raceValue.AutomaticSize = Enum.AutomaticSize.X
 raceValue.TextTruncate = Enum.TextTruncate.AtEnd
-raceValue.Parent = raceCard
 
--- Right-side container for version + tier badges
 local raceBadges = Instance.new("Frame")
 raceBadges.Name = "Badges"
 raceBadges.Size = UDim2.new(0, 0, 0, 20)
@@ -700,127 +677,83 @@ raceBadgeLayout.Padding = UDim.new(0, 5)
 raceBadgeLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 raceBadgeLayout.Parent = raceBadges
 
--- Helper: tạo badge kiểu TextButton (clickable) — luôn hiển thị.
-local function makeRaceBadge(initialText, bg, fg)
-    local b = Instance.new("TextButton")
-    b.Name = initialText
-    b.AutoButtonColor = false
+local function makeRaceBadge(defaultText, defaultBg, defaultFg)
+    local b = Instance.new("Frame")
+    b.Name = defaultText
     b.Size = UDim2.new(0, 0, 0, 20)
     b.AutomaticSize = Enum.AutomaticSize.X
-    b.BackgroundColor3 = bg
+    b.BackgroundColor3 = defaultBg
     b.BackgroundTransparency = 0.15
     b.BorderSizePixel = 0
-    b.Text = "  " .. initialText .. "  "
-    b.TextColor3 = fg
-    b.Font = Enum.Font.GothamBold
-    b.TextSize = 9
+    b.Visible = false
     b.Parent = raceBadges
     corner(b, 6)
-    return b
+    local t = label(b, "  " .. defaultText .. "  ", 9, defaultFg, Enum.Font.GothamBold)
+    t.Size = UDim2.new(0, 0, 1, 0)
+    t.AutomaticSize = Enum.AutomaticSize.X
+    t.TextXAlignment = Enum.TextXAlignment.Center
+    return b, t
 end
 
-local function initialVerKey() return "V" .. math.clamp(RACE_CONFIG.RaceVersion, 1, 4) end
-local function initialVerCol()
-    local k = initialVerKey()
-    return RACE_VERSION_COLORS[k] or RACE_VERSION_COLORS.V1
+local versionBadge, versionBadgeText = makeRaceBadge(
+    "V1",
+    RACE_VERSION_COLORS.V1.bg,
+    RACE_VERSION_COLORS.V1.fg
+)
+local tierBadge, tierBadgeText = makeRaceBadge(
+    "T0",
+    Color3.fromRGB(155, 95, 210),
+    Color3.fromRGB(250, 240, 255)
+)
+
+local function setBadgeText(badge, textLabel, text, bg, fg)
+    textLabel.Text = "  " .. text .. "  "
+    badge.BackgroundColor3 = bg
+    textLabel.TextColor3 = fg
+    badge.Visible = true
 end
 
-local versionBadge = makeRaceBadge(initialVerKey(), initialVerCol().bg, initialVerCol().fg)
-local tierBg0, tierFg0 = getTierColors(math.clamp(RACE_CONFIG.RaceTier, 0, 10))
-local tierBadge = makeRaceBadge("T" .. math.clamp(RACE_CONFIG.RaceTier, 0, 10), tierBg0, tierFg0)
-
-local function applyVersionVisual(verNum)
-    local v = math.clamp(verNum, 1, 4)
-    local key = "V" .. v
-    local col = RACE_VERSION_COLORS[key] or RACE_VERSION_COLORS.V1
-    versionBadge.Text = "  " .. key .. "  "
-    versionBadge.BackgroundColor3 = col.bg
-    versionBadge.TextColor3 = col.fg
-    return v
-end
-
-local function applyTierVisual(tierNum)
-    local t = math.clamp(tierNum, 0, 10)
-    local tbg, tfg = getTierColors(t)
-    tierBadge.Text = "  T" .. t .. "  "
-    tierBadge.BackgroundColor3 = tbg
-    tierBadge.TextColor3 = tfg
+local function hideBadge(badge)
+    badge.Visible = false
 end
 
 local function refreshRace()
-    local displayName  = RACE_CONFIG.RaceName
-    local displayVer   = RACE_CONFIG.RaceVersion
-    local displayTier  = RACE_CONFIG.RaceTier
+    local nameVal = findRaceNameValue()
+    local verNum = findRaceVersionNumber()
+    local tierNum = findRaceTierNumber()
 
-    if not RACE_CONFIG.FORCE then
-        local nameVal = findRaceNameValue()
-        if nameVal and nameVal.Value and nameVal.Value ~= "" then
-            local clean = normalizeRaceName(nameVal.Value)
-            if clean and clean ~= "" then
-                displayName = clean
-            end
-        end
-
-        local verNum = findRaceVersionNumber()
-        if verNum then
-            displayVer = math.clamp(math.floor(verNum + 0.5), 1, 4)
-        end
-
-        local tierNum = findRaceTierNumber()
-        if tierNum then
-            displayTier = math.clamp(math.floor(tierNum + 0.5), 0, 10)
-        end
-    end
-
-    RACE_CONFIG.RaceName    = displayName
-    RACE_CONFIG.RaceVersion = displayVer
-    RACE_CONFIG.RaceTier    = displayTier
-
-    raceValue.Text = displayName
-    local v = applyVersionVisual(displayVer)
-
-    if v == 4 then
-        applyTierVisual(displayTier)
-        tierBadge.Visible = true
+    if nameVal and nameVal.Value and nameVal.Value ~= "" then
+        local clean = normalizeRaceName(nameVal.Value)
+        raceValue.Text = clean or "No Race"
     else
-        tierBadge.Visible = false
+        raceValue.Text = "No Race"
     end
-end
 
--- Click handlers: click để đổi nhanh, đồng thời bật FORCE = true.
-local function cycleArray(arr, current)
-    for i, value in ipairs(arr) do
-        if value == current then
-            return arr[(i % #arr) + 1]
+    if verNum then
+        local v = math.clamp(verNum, 1, 4)
+        local key = "V" .. v
+        local col = RACE_VERSION_COLORS[key] or RACE_VERSION_COLORS.V1
+        setBadgeText(versionBadge, versionBadgeText, key, col.bg, col.fg)
+
+        if v == 4 then
+            local t
+            if tierNum then
+                t = math.clamp(tierNum, 0, 10)
+            else
+                t = 0
+            end
+            local tbg, tfg = getTierColors(t)
+            setBadgeText(tierBadge, tierBadgeText, "T" .. t, tbg, tfg)
+        else
+            hideBadge(tierBadge)
         end
+    else
+        hideBadge(versionBadge)
+        hideBadge(tierBadge)
     end
-    return arr[1]
 end
 
-local function cycleNumber(current, minVal, maxVal)
-    if current >= maxVal then return minVal end
-    return current + 1
-end
-
-raceValue.MouseButton1Click:Connect(function()
-    RACE_CONFIG.RaceName = cycleArray(RACE_CYCLE_NAMES, RACE_CONFIG.RaceName)
-    RACE_CONFIG.FORCE = true
-    refreshRace()
-end)
-
-versionBadge.MouseButton1Click:Connect(function()
-    RACE_CONFIG.RaceVersion = cycleNumber(RACE_CONFIG.RaceVersion, 1, 4)
-    RACE_CONFIG.FORCE = true
-    refreshRace()
-end)
-
-tierBadge.MouseButton1Click:Connect(function()
-    RACE_CONFIG.RaceTier = cycleNumber(RACE_CONFIG.RaceTier, 0, 10)
-    RACE_CONFIG.FORCE = true
-    refreshRace()
-end)
-
--- Initial population so it shows up immediately.
+-- Initial population so it shows up immediately, not after the first tick.
 refreshRace()
 
 local function getTeamKind()
