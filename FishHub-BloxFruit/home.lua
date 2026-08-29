@@ -2,6 +2,13 @@ local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 local TweenService = game:GetService("TweenService")
 
+-- Session start time captured as early as possible. This is the most
+-- reliable "server-side" uptime proxy from a client/executor script,
+-- since workspace.DistributedGameTime is often 0 / unreplicated on
+-- the client side, and tick() is deprecated.
+local sessionStartClock = (os.clock and os.clock()) or 0
+local sessionStartTick = (tick and tick()) or sessionStartClock
+
 local context = ...
 local player = (context and context.Player) or Players.LocalPlayer
 if not player then return end
@@ -100,13 +107,25 @@ local function formatServerUptime(seconds)
 end
 
 local function getServerUptime()
+    -- Prefer the real server uptime if DistributedGameTime is properly
+    -- replicated to the client and reports a sensible value (>= 1s).
     local ok, value = pcall(function()
         return workspace.DistributedGameTime
     end)
-    if ok and type(value) == "number" then
+    if ok and type(value) == "number" and value >= 1 then
         return value
     end
-    return 0
+    -- Fallback: use the wall-clock delta from when the script first
+    -- started running. tick() and os.clock() advance independently,
+    -- so pick whichever one grew the most — that handles the rare
+    -- case where one of them is frozen / returns 0 on some executors.
+    local nowClock = (os.clock and os.clock()) or sessionStartClock
+    local nowTick = (tick and tick()) or sessionStartTick
+    local elapsedClock = nowClock - sessionStartClock
+    local elapsedTick = nowTick - sessionStartTick
+    local elapsed = math.max(elapsedClock, elapsedTick)
+    if elapsed < 0 then elapsed = 0 end
+    return elapsed
 end
 
 local function copyToClipboard(text)
