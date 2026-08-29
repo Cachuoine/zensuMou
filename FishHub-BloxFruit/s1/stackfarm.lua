@@ -106,21 +106,29 @@ for i, data in ipairs(tabsData) do
         end
         TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(25, 28, 42), TextColor3 = accent() }):Play()
         
-        TweenService:Create(indicator, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 3, 0, btn.AbsoluteSize.Y - 4),
-            Position = UDim2.new(0, -5, 0, btn.AbsolutePosition.Y - leftPane.AbsolutePosition.Y + 2)
-        }):Play()
+        task.spawn(function()
+            while btn.AbsolutePosition.Y == 0 and root.Parent do
+                task.wait()
+            end
+            if not root.Parent then return end
+            TweenService:Create(indicator, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 3, 0, btn.AbsoluteSize.Y - 4),
+                Position = UDim2.new(0, -5, 0, btn.AbsolutePosition.Y - leftPane.AbsolutePosition.Y + 2)
+            }):Play()
+        end)
 
         loadUrlContent(data.Url)
     end)
     
     table.insert(tabButtons, btn)
-    if i == 1 then
-        task.defer(function()
-            btn.Activated:Fire()
-        end)
-    end
 end
+
+task.spawn(function()
+    task.wait(0.1)
+    if tabButtons[1] then
+        tabButtons[1].Activated:Fire()
+    end
+end)
 
 searchInput.FocusLost:Connect(function()
     local filter = string.lower(searchInput.Text)
