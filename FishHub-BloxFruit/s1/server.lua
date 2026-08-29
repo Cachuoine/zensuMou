@@ -1,7 +1,3 @@
---[[ 
-    FishHub Blox Fruit - server.lua
-    Boss man, updated to remove 'island even' and contain 'boss' and 'miss'.
-]]--
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -42,84 +38,77 @@ Tab.BorderSizePixel = 0
 Tab.ScrollBarThickness = 0
 Tab.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
-local root = New("Frame", { Parent = Tab, Size = UDim2.new(1, -10, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1 })
+local root = New("Frame", { Parent = Tab, Size = UDim2.new(1, -10, 0, 420), BackgroundTransparency = 1 })
 New("UIPadding", { Parent = root, PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, 5), PaddingRight = UDim.new(0, 5) })
-New("UIListLayout", { Parent = root, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 10) })
 
--- Split layout: Left menu, Right content
-local container = New("Frame", { Parent = root, LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 320), BackgroundTransparency = 1 })
+-- Left menu pane (narrower)
+local leftPane = New("Frame", { Parent = root, Size = UDim2.new(0, 130, 1, 0), BackgroundColor3 = Color3.fromRGB(12, 13, 19) })
+Corner(leftPane, 12)
+local leftStroke = Stroke(leftPane, 1, 0.4)
+New("UIPadding", { Parent = leftPane, PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8) })
+local menuListLayout = New("UIListLayout", { Parent = leftPane, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8) })
 
-local menuFrame = New("Frame", { Parent = container, Size = UDim2.new(0.3, -5, 1, 0), BackgroundColor3 = Color3.fromRGB(12, 13, 19) })
-Corner(menuFrame, 10)
-local menuStroke = Stroke(menuFrame, 1, 0.4)
+-- Divider line
+local divider = New("Frame", { Parent = root, Position = UDim2.new(0, 140, 0, 0), Size = UDim2.new(0, 2, 1, 0), BackgroundColor3 = accent(), BackgroundTransparency = 0.3 })
 
-local menuLayout = New("UIListLayout", { Parent = menuFrame, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8), HorizontalAlignment = Enum.HorizontalAlignment.Center })
-New("UIPadding", { Parent = menuFrame, PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10), PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6) })
+-- Right content pane (wider)
+local rightPane = New("Frame", { Parent = root, Position = UDim2.new(0, 150, 0, 0), Size = UDim2.new(1, -150, 1, 0), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
+Corner(rightPane, 12)
+local rightStroke = Stroke(rightPane, 1, 0.6)
+New("UIPadding", { Parent = rightPane, PaddingTop = UDim.new(0, 12), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12) })
 
--- Divider line between columns
-local divider = New("Frame", { Parent = container, Position = UDim2.new(0.3, 0, 0, 0), Size = UDim2.new(0, 2, 1, 0), BackgroundColor3 = accent(), BackgroundTransparency = 0.3 })
+local contentLabel = New("TextLabel", { Parent = rightPane, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "Select a tab...", Font = Enum.Font.GothamMedium, TextSize, TextSize = 13, TextColor3 = Color3.fromRGB(200, 205, 220), TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top })
 
-local contentFrame = New("Frame", { Parent = container, Position = UDim2.new(0.3, 8, 0, 0), Size = UDim2.new(0.7, -8, 1, 0), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
-Corner(contentFrame, 12)
-local contentStroke = Stroke(contentFrame, 1, 0.6)
-
-local contentScroll = New("ScrollingFrame", { Parent = contentFrame, Size = UDim2.new(1, -10, 1, -10), Position = UDim2.new(0, 5, 0, 5), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 2, AutomaticCanvasSize = Enum.AutomaticSize.Y })
-New("UIListLayout", { Parent = contentScroll, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6) })
-
-local displayText = New("TextLabel", { Parent = contentScroll, Size = UDim2.new(1, 0, 0, 200), BackgroundTransparency = 1, Text = "Select a tab to load content...", Font = Enum.Font.GothamMedium, TextSize = 13, TextColor3 = Color3.fromRGB(200, 205, 220), TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top })
+-- Indicator bar for animation effect
+local indicator = New("Frame", { Parent = leftPane, Size = UDim2.new(0, 3, 0, 0), BackgroundColor3 = accent() })
+Corner(indicator, 2)
 
 local tabsData = {
-    { Name = "boss", Url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/server/boss.lua" },
-    { Name = "miss", Url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/server/missserver.lua" },
+    { Name = "Boss", Url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/server/boss.lua" },
+    { Name = "Miss", Url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/server/missserver.lua" },
 }
 
-local activeTabButton = nil
-
-for _, data in ipairs(tabsData) do
-    local tabBtn = New("TextButton", { Parent = menuFrame, Size = UDim2.new(1, 0, 0, 38), BackgroundColor3 = Color3.fromRGB(18, 20, 30), AutoButtonColor = false, Text = data.Name:upper(), Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = Color3.fromRGB(180, 185, 200) })
-    Corner(tabBtn, 8)
-    local btnStroke = Stroke(tabBtn, 1, 0.7)
-
-    -- Dynamic glowing and hover animation without delay
-    tabBtn.MouseEnter:Connect(function()
-        if tabBtn ~= activeTabButton then
-            TweenService:Create(tabBtn, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(28, 32, 48) }):Play()
-        end
-    end)
-    tabBtn.MouseLeave:Connect(function()
-        if tabBtn ~= activeTabButton then
-            TweenService:Create(tabBtn, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(18, 20, 30) }):Play()
-        end
-    end)
-
-    tabBtn.Activated:Connect(function()
-        if activeTabButton == tabBtn then return end
-        activeTabButton = tabBtn
-
-        -- Reset styles for all menu buttons
-        for _, child in ipairs(menuFrame:GetChildren()) do
-            if child:IsA("TextButton") then
-                TweenService:Create(child, TweenInfo.new(0.12), { BackgroundColor3 = Color3.fromRGB(18, 20, 30) }):Play()
-                child.TextColor3 = Color3.fromRGB(180, 185, 200)
-            end
-        end
-
-        -- Highlight active tab instantly
-        TweenService:Create(tabBtn, TweenInfo.new(0.12), { BackgroundColor3 = accent() }):Play()
-        tabBtn.TextColor3 = Color3.fromRGB(15, 15, 20)
-
-        displayText.Text = "Loading content from remote..."
-        task.spawn(function()
-            local success, result = pcall(function()
-                return game:HttpGet(data.Url)
-            end)
-            if success and result then
-                displayText.Text = result
-            else
-                displayText.Text = "Failed to load content for " .. data.Name
-            end
+local function loadUrlContent(url)
+    contentLabel.Text = "Loading..."
+    task.spawn(function()
+        local success, result = pcall(function()
+            return game:HttpGet(url)
         end)
+        if success and result then
+            contentLabel.Text = result
+        else
+            contentLabel.Text = "Failed to load content from URL."
+        end
     end)
+end
+
+local tabButtons = {}
+
+for i, data in ipairs(tabsData) do
+    local btn = New("TextButton", { Parent = leftPane, LayoutOrder = i, Size = UDim2.new(1, 0, 0, 35), BackgroundColor3 = Color3.fromRGB(18, 20, 30), AutoButtonColor = false, Text = data.Name, Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = Color3.fromRGB(180, 185, 200) })
+    Corner(btn, 8)
+    
+    btn.Activated:Connect(function()
+        for _, b in ipairs(tabButtons) do
+            TweenService:Create(b, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(18, 20, 30), TextColor3 = Color3.fromRGB(180, 185, 200) }):Play()
+        end
+        TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = accent(), TextColor3 = Color3.fromRGB(255, 255, 255) }):Play()
+        
+        -- Smooth sliding vertical indicator animation with zero delay
+        TweenService:Create(indicator, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = UDim2.new(0, 3, 0, btn.AbsoluteSize.Y),
+            Position = UDim2.new(0, -5, 0, btn.AbsolutePosition.Y - leftPane.AbsolutePosition.Y)
+        }):Play()
+
+        loadUrlContent(data.Url)
+    end)
+    
+    table.insert(tabButtons, btn)
+    if i == 1 then
+        task.defer(function()
+            btn:Emit她的Activated and btn.Activated:Fire() or btn.MouseButton1Click:Fire()
+        end)
+    end
 end
 
 local connection
@@ -129,13 +118,10 @@ connection = RunService.RenderStepped:Connect(function()
         return
     end
     local a = accent()
-    menuStroke.Color = a
-    contentStroke.Color = a
+    leftStroke.Color = a
+    rightStroke.Color = a
     divider.BackgroundColor3 = a
-    if activeTabButton then
-        activeTabButton.BackgroundColor3 = a
-        activeTabButton.TextColor3 = Color3.fromRGB(15, 15, 20)
-    end
+    indicator.BackgroundColor3 = a
 end)
 
 return { Root = root }
