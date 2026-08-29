@@ -90,6 +90,44 @@ local function tween(object, properties, duration, style, direction)
     return TweenService:Create(object, info, properties)
 end
 
+local function formatServerUptime(seconds)
+    seconds = math.floor((tonumber(seconds) or 0))
+    if seconds < 0 then seconds = 0 end
+    local h = math.floor(seconds / 3600)
+    local m = math.floor((seconds % 3600) / 60)
+    local s = seconds % 60
+    return string.format("%02d:%02d:%02d", h, m, s)
+end
+
+local function getServerUptime()
+    local ok, value = pcall(function()
+        return workspace.DistributedGameTime
+    end)
+    if ok and type(value) == "number" then
+        return value
+    end
+    return 0
+end
+
+local function copyToClipboard(text)
+    local payload = tostring(text or "")
+    if payload == "" then return false end
+    local copied = false
+    pcall(function()
+        if setclipboard then
+            setclipboard(payload)
+            copied = true
+        elseif toclipboard then
+            toclipboard(payload)
+            copied = true
+        elseif writeclipboard then
+            writeclipboard(payload)
+            copied = true
+        end
+    end)
+    return copied
+end
+
 local dynamicLines = {}
 local dynamicStrokes = {}
 local dynamicAccents = {}
@@ -627,7 +665,7 @@ end
 
 local raceCard = Instance.new("Frame")
 raceCard.Name = "RaceCard"
-raceCard.Size = UDim2.new(1, -10, 0, 38)
+raceCard.Size = UDim2.new(0.5, -10, 0, 38)
 raceCard.Position = UDim2.new(0, 5, 0, 97)
 raceCard.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
 raceCard.BorderSizePixel = 0
@@ -755,6 +793,57 @@ end
 
 -- Initial population so it shows up immediately, not after the first tick.
 refreshRace()
+
+-- ============================================================
+-- SERVER TIME CARD (right side, paired with RaceCard)
+-- Shows the elapsed server uptime in HH:MM:SS.
+-- ============================================================
+
+local serverTimeCard = Instance.new("Frame")
+serverTimeCard.Name = "ServerTimeCard"
+serverTimeCard.Size = UDim2.new(0.5, -10, 0, 38)
+serverTimeCard.Position = UDim2.new(0.5, 5, 0, 97)
+serverTimeCard.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
+serverTimeCard.BorderSizePixel = 0
+serverTimeCard.Parent = status
+corner(serverTimeCard, 9)
+
+local serverTimeCardStroke = addStroke(serverTimeCard, 0.85, 1)
+table.insert(dynamicStrokes, serverTimeCardStroke)
+
+local serverTimeScale = Instance.new("UIScale")
+serverTimeScale.Parent = serverTimeCard
+
+local stTitle = label(
+    serverTimeCard,
+    "SERVER TIME",
+    8,
+    Color3.fromRGB(120, 125, 140),
+    Enum.Font.GothamBold
+)
+stTitle.Size = UDim2.new(0, 0, 0, 12)
+stTitle.Position = UDim2.new(0, 8, 0, 6)
+stTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local stValue = label(
+    serverTimeCard,
+    formatServerUptime(getServerUptime()),
+    12,
+    Color3.fromRGB(242, 244, 250),
+    Enum.Font.GothamBlack
+)
+stValue.Size = UDim2.new(1, -16, 0, 16)
+stValue.Position = UDim2.new(0, 8, 0, 18)
+stValue.TextXAlignment = Enum.TextXAlignment.Left
+
+local stDot = Instance.new("Frame")
+stDot.Size = UDim2.new(0, 6, 0, 6)
+stDot.Position = UDim2.new(1, -14, 0.5, -3)
+stDot.BackgroundColor3 = theme()
+stDot.BorderSizePixel = 0
+stDot.Parent = serverTimeCard
+corner(stDot, 10)
+table.insert(dynamicAccents, stDot)
 
 local function getTeamKind()
     local team = player.Team
@@ -934,6 +1023,140 @@ local liveText = label(
 liveText.Position = UDim2.new(0, 22, 0, 0)
 liveText.Size = UDim2.new(1, -28, 1, 0)
 
+-- ============================================================
+-- GAME IDS SECTION (Place ID + Game ID)
+-- Single card split into 2 clickable halves. Each half copies
+-- the corresponding id to the clipboard on click.
+-- ============================================================
+
+local ids = section("GAME IDS", 110)
+
+local idsCard = Instance.new("Frame")
+idsCard.Name = "IdsCard"
+idsCard.Size = UDim2.new(1, 0, 1, 0)
+idsCard.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
+idsCard.BorderSizePixel = 0
+idsCard.Parent = ids
+corner(idsCard, 9)
+
+local idsCardStroke = addStroke(idsCard, 0.85, 1)
+table.insert(dynamicStrokes, idsCardStroke)
+
+local idsScale = Instance.new("UIScale")
+idsScale.Parent = idsCard
+
+local idsDivider = Instance.new("Frame")
+idsDivider.Name = "Divider"
+idsDivider.Size = UDim2.new(0, 1, 0.6, 0)
+idsDivider.Position = UDim2.new(0.5, 0, 0.2, 0)
+idsDivider.AnchorPoint = Vector2.new(0, 0)
+idsDivider.BackgroundColor3 = Color3.fromRGB(40, 42, 55)
+idsDivider.BorderSizePixel = 0
+idsDivider.Parent = idsCard
+
+local function makeIdHalf(titleText, idValue, xPos)
+    local half = Instance.new("TextButton")
+    half.Name = titleText:gsub("%s+", "")
+    half.Size = UDim2.new(0.5, -1, 1, 0)
+    half.Position = UDim2.new(xPos, xPos == 0 and 0 or 1, 0, 0)
+    half.BackgroundTransparency = 1
+    half.BackgroundColor3 = Color3.fromRGB(16, 17, 24)
+    half.BorderSizePixel = 0
+    half.Text = ""
+    half.AutoButtonColor = false
+    half.Parent = idsCard
+    corner(half, 9)
+    half.ClipsDescendants = true
+
+    local title = label(
+        half,
+        titleText,
+        8,
+        Color3.fromRGB(120, 125, 140),
+        Enum.Font.GothamBold
+    )
+    title.Size = UDim2.new(1, -16, 0, 12)
+    title.Position = UDim2.new(0, 10, 0, 8)
+    title.TextXAlignment = Enum.TextXAlignment.Left
+
+    local value = label(
+        half,
+        tostring(idValue),
+        13,
+        Color3.fromRGB(242, 244, 250),
+        Enum.Font.GothamBlack
+    )
+    value.Size = UDim2.new(1, -16, 0, 18)
+    value.Position = UDim2.new(0, 10, 0, 22)
+    value.TextXAlignment = Enum.TextXAlignment.Left
+    value.TextTruncate = Enum.TextTruncate.AtEnd
+
+    local hint = label(
+        half,
+        "CLICK TO COPY",
+        7,
+        Color3.fromRGB(95, 100, 118),
+        Enum.Font.GothamBold
+    )
+    hint.Size = UDim2.new(1, -16, 0, 10)
+    hint.Position = UDim2.new(0, 10, 1, -16)
+    hint.TextXAlignment = Enum.TextXAlignment.Left
+
+    local feedback = label(
+        half,
+        "",
+        7,
+        theme(),
+        Enum.Font.GothamBold
+    )
+    feedback.Size = UDim2.new(1, -16, 0, 10)
+    feedback.Position = UDim2.new(0, 10, 1, -16)
+    feedback.TextXAlignment = Enum.TextXAlignment.Right
+    table.insert(dynamicText, feedback)
+
+    local originalColor = half.BackgroundColor3
+    local originalHintColor = hint.TextColor3
+
+    half.MouseEnter:Connect(function()
+        if not half.Parent then return end
+        tween(half, {BackgroundTransparency = 0.55}, 0.15):Play()
+        tween(idsScale, {Scale = 1.02}, 0.18, Enum.EasingStyle.Back):Play()
+        tween(hint, {TextColor3 = theme()}, 0.15):Play()
+    end)
+
+    half.MouseLeave:Connect(function()
+        if not half.Parent then return end
+        tween(half, {BackgroundTransparency = 1}, 0.15):Play()
+        tween(idsScale, {Scale = 1}, 0.18):Play()
+        tween(hint, {TextColor3 = originalHintColor}, 0.15):Play()
+    end)
+
+    half.MouseButton1Click:Connect(function()
+        if not half.Parent then return end
+        local ok = copyToClipboard(idValue)
+        if ok then
+            feedback.Text = "COPIED ✓"
+        else
+            feedback.Text = "FAILED"
+        end
+        tween(half, {BackgroundTransparency = 0.25}, 0.1):Play()
+        task.delay(0.85, function()
+            if not half.Parent then return end
+            tween(half, {BackgroundTransparency = 1}, 0.18):Play()
+        end)
+        task.delay(1.2, function()
+            if feedback.Parent then
+                feedback.Text = ""
+            end
+        end)
+    end)
+
+    return half
+end
+
+makeIdHalf("PLACE ID", game.PlaceId, 0)
+makeIdHalf("GAME ID", game.GameId, 0.5)
+
 welcome.Position = UDim2.new(0, 0, 0, 7)
 welcome.BackgroundTransparency = 1
 
@@ -1036,6 +1259,8 @@ task.spawn(function()
 
         refreshReputation()
         refreshRace()
+
+        stValue.Text = formatServerUptime(getServerUptime())
 
         task.wait(0.35)
     end
