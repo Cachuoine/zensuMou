@@ -409,7 +409,7 @@ loadFunction = function()
                 end
             end
 
-            task.wait(0.5) -- Tăng thời gian chờ vòng lặp lên 0.5s để giảm tối đa lag/delay
+            task.wait(0.1) -- Tăng thời gian chờ vòng lặp lên 0.5s để giảm tối đa lag/delay
         end
     end)
 end
