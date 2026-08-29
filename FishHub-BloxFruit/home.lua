@@ -298,7 +298,7 @@ local function section(titleText, height)
     return inner
 end
 
-local status = section("PLAYER STATUS", 259)
+local status = section("PLAYER STATUS", 200)
 
 local function findValue(...)
     local names = {...}
@@ -627,7 +627,7 @@ end
 
 local raceCard = Instance.new("Frame")
 raceCard.Name = "RaceCard"
-raceCard.Size = UDim2.new(0.5, -10, 0, 38)
+raceCard.Size = UDim2.new(1, -10, 0, 38)
 raceCard.Position = UDim2.new(0, 5, 0, 97)
 raceCard.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
 raceCard.BorderSizePixel = 0
@@ -756,90 +756,6 @@ end
 -- Initial population so it shows up immediately, not after the first tick.
 refreshRace()
 
--- ============================================================
--- KENTRICK DODGE (Blox Fruits) — max 5000
--- Sits to the right of the RACE card. Reads the player's real
--- dodge-count stat for the Kentrick boss fight from whatever
--- container the game actually replicates it in — no fake/random
--- values, only what the game itself reports.
--- ============================================================
-
-local KENTRICK_DODGE_MAX = 5000
-
-local kentrickCard = Instance.new("Frame")
-kentrickCard.Name = "KentrickDodgeCard"
-kentrickCard.Size = UDim2.new(0.5, -10, 0, 38)
-kentrickCard.Position = UDim2.new(0.5, 5, 0, 97)
-kentrickCard.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
-kentrickCard.BorderSizePixel = 0
-kentrickCard.Parent = status
-corner(kentrickCard, 9)
-
-local kentrickStroke = addStroke(kentrickCard, 0.85, 1)
-table.insert(dynamicStrokes, kentrickStroke)
-
-local kentrickCardScale = Instance.new("UIScale")
-kentrickCardScale.Parent = kentrickCard
-
-local kentrickTitle = label(
-    kentrickCard,
-    "KENTRICK DODGE",
-    8,
-    Color3.fromRGB(120, 125, 140),
-    Enum.Font.GothamBold
-)
-kentrickTitle.Size = UDim2.new(1, -16, 0, 12)
-kentrickTitle.Position = UDim2.new(0, 8, 0, 6)
-
-local kentrickValue = label(
-    kentrickCard,
-    "0 / " .. KENTRICK_DODGE_MAX,
-    12,
-    Color3.fromRGB(242, 244, 250),
-    Enum.Font.GothamBlack
-)
-kentrickValue.Size = UDim2.new(1, -16, 0, 16)
-kentrickValue.Position = UDim2.new(0, 8, 0, 18)
-kentrickValue.TextTruncate = Enum.TextTruncate.AtEnd
-
--- Only real, game-replicated values — tries every known container/name
--- the game uses for this stat. If none exist, shows 0, never a guess.
-local function findKentrickDodgeValue()
-    return findValue(
-        "KentrickDodge",
-        "Kentrick Dodge",
-        "KentrickDodges",
-        "KentrickDodgeCount",
-        "DodgeKentrick",
-        "Dodge",
-        "Dodges",
-        "DodgeCount"
-    )
-end
-
-local function refreshKentrickDodge()
-    local dodgeVal = findKentrickDodgeValue()
-    local raw = dodgeVal and tonumber(dodgeVal.Value)
-
-    if not raw then
-        kentrickValue.Text = "0 / " .. KENTRICK_DODGE_MAX
-        return
-    end
-
-    local count = math.clamp(math.floor(raw), 0, KENTRICK_DODGE_MAX)
-    kentrickValue.Text = formatNumber({ Value = count }) .. " / " .. KENTRICK_DODGE_MAX
-end
-
--- Initial population, then keep it synced to whatever the game reports.
-refreshKentrickDodge()
-
-task.spawn(function()
-    while tab.Parent do
-        refreshKentrickDodge()
-        task.wait(1)
-    end
-end)
-
 local function getTeamKind()
     local team = player.Team
 
@@ -882,110 +798,6 @@ local function refreshReputation()
 
     reputation.Text = formatNumber(bountyHonorValue)
 end
-
--- ============================================================
--- ID ROW (bottom of PLAYER STATUS)
--- One box split into two halves: PLACE ID and GAME ID.
--- Clicking either half copies that ID to the clipboard.
--- ============================================================
-
-local idRow = Instance.new("Frame")
-idRow.Name = "IdRow"
-idRow.Size = UDim2.new(1, -10, 0, 52)
-idRow.Position = UDim2.new(0, 5, 0, 142)
-idRow.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
-idRow.BorderSizePixel = 0
-idRow.Parent = status
-corner(idRow, 9)
-
-local idRowStroke = addStroke(idRow, 0.85, 1)
-table.insert(dynamicStrokes, idRowStroke)
-
-local idRowScale = Instance.new("UIScale")
-idRowScale.Parent = idRow
-
-local idDivider = Instance.new("Frame")
-idDivider.Name = "Divider"
-idDivider.Size = UDim2.new(0, 1, 1, -18)
-idDivider.AnchorPoint = Vector2.new(0.5, 0.5)
-idDivider.Position = UDim2.new(0.5, 0, 0.5, 0)
-idDivider.BackgroundColor3 = theme()
-idDivider.BackgroundTransparency = 0.75
-idDivider.BorderSizePixel = 0
-idDivider.ZIndex = 2
-idDivider.Parent = idRow
-table.insert(dynamicAccents, idDivider)
-
-local function makeIdButton(xScale, titleText, valueText)
-    local btn = Instance.new("TextButton")
-    btn.Name = titleText:gsub("%s+", "")
-    btn.Size = UDim2.new(0.5, -8, 1, -4)
-    btn.Position = UDim2.new(xScale, xScale == 0 and 4 or 4, 0, 2)
-    btn.BackgroundTransparency = 1
-    btn.Text = ""
-    btn.AutoButtonColor = false
-    btn.ZIndex = 3
-    btn.Parent = idRow
-
-    local title = label(
-        btn,
-        titleText,
-        10,
-        Color3.fromRGB(130, 135, 150),
-        Enum.Font.GothamBold
-    )
-    title.Size = UDim2.new(1, -16, 0, 14)
-    title.Position = UDim2.new(0, 10, 0, 8)
-
-    local value = label(
-        btn,
-        valueText,
-        16,
-        Color3.fromRGB(245, 246, 252),
-        Enum.Font.GothamBlack
-    )
-    value.Size = UDim2.new(1, -16, 0, 22)
-    value.Position = UDim2.new(0, 10, 0, 24)
-    value.TextTruncate = Enum.TextTruncate.AtEnd
-
-    return btn, title, value
-end
-
-local function copyIdToClipboard(text, valueLabel, originalText)
-    local ok = pcall(function()
-        if setclipboard then
-            setclipboard(tostring(text))
-        elseif toclipboard then
-            toclipboard(tostring(text))
-        else
-            error("no clipboard function available")
-        end
-    end)
-
-    if not valueLabel then return end
-
-    valueLabel.Text = ok and "Copied!" or "Copy failed"
-
-    task.delay(1, function()
-        if valueLabel and valueLabel.Parent then
-            valueLabel.Text = originalText
-        end
-    end)
-end
-
-local placeIdText = tostring(game.PlaceId)
-local gameIdText = tostring(game.GameId)
-
-local placeIdBtn, placeIdTitle, placeIdValue = makeIdButton(0, "PLACE ID", placeIdText)
-local gameIdBtn, gameIdTitle, gameIdValue = makeIdButton(0.5, "GAME ID", gameIdText)
-
-placeIdBtn.MouseButton1Click:Connect(function()
-    copyIdToClipboard(placeIdText, placeIdValue, placeIdText)
-end)
-
-gameIdBtn.MouseButton1Click:Connect(function()
-    copyIdToClipboard(gameIdText, gameIdValue, gameIdText)
-end)
 
 local info = section("INFORMATION", 160)
 
