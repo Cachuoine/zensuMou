@@ -6,6 +6,7 @@ if type(context) ~= "table" or not context.Tab then return end
 
 local Tab = context.Tab
 local Config = context.Config or {}
+
 local function accent()
     return typeof(Config.ThemeColor) == "Color3"
         and Config.ThemeColor
@@ -62,7 +63,8 @@ Tab.ScrollBarThickness = 0
 Tab.ScrollBarImageTransparency = 1
 Tab.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
-local root = New("Frame", {
+-- Khung chứa chính giao diện
+local mainView = New("Frame", {
     Parent = Tab,
     Size = UDim2.new(1, -10, 0, 0),
     AutomaticSize = Enum.AutomaticSize.Y,
@@ -70,21 +72,21 @@ local root = New("Frame", {
 })
 
 New("UIPadding", {
-    Parent = root,
+    Parent = mainView,
     PaddingTop = UDim.new(0, 8),
     PaddingBottom = UDim.new(0, 12),
     PaddingLeft = UDim.new(0, 5),
     PaddingRight = UDim.new(0, 5)
 })
 
-local list = New("UIListLayout", {
-    Parent = root,
+New("UIListLayout", {
+    Parent = mainView,
     SortOrder = Enum.SortOrder.LayoutOrder,
     Padding = UDim.new(0, 10)
 })
 
 local head = New("Frame", {
-    Parent = root,
+    Parent = mainView,
     LayoutOrder = 1,
     Size = UDim2.new(1, 0, 0, 66),
     BackgroundColor3 = Color3.fromRGB(8, 9, 14),
@@ -201,7 +203,7 @@ task.spawn(function()
 end)
 
 local holder = New("Frame", {
-    Parent = root,
+    Parent = mainView,
     LayoutOrder = 2,
     Size = UDim2.new(1, 0, 0, 0),
     AutomaticSize = Enum.AutomaticSize.Y,
@@ -228,7 +230,22 @@ local modules = {
 
 local cards = {}
 
+-- Khai báo hàm quay lại trang chính (Function menu)
+local function showMainView()
+    mainView.Visible = true
+end
+
+context.BackToMain = showMainView
+context.LoadFunction = function(name)
+    if name == "function" then
+        showMainView()
+    end
+end
+
 local function loadModule(fileName)
+    -- Ẩn menu chính đi khi vào module con
+    mainView.Visible = false
+
     local url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/" .. fileName .. ".lua"
     local success, result = pcall(function()
         return game:HttpGet(url)
@@ -401,7 +418,7 @@ for i, moduleData in ipairs(modules) do
 end
 
 task.spawn(function()
-    while root.Parent do
+    while mainView.Parent do
         local a = accent()
         accentBar.BackgroundColor3 = a
         headerDot.BackgroundColor3 = a
@@ -422,5 +439,5 @@ task.spawn(function()
 end)
 
 return {
-    Root = root
+    Root = mainView
 }
