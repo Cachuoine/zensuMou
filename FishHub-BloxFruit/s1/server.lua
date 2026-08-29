@@ -55,30 +55,10 @@ local searchStroke = Stroke(searchBox, 1, 0.4)
 New("TextLabel", { Parent = searchBox, Position = UDim2.new(0, 12, 0, 0), Size = UDim2.new(0, 20, 1, 0), BackgroundTransparency = 1, Text = "🔍", TextSize = 14 })
 New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
 
--- TRANG TRÍ CONTENT FRAME (VẪN GIỮ NGUYÊN KHUNG MẪU, CHỈ LÀM ĐẸP GIAO DIỆN HIỂN THỊ TRẠNG THÁI SERVER THUẦN TÚY)
-local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 210), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
+local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 200), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
 Corner(contentFrame, 12)
 local contentStroke = Stroke(contentFrame, 1, 0.6)
-
--- Tiêu đề trạng thái server (Chỉ mang tính chất trang trí)
-local statusTitle = New("TextLabel", { Parent = contentFrame, Position = UDim2.new(0, 16, 0, 16), Size = UDim2.new(1, -32, 0, 20), BackgroundTransparency = 1, Text = "🌐 Server Status", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = accent(), TextXAlignment = Enum.TextXAlignment.Left })
-
-local statusDesc = New("TextLabel", { Parent = contentFrame, Position = UDim2.new(0, 16, 0, 38), Size = UDim2.new(1, -32, 0, 40), BackgroundTransparency = 1, Text = "Current connection state and environment details for this game session.", Font = Enum.Font.Gotham, TextSize = 11, TextColor3 = Color3.fromRGB(140, 145, 165), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = true })
-
--- Khung hiển thị mẫu giao diện trang trí (Không có hàm code chạy chức năng ngầm)
-local badgeContainer = New("Frame", { Parent = contentFrame, Position = UDim2.new(0, 16, 0, 90), Size = UDim2.new(1, -32, 0, 95), BackgroundColor3 = Color3.fromRGB(13, 15, 22), BackgroundTransparency = 0.6 })
-Corner(badgeContainer, 8)
-Stroke(badgeContainer, 1, 0.8)
-
-local function createRow(yPos, labelText, valText, valColor)
-    local row = New("Frame", { Parent = badgeContainer, Position = UDim2.new(0, 12, 0, yPos), Size = UDim2.new(1, -24, 0, 24), BackgroundTransparency = 1 })
-    New("TextLabel", { Parent = row, Size = UDim2.new(0.5, 0, 1, 0), BackgroundTransparency = 1, Text = labelText, Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(180, 185, 200), TextXAlignment = Enum.TextXAlignment.Left })
-    New("TextLabel", { Parent = row, Size = UDim2.new(0.5, 0, 1, 0), Position = UDim2.new(0.5, 0, 0, 0), BackgroundTransparency = 1, Text = valText, Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = valColor or Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Right })
-end
-
-createRow(10, "Connection State", "Connected", Color3.fromRGB(46, 204, 113))
-createRow(38, "Environment", "Live Server", Color3.fromRGB(52, 152, 219))
-createRow(66, "Module Mode", "Visual Only", Color3.fromRGB(241, 196, 15))
+New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "Module Content Area", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.fromRGB(200, 205, 220) })
 
 backBtn.Activated:Connect(function()
     if type(context.BackToMain) == "function" then
@@ -88,6 +68,7 @@ backBtn.Activated:Connect(function()
     end
 end)
 
+-- Thay thế task.wait(0.1) bằng RunService.RenderStepped để loại bỏ hoàn toàn độ trễ và cập nhật màu mượt mà
 local connection
 connection = RunService.RenderStepped:Connect(function()
     if not root.Parent then
@@ -99,8 +80,6 @@ connection = RunService.RenderStepped:Connect(function()
     searchStroke.Color = a
     contentStroke.Color = a
     arrowLabel.TextColor3 = a
-    statusTitle.TextColor3 = a
 end)
 
-return { Root = root }[cite: 1]
-```[cite: 1]
+return { Root = root }
