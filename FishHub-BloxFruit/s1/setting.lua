@@ -70,7 +70,7 @@ task.spawn(function()
         backStroke.Color = a
         searchStroke.Color = a
         contentStroke.Color = a
-        task.wait(0.5) -- Giảm tần suất chạy vòng lặp để chống lag/delay
+        task.wait(0.1) -- Giảm tần suất chạy vòng lặp để chống lag/delay
     end
 end)
 
