@@ -38,7 +38,6 @@ local function RainbowStroke(strokeObj,speed)
 end
 
 -- Kiểu "IG story ring": vòng rainbow ngoài -> khoảng hở màu nền -> nội dung
--- centerPos, ringD, gapD, contentD đều tính theo offset trong 'parent'
 local function StoryRing(parent,centerPos,ringD,gapD,bgColor,ringThickness,speed)
 	local ring=N('Frame',{Parent=parent,AnchorPoint=Vector2.new(.5,.5),Position=centerPos,Size=UDim2.fromOffset(ringD,ringD),BackgroundTransparency=1});Circle(ring)
 	local ringStroke=N('UIStroke',{Parent=ring,Thickness=ringThickness or 3,Transparency=0,ApplyStrokeMode=Enum.ApplyStrokeMode.Border})
@@ -109,14 +108,11 @@ N('TextLabel',{Parent=chip,Size=UDim2.fromOffset(96,16),BackgroundTransparency=1
 N('TextLabel',{Parent=header,Position=UDim2.fromOffset(TEXT_X,78),Size=UDim2.new(1,-(TEXT_X+16),0,50),BackgroundTransparency=1,Text='FishHub interface — social links.\nTap a circle below to copy the link.',Font=Enum.Font.GothamMedium,TextSize=9.5,TextColor3=Color3.fromRGB(148,153,168),TextWrapped=true,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top})
 
 local USERNAME='thankhuyenhuy'
--- cache avatar (userId + ảnh) vào bảng global tồn tại xuyên suốt phiên chơi,
--- để lần sau bấm lại tab Creative là hiện ảnh NGAY, không phải chờ gọi API lại
 local envTable=(type(getgenv)=='function' and getgenv())or _G
 envTable.__FishHubCreativeCache=envTable.__FishHubCreativeCache or {}
 local avatarCache=envTable.__FishHubCreativeCache
 
 if avatarCache.image then
-	-- đã có sẵn trong cache -> gán tức thì, không delay
 	av.Image=avatarCache.image
 	fallback.Visible=false
 else
@@ -146,7 +142,7 @@ N('TextLabel',{Parent=titleWrap,Position=UDim2.fromOffset(14,0),Size=UDim2.new(1
 N('TextLabel',{Parent=titleWrap,Position=UDim2.fromOffset(14,17),Size=UDim2.new(1,-14,0,14),BackgroundTransparency=1,Text='Click a logo to copy its link',Font=Enum.Font.GothamMedium,TextSize=8.5,TextColor3=Color3.fromRGB(130,135,150),TextXAlignment=Enum.TextXAlignment.Left})
 
 ------------------------------------------------------------
--- SOCIAL CARDS
+-- SOCIAL CARDS (Dùng đúng các Asset ID của bạn)
 ------------------------------------------------------------
 local row=N('Frame',{Parent=root,LayoutOrder=3,Size=UDim2.new(1,0,0,132),BackgroundTransparency=1})
 N('UIListLayout',{Parent=row,FillDirection=Enum.FillDirection.Horizontal,HorizontalAlignment=Enum.HorizontalAlignment.Center,VerticalAlignment=Enum.VerticalAlignment.Center,Padding=UDim.new(0,14)})
@@ -192,7 +188,6 @@ for i,d in ipairs(socials)do
 	btn.Activated:Connect(function()
 		pcall(function()if setclipboard then setclipboard(d.url)end end)
 		notify('Copied '..d.name..' link!')
-		-- flash xanh báo copy thành công trên viền trong
 		Tween(innerStroke,.15,{Color=SUCCESS,Transparency=0,Thickness=2.2})
 		Tween(sc,.15,{Scale=1.12},Enum.EasingStyle.Back)
 		task.delay(.55,function()
