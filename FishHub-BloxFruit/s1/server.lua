@@ -41,7 +41,6 @@ local root = New("Frame", { Parent = Tab, Size = UDim2.new(1, -10, 0, 0), Automa
 New("UIPadding", { Parent = root, PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, 5), PaddingRight = UDim.new(0, 5) })
 New("UIListLayout", { Parent = root, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 10) })
 
--- Top Bar with Back Button and Search Box
 local topBar = New("Frame", { Parent = root, LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 45), BackgroundTransparency = 1 })
 
 local backBtn = New("TextButton", { Parent = topBar, Size = UDim2.fromOffset(45, 45), BackgroundColor3 = Color3.fromRGB(12, 13, 19), AutoButtonColor = false, Text = "" })
@@ -56,20 +55,16 @@ local searchStroke = Stroke(searchBox, 1, 0.4)
 New("TextLabel", { Parent = searchBox, Position = UDim2.new(0, 12, 0, 0), Size = UDim2.new(0, 20, 1, 0), BackgroundTransparency = 1, Text = "🔍", TextSize = 14 })
 local searchInput = New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
 
--- Main Split Body Container
 local bodyFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 320), BackgroundTransparency = 1 })
 
--- Left Menu Pane (Narrower)
 local leftPane = New("Frame", { Parent = bodyFrame, Size = UDim2.new(0, 130, 1, 0), BackgroundColor3 = Color3.fromRGB(12, 13, 19) })
 Corner(leftPane, 12)
 local leftStroke = Stroke(leftPane, 1, 0.4)
 New("UIPadding", { Parent = leftPane, PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8) })
 New("UIListLayout", { Parent = leftPane, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8) })
 
--- Divider Line
 local divider = New("Frame", { Parent = bodyFrame, Position = UDim2.new(0, 140, 0, 0), Size = UDim2.new(0, 1, 1, 0), BackgroundColor3 = accent(), BackgroundTransparency = 0.3 })
 
--- Right Content Pane (Wider)
 local rightPane = New("Frame", { Parent = bodyFrame, Position = UDim2.new(0, 150, 0, 0), Size = UDim2.new(1, -150, 1, 0), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
 Corner(rightPane, 12)
 local rightStroke = Stroke(rightPane, 1, 0.6)
@@ -77,7 +72,6 @@ New("UIPadding", { Parent = rightPane, PaddingTop = UDim.new(0, 12), PaddingBott
 
 local contentLabel = New("TextLabel", { Parent = rightPane, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "Select a tab...", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(200, 205, 220), TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top })
 
--- Vertical line indicator animation element inside left menu
 local indicator = New("Frame", { Parent = leftPane, Size = UDim2.new(0, 3, 0, 0), BackgroundColor3 = accent() })
 Corner(indicator, 2)
 
@@ -112,22 +106,31 @@ for i, data in ipairs(tabsData) do
         end
         TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(25, 28, 42), TextColor3 = accent() }):Play()
         
-        -- Smooth vertical indicator line animation with zero delay
-        TweenService:Create(indicator, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 3, 0, btn.AbsoluteSize.Y - 4),
-            Position = UDim2.new(0, -5, 0, btn.AbsolutePosition.Y - leftPane.AbsolutePosition.Y + 2)
-        }):Play()
+        -- Fix lỗi tọa độ đầu tiên bằng cách check AbsolutePosition hợp lệ
+        task.spawn(function()
+            while btn.AbsolutePosition.Y == 0 and root.Parent do
+                task.wait()
+            end
+            if not root.Parent then return end
+            TweenService:Create(indicator, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 3, 0, btn.AbsoluteSize.Y - 4),
+                Position = UDim2.new(0, -5, 0, btn.AbsolutePosition.Y - leftPane.AbsolutePosition.Y + 2)
+            }):Play()
+        end)
 
         loadUrlContent(data.Url)
     end)
     
     table.insert(tabButtons, btn)
-    if i == 1 then
-        task.defer(function()
-            btn.Activated:Fire()
-        end)
-    end
 end
+
+-- Đợi UI load layout ổn định rồi mới kích hoạt tab đầu tiên
+task.spawn(function()
+    task.wait(0.1)
+    if tabButtons[1] then
+        tabButtons[1].Activated:Fire()
+    end
+end)
 
 searchInput.FocusLost:Connect(function()
     local filter = string.lower(searchInput.Text)
