@@ -52,7 +52,6 @@ local function Tween(obj, duration, props, style, direction)
     return t
 end
 
--- Khai báo hàm loadFunction (load lại chính màn hình FUNCTION này) để dùng chung cho cả nút Back
 local loadFunction
 loadFunction = function()
     for _, child in ipairs(Tab:GetChildren()) do
@@ -80,7 +79,7 @@ loadFunction = function()
         PaddingRight = UDim.new(0, 5)
     })
 
-    local list = New("UIListLayout", {
+    New("UIListLayout", {
         Parent = root,
         SortOrder = Enum.SortOrder.LayoutOrder,
         Padding = UDim.new(0, 10)
@@ -211,7 +210,7 @@ loadFunction = function()
         BackgroundTransparency = 1
     })
 
-    local grid = New("UIGridLayout", {
+    New("UIGridLayout", {
         Parent = holder,
         CellSize = UDim2.new(0.5, -5, 0, 92),
         CellPadding = UDim2.new(0, 10, 0, 10),
@@ -238,26 +237,17 @@ loadFunction = function()
         end)
         
         if success and result then
-            local fn, err = loadstring(result)
+            local fn = loadstring(result)
             if fn then
-                -- Cập nhật context để các file con nhận được hàm BackToMain hoặc LoadFunction quay lại
                 local subContext = {}
                 for k, v in pairs(context) do
                     subContext[k] = v
                 end
                 
-                -- Hỗ trợ đầy đủ các tên hàm Back mà các file con có thể gọi
+                -- Gán hàm quay lại an toàn
                 subContext.BackToMain = loadFunction
-                subContext.LoadFunction = function(name)
-                    if name == "function" or name == "Function" then
-                        loadFunction()
-                    end
-                end
-                subContext.Navigate = function(name)
-                    if string.lower(name) == "function" then
-                        loadFunction()
-                    end
-                end
+                subContext.LoadFunction = loadFunction
+                subContext.Navigate = loadFunction
                 
                 pcall(fn, subContext)
             end
@@ -292,7 +282,6 @@ loadFunction = function()
 
         local shine = New("Frame", {
             Parent = card,
-            Position = UDim2.new(0, 0, 0, 0),
             Size = UDim2.new(0, 3, 1, 0),
             BackgroundColor3 = accent(),
             BorderSizePixel = 0
@@ -302,7 +291,7 @@ loadFunction = function()
         local iconGlow = New("Frame", {
             Parent = card,
             AnchorPoint = Vector2.new(0.5, 0.5),
-            Position = UDim2.fromOffset(15 + 19, 16 + 19),
+            Position = UDim2.fromOffset(34, 35),
             Size = UDim2.fromOffset(50, 50),
             BackgroundColor3 = accent(),
             BackgroundTransparency = 0.88,
@@ -319,15 +308,6 @@ loadFunction = function()
         })
         Corner(iconBox, 11)
         local iconStroke = Stroke(iconBox, 1, 0.72)
-
-        New("UIGradient", {
-            Parent = iconBox,
-            Rotation = 90,
-            Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(24, 26, 38)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(14, 15, 22))
-            })
-        })
 
         New("TextLabel", {
             Parent = iconBox,
@@ -377,33 +357,21 @@ loadFunction = function()
         })
 
         local state = {
-            button = card,
             stroke = stroke,
             iconStroke = iconStroke,
             shine = shine,
-            scale = scale,
-            iconGlow = iconGlow,
-            name = string.lower(title),
-            fileName = fileName
+            iconGlow = iconGlow
         }
         cards[#cards + 1] = state
 
         card.MouseEnter:Connect(function()
             Tween(scale, 0.18, {Scale = 1.045}, Enum.EasingStyle.Back)
             Tween(stroke, 0.18, {Transparency = 0.05, Thickness = 1.5})
-            Tween(iconBox, 0.18, {BackgroundColor3 = Color3.fromRGB(23, 26, 38)})
-            Tween(shine, 0.18, {Size = UDim2.new(0, 5, 1, 0)})
-            Tween(iconGlow, 0.18, {BackgroundTransparency = 0.72})
-            Tween(chevron, 0.18, {Position = UDim2.new(1, -25, 0, 15)})
         end)
 
         card.MouseLeave:Connect(function()
             Tween(scale, 0.18, {Scale = 1})
             Tween(stroke, 0.18, {Transparency = 0.68, Thickness = 1})
-            Tween(iconBox, 0.18, {BackgroundColor3 = Color3.fromRGB(17, 19, 28)})
-            Tween(shine, 0.18, {Size = UDim2.new(0, 3, 1, 0)})
-            Tween(iconGlow, 0.18, {BackgroundTransparency = 0.88})
-            Tween(chevron, 0.18, {Position = UDim2.new(1, -29, 0, 15)})
         end)
 
         card.Activated:Connect(function()
@@ -433,20 +401,19 @@ loadFunction = function()
             headerHighlight.BackgroundColor3 = a
 
             for _, item in ipairs(cards) do
-                item.stroke.Color = a
-                item.iconStroke.Color = a
-                item.shine.BackgroundColor3 = a
-                item.iconGlow.BackgroundColor3 = a
+                if item.stroke and item.stroke.Parent then
+                    item.stroke.Color = a
+                    item.iconStroke.Color = a
+                    item.shine.BackgroundColor3 = a
+                    item.iconGlow.BackgroundColor3 = a
+                end
             end
 
-            task.wait(0.2)
+            task.wait(0.5) -- Tăng thời gian chờ vòng lặp lên 0.5s để giảm tối đa lag/delay
         end
     end)
 end
 
--- Chạy lần đầu tiên khi load script function.lua
 loadFunction()
 
-return {
-    Root = Tab
-}
+return { Root = Tab }
