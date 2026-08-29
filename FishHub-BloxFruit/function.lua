@@ -137,6 +137,16 @@ New("UIGradient", {
     })
 })
 
+local headerHighlight = New("Frame", {
+    Parent = head,
+    Position = UDim2.fromOffset(28, 0),
+    Size = UDim2.new(1, -56, 0, 2),
+    BackgroundColor3 = accent(),
+    BackgroundTransparency = 0.55,
+    BorderSizePixel = 0
+})
+Corner(headerHighlight, 2)
+
 local accentBar = New("Frame", {
     Parent = head,
     Position = UDim2.fromOffset(12, 14),
@@ -169,6 +179,26 @@ New("TextLabel", {
     TextColor3 = Color3.fromRGB(125, 130, 145),
     TextXAlignment = Enum.TextXAlignment.Left
 })
+
+local headerDot = New("Frame", {
+    Parent = head,
+    Position = UDim2.new(1, -28, 0.5, 0),
+    AnchorPoint = Vector2.new(0.5, 0.5),
+    Size = UDim2.fromOffset(7, 7),
+    BackgroundColor3 = accent(),
+    BorderSizePixel = 0
+})
+Corner(headerDot, 99)
+
+task.spawn(function()
+    while headerDot.Parent do
+        Tween(headerDot, 0.9, {BackgroundTransparency = 0.1}, Enum.EasingStyle.Sine)
+        task.wait(0.9)
+        if not headerDot.Parent then break end
+        Tween(headerDot, 0.9, {BackgroundTransparency = 0.7}, Enum.EasingStyle.Sine)
+        task.wait(0.9)
+    end
+end)
 
 local holder = New("Frame", {
     Parent = root,
@@ -203,7 +233,7 @@ local function loadModule(fileName)
     local success, result = pcall(function()
         return game:HttpGet(url)
     end)
-
+    
     if success and result then
         local fn, err = loadstring(result)
         if fn then
@@ -374,9 +404,11 @@ task.spawn(function()
     while root.Parent do
         local a = accent()
         accentBar.BackgroundColor3 = a
+        headerDot.BackgroundColor3 = a
         headStroke.Color = a
         headerGlow.BackgroundColor3 = a
         headerGlow2.BackgroundColor3 = a
+        headerHighlight.BackgroundColor3 = a
 
         for _, item in ipairs(cards) do
             item.stroke.Color = a
