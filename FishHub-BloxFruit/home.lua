@@ -298,7 +298,7 @@ local function section(titleText, height)
     return inner
 end
 
-local status = section("PLAYER STATUS", 154)
+local status = section("PLAYER STATUS", 200)
 
 local function findValue(...)
     local names = {...}
@@ -375,6 +375,154 @@ local function formatPlain(value)
     end
 
     return tostring(math.floor(number))
+end
+
+-- ============================================================
+-- RACE DETECTION (Blox Fruits)
+-- Reads the player's current race (name), race version (V1-V4),
+-- and if V4, the race tier (0-10). Tries multiple replicated
+-- paths so it works across different Blox Fruits clients.
+-- ============================================================
+
+local VALID_RACE_NAMES = {
+    ["Human"] = true,
+    ["Mink"] = true,
+    ["Fishman"] = true,
+    ["Skypiea"] = true,
+    ["Cyborg"] = true,
+    ["Ghoul"] = true,
+}
+
+local function normalizeRaceName(raw)
+    if not raw or raw == "" then return nil end
+    if type(raw) ~= "string" then raw = tostring(raw) end
+    -- Some games store race as "Race (V3)" or with extra spaces - strip noise.
+    local cleaned = raw:gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+    if VALID_RACE_NAMES[cleaned] then
+        return cleaned
+    end
+    -- Try to match the first valid race name inside the string.
+    for name in pairs(VALID_RACE_NAMES) do
+        if cleaned:find(name, 1, true) then
+            return name
+        end
+    end
+    return cleaned
+end
+
+local function findRaceNameValue()
+    local candidates = { "Race", "CurrentRace", "PlayerRace" }
+    local containers = {
+        player,
+        player:FindFirstChild("leaderstats"),
+        player:FindFirstChild("Data"),
+        player:FindFirstChild("data"),
+        player:FindFirstChild("Stats"),
+        player:FindFirstChild("stats"),
+    }
+    for _, container in ipairs(containers) do
+        if container then
+            for _, name in ipairs(candidates) do
+                local v = container:FindFirstChild(name)
+                if v and v:IsA("StringValue") and v.Value and v.Value ~= "" then
+                    return v
+                end
+            end
+        end
+    end
+    -- Fallback: attribute on the player (some clients replicate it that way).
+    pcall(function()
+        local attr = player:GetAttribute("Race")
+        if attr and attr ~= "" then
+            return { Value = tostring(attr) }
+        end
+    end)
+    return nil
+end
+
+local function findRaceVersionNumber()
+    local candidates = { "RaceRarity", "RaceVersion", "RaceEvolution", "V4Unlocked", "RaceV4" }
+    local containers = {
+        player,
+        player:FindFirstChild("Data"),
+        player:FindFirstChild("data"),
+        player:FindFirstChild("Stats"),
+        player:FindFirstChild("stats"),
+        player:FindFirstChild("leaderstats"),
+    }
+    for _, container in ipairs(containers) do
+        if container then
+            for _, name in ipairs(candidates) do
+                local v = container:FindFirstChild(name)
+                if v then
+                    if v:IsA("NumberValue") then
+                        local n = tonumber(v.Value)
+                        if n then
+                            if n >= 1 and n <= 4 then
+                                return math.floor(n + 0.5)
+                            end
+                            if n == 0 then return 1 end
+                        end
+                    elseif v:IsA("StringValue") then
+                        local s = tostring(v.Value or "")
+                        local num = tonumber(s:match("(%d+)"))
+                        if num and num >= 1 and num <= 4 then
+                            return num
+                        end
+                        local upper = s:upper()
+                        if upper:find("V4") then return 4 end
+                        if upper:find("V3") then return 3 end
+                        if upper:find("V2") then return 2 end
+                        if upper:find("V1") then return 1 end
+                    elseif v:IsA("BoolValue") then
+                        if v.Value == true then return 4 end
+                    end
+                end
+            end
+        end
+    end
+    -- Fallback: parse "V2/V3/V4" out of the race name string itself.
+    local raceVal = findRaceNameValue()
+    if raceVal and type(raceVal.Value) == "string" then
+        local s = raceVal.Value:upper()
+        if s:find("V4") then return 4 end
+        if s:find("V3") then return 3 end
+        if s:find("V2") then return 2 end
+        if s:find("V1") then return 1 end
+    end
+    return nil
+end
+
+local function findRaceTierNumber()
+    local candidates = { "RaceTier", "RaceV4Tier", "V4Tier", "Tier", "RaceStage" }
+    local containers = {
+        player,
+        player:FindFirstChild("Data"),
+        player:FindFirstChild("data"),
+        player:FindFirstChild("Stats"),
+        player:FindFirstChild("stats"),
+    }
+    for _, container in ipairs(containers) do
+        if container then
+            for _, name in ipairs(candidates) do
+                local v = container:FindFirstChild(name)
+                if v then
+                    if v:IsA("NumberValue") then
+                        local n = tonumber(v.Value)
+                        if n and n >= 0 and n <= 10 then
+                            return math.floor(n + 0.5)
+                        end
+                    elseif v:IsA("StringValue") then
+                        local num = tonumber(tostring(v.Value or ""):match("(%d+)"))
+                        if num and num >= 0 and num <= 10 then
+                            return num
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return nil
 end
 
 local function createStat(titleText, valueText, x, y)
@@ -454,6 +602,159 @@ local _, fragments = createStat(
     0,
     52
 )
+
+-- ============================================================
+-- RACE CARD (full-width, third row of PLAYER STATUS)
+-- Shows: race name + V1/V2/V3/V4 badge, plus T0..T10 if V4.
+-- ============================================================
+
+local RACE_VERSION_COLORS = {
+    V1 = { bg = Color3.fromRGB(95, 100, 118),   fg = Color3.fromRGB(232, 234, 242) },
+    V2 = { bg = Color3.fromRGB(70, 165, 95),    fg = Color3.fromRGB(232, 255, 238) },
+    V3 = { bg = Color3.fromRGB(70, 140, 225),   fg = Color3.fromRGB(232, 244, 255) },
+    V4 = { bg = Color3.fromRGB(225, 140, 55),   fg = Color3.fromRGB(255, 246, 232) },
+}
+
+local function getTierColors(tier)
+    if tier <= 3 then
+        return Color3.fromRGB(80, 115, 175), Color3.fromRGB(232, 242, 255)
+    elseif tier <= 7 then
+        return Color3.fromRGB(155, 95, 210), Color3.fromRGB(250, 240, 255)
+    else
+        return Color3.fromRGB(230, 170, 55), Color3.fromRGB(255, 248, 230)
+    end
+end
+
+local raceCard = Instance.new("Frame")
+raceCard.Name = "RaceCard"
+raceCard.Size = UDim2.new(1, -10, 0, 38)
+raceCard.Position = UDim2.new(0, 5, 0, 97)
+raceCard.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
+raceCard.BorderSizePixel = 0
+raceCard.Parent = status
+corner(raceCard, 9)
+
+local raceCardStroke = addStroke(raceCard, 0.85, 1)
+table.insert(dynamicStrokes, raceCardStroke)
+
+local raceCardScale = Instance.new("UIScale")
+raceCardScale.Parent = raceCard
+
+local raceTitle = label(
+    raceCard,
+    "RACE",
+    8,
+    Color3.fromRGB(120, 125, 140),
+    Enum.Font.GothamBold
+)
+raceTitle.Size = UDim2.new(0, 60, 0, 12)
+raceTitle.Position = UDim2.new(0, 8, 0, 6)
+
+local raceValue = label(
+    raceCard,
+    "Detecting...",
+    12,
+    Color3.fromRGB(242, 244, 250),
+    Enum.Font.GothamBlack
+)
+raceValue.Size = UDim2.new(0, 0, 0, 16)
+raceValue.Position = UDim2.new(0, 8, 0, 18)
+raceValue.AutomaticSize = Enum.AutomaticSize.X
+raceValue.TextTruncate = Enum.TextTruncate.AtEnd
+
+local raceBadges = Instance.new("Frame")
+raceBadges.Name = "Badges"
+raceBadges.Size = UDim2.new(0, 0, 0, 20)
+raceBadges.AutomaticSize = Enum.AutomaticSize.X
+raceBadges.BackgroundTransparency = 1
+raceBadges.Parent = raceCard
+raceBadges.Position = UDim2.new(1, -8, 0.5, 0)
+raceBadges.AnchorPoint = Vector2.new(1, 0.5)
+
+local raceBadgeLayout = Instance.new("UIListLayout")
+raceBadgeLayout.FillDirection = Enum.FillDirection.Horizontal
+raceBadgeLayout.Padding = UDim.new(0, 5)
+raceBadgeLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+raceBadgeLayout.Parent = raceBadges
+
+local function makeRaceBadge(defaultText, defaultBg, defaultFg)
+    local b = Instance.new("Frame")
+    b.Name = defaultText
+    b.Size = UDim2.new(0, 0, 0, 20)
+    b.AutomaticSize = Enum.AutomaticSize.X
+    b.BackgroundColor3 = defaultBg
+    b.BackgroundTransparency = 0.15
+    b.BorderSizePixel = 0
+    b.Visible = false
+    b.Parent = raceBadges
+    corner(b, 6)
+    local t = label(b, "  " .. defaultText .. "  ", 9, defaultFg, Enum.Font.GothamBold)
+    t.Size = UDim2.new(0, 0, 1, 0)
+    t.AutomaticSize = Enum.AutomaticSize.X
+    t.TextXAlignment = Enum.TextXAlignment.Center
+    return b, t
+end
+
+local versionBadge, versionBadgeText = makeRaceBadge(
+    "V1",
+    RACE_VERSION_COLORS.V1.bg,
+    RACE_VERSION_COLORS.V1.fg
+)
+local tierBadge, tierBadgeText = makeRaceBadge(
+    "T0",
+    Color3.fromRGB(155, 95, 210),
+    Color3.fromRGB(250, 240, 255)
+)
+
+local function setBadgeText(badge, textLabel, text, bg, fg)
+    textLabel.Text = "  " .. text .. "  "
+    badge.BackgroundColor3 = bg
+    textLabel.TextColor3 = fg
+    badge.Visible = true
+end
+
+local function hideBadge(badge)
+    badge.Visible = false
+end
+
+local function refreshRace()
+    local nameVal = findRaceNameValue()
+    local verNum = findRaceVersionNumber()
+    local tierNum = findRaceTierNumber()
+
+    if nameVal and nameVal.Value and nameVal.Value ~= "" then
+        local clean = normalizeRaceName(nameVal.Value)
+        raceValue.Text = clean or "No Race"
+    else
+        raceValue.Text = "No Race"
+    end
+
+    if verNum then
+        local v = math.clamp(verNum, 1, 4)
+        local key = "V" .. v
+        local col = RACE_VERSION_COLORS[key] or RACE_VERSION_COLORS.V1
+        setBadgeText(versionBadge, versionBadgeText, key, col.bg, col.fg)
+
+        if v == 4 then
+            local t
+            if tierNum then
+                t = math.clamp(tierNum, 0, 10)
+            else
+                t = 0
+            end
+            local tbg, tfg = getTierColors(t)
+            setBadgeText(tierBadge, tierBadgeText, "T" .. t, tbg, tfg)
+        else
+            hideBadge(tierBadge)
+        end
+    else
+        hideBadge(versionBadge)
+        hideBadge(tierBadge)
+    end
+end
+
+-- Initial population so it shows up immediately, not after the first tick.
+refreshRace()
 
 local function getTeamKind()
     local team = player.Team
@@ -734,6 +1035,7 @@ task.spawn(function()
         fragments.Text = formatNumber(fragmentsValue)
 
         refreshReputation()
+        refreshRace()
 
         task.wait(0.35)
     end
