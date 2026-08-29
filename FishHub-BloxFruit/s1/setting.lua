@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
 local context = ...
 if type(context) ~= "table" or not context.Tab then return end
@@ -8,6 +9,10 @@ local Tab = context.Tab
 local Config = context.Config or {}
 
 local function accent()
+    if Config.Rainbow or Config.RainbowMode then
+        local hue = tick() % 5 / 5
+        return Color3.fromHSV(hue, 1, 1)
+    end
     return typeof(Config.ThemeColor) == "Color3" and Config.ThemeColor or Color3.fromRGB(0, 229, 255)
 end
 
@@ -41,7 +46,7 @@ local topBar = New("Frame", { Parent = root, LayoutOrder = 1, Size = UDim2.new(1
 local backBtn = New("TextButton", { Parent = topBar, Size = UDim2.fromOffset(45, 45), BackgroundColor3 = Color3.fromRGB(12, 13, 19), AutoButtonColor = false, Text = "" })
 Corner(backBtn, 10)
 local backStroke = Stroke(backBtn, 1, 0.4)
-New("TextLabel", { Parent = backBtn, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "←", Font = Enum.Font.GothamBold, TextSize = 18, TextColor3 = accent() })
+local arrowLabel = New("TextLabel", { Parent = backBtn, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "←", Font = Enum.Font.GothamBold, TextSize = 18, TextColor3 = accent() })
 
 local searchBox = New("Frame", { Parent = topBar, Position = UDim2.new(0, 55, 0, 0), Size = UDim2.new(1, -55, 1, 0), BackgroundColor3 = Color3.fromRGB(12, 13, 19) })
 Corner(searchBox, 10)
@@ -55,7 +60,6 @@ Corner(contentFrame, 12)
 local contentStroke = Stroke(contentFrame, 1, 0.6)
 New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "Module Content Area", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.fromRGB(200, 205, 220) })
 
--- Xử lý nút Back gọn gàng, không bị lỗi kẹt
 backBtn.Activated:Connect(function()
     if type(context.BackToMain) == "function" then
         context.BackToMain()
@@ -64,14 +68,18 @@ backBtn.Activated:Connect(function()
     end
 end)
 
-task.spawn(function()
-    while root.Parent do
-        local a = accent()
-        backStroke.Color = a
-        searchStroke.Color = a
-        contentStroke.Color = a
-        task.wait(0.1) -- Giảm tần suất chạy vòng lặp để chống lag/delay
+-- Thay thế task.wait(0.1) bằng RunService.RenderStepped để loại bỏ hoàn toàn độ trễ và cập nhật màu mượt mà
+local connection
+connection = RunService.RenderStepped:Connect(function()
+    if not root.Parent then
+        connection:Disconnect()
+        return
     end
+    local a = accent()
+    backStroke.Color = a
+    searchStroke.Color = a
+    contentStroke.Color = a
+    arrowLabel.TextColor3 = a
 end)
 
 return { Root = root }
