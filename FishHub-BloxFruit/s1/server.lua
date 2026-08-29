@@ -1,7 +1,6 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local Stats = game:GetService("Stats")
 
 local context = ...
 if type(context) ~= "table" or not context.Tab then return end
@@ -54,38 +53,32 @@ Corner(searchBox, 10)
 local searchStroke = Stroke(searchBox, 1, 0.4)
 
 New("TextLabel", { Parent = searchBox, Position = UDim2.new(0, 12, 0, 0), Size = UDim2.new(0, 20, 1, 0), BackgroundTransparency = 1, Text = "🔍", TextSize = 14 })
-local searchInput = New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search server status...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
+New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
 
--- KHU VỰC SERVER STATUS ĐƯỢC TRANG TRÍ LẠI ĐẸP MẮT
-local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 240), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.4 })
+-- TRANG TRÍ CONTENT FRAME (VẪN GIỮ NGUYÊN KHUNG MẪU, CHỈ LÀM ĐẸP GIAO DIỆN HIỂN THỊ TRẠNG THÁI SERVER THUẦN TÚY)
+local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 210), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
 Corner(contentFrame, 12)
 local contentStroke = Stroke(contentFrame, 1, 0.6)
 
--- Tiêu đề nhỏ bên trong khung Server Status
-local headerTitle = New("TextLabel", { Parent = contentFrame, Position = UDim2.new(0, 15, 0, 12), Size = UDim2.new(1, -30, 0, 20), BackgroundTransparency = 1, Text = "⚡ SERVER PERFORMANCE", Font = Enum.Font.GothamBold, TextSize = 13, TextColor3 = accent(), TextXAlignment = Enum.TextXAlignment.Left })
+-- Tiêu đề trạng thái server (Chỉ mang tính chất trang trí)
+local statusTitle = New("TextLabel", { Parent = contentFrame, Position = UDim2.new(0, 16, 0, 16), Size = UDim2.new(1, -32, 0, 20), BackgroundTransparency = 1, Text = "🌐 Server Status", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = accent(), TextXAlignment = Enum.TextXAlignment.Left })
 
-local infoList = New("Frame", { Parent = contentFrame, Position = UDim2.new(0, 12, 0, 40), Size = UDim2.new(1, -24, 1, -50), BackgroundTransparency = 1 })
-New("UIListLayout", { Parent = infoList, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8) })
+local statusDesc = New("TextLabel", { Parent = contentFrame, Position = UDim2.new(0, 16, 0, 38), Size = UDim2.new(1, -32, 0, 40), BackgroundTransparency = 1, Text = "Current connection state and environment details for this game session.", Font = Enum.Font.Gotham, TextSize = 11, TextColor3 = Color3.fromRGB(140, 145, 165), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = true })
 
--- Hàm tạo các dòng trạng thái phong cách thẻ (card)
-local function createStatusRow(layoutOrder, labelText, initialValue)
-    local row = New("Frame", { Parent = infoList, LayoutOrder = layoutOrder, Size = UDim2.new(1, 0, 0, 36), BackgroundColor3 = Color3.fromRGB(15, 17, 26), BackgroundTransparency = 0.6 })
-    Corner(row, 8)
-    Stroke(row, 1, 0.8)
-    
-    New("TextLabel", { Parent = row, Position = UDim2.new(0, 12, 0, 0), Size = UDim2.new(0.5, 0, 1, 0), BackgroundTransparency = 1, Text = labelText, Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(180, 185, 200), TextXAlignment = Enum.TextXAlignment.Left })
-    
-    local valLabel = New("TextLabel", { Parent = row, Position = UDim2.new(0.5, 0, 0, 0), Size = UDim2.new(1, -24, 1, 0), BackgroundTransparency = 1, Text = initialValue, Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = Color3.fromRGB(255, 255, 255), TextXAlignment = Enum.TextXAlignment.Right })
-    
-    return valLabel
+-- Khung hiển thị mẫu giao diện trang trí (Không có hàm code chạy chức năng ngầm)
+local badgeContainer = New("Frame", { Parent = contentFrame, Position = UDim2.new(0, 16, 0, 90), Size = UDim2.new(1, -32, 0, 95), BackgroundColor3 = Color3.fromRGB(13, 15, 22), BackgroundTransparency = 0.6 })
+Corner(badgeContainer, 8)
+Stroke(badgeContainer, 1, 0.8)
+
+local function createRow(yPos, labelText, valText, valColor)
+    local row = New("Frame", { Parent = badgeContainer, Position = UDim2.new(0, 12, 0, yPos), Size = UDim2.new(1, -24, 0, 24), BackgroundTransparency = 1 })
+    New("TextLabel", { Parent = row, Size = UDim2.new(0.5, 0, 1, 0), BackgroundTransparency = 1, Text = labelText, Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(180, 185, 200), TextXAlignment = Enum.TextXAlignment.Left })
+    New("TextLabel", { Parent = row, Size = UDim2.new(0.5, 0, 1, 0), Position = UDim2.new(0.5, 0, 0, 0), BackgroundTransparency = 1, Text = valText, Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = valColor or Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Right })
 end
 
-local fpsVal = createStatusRow(1, "Frames Per Second (FPS)", "60 FPS")
-local pingVal = createStatusRow(2, "Network Ping", "0 ms")
-local playersVal = createStatusRow(3, "Server Players", "1 / 1")
-local uptimeVal = createStatusRow(4, "Session Uptime", "00:00:00")
-
-local startTime = tick()
+createRow(10, "Connection State", "Connected", Color3.fromRGB(46, 204, 113))
+createRow(38, "Environment", "Live Server", Color3.fromRGB(52, 152, 219))
+createRow(66, "Module Mode", "Visual Only", Color3.fromRGB(241, 196, 15))
 
 backBtn.Activated:Connect(function()
     if type(context.BackToMain) == "function" then
@@ -95,49 +88,18 @@ backBtn.Activated:Connect(function()
     end
 end)
 
-local lastUpdate = 0
-local frameCount = 0
-
 local connection
-connection = RunService.RenderStepped:Connect(function(dt)
+connection = RunService.RenderStepped:Connect(function()
     if not root.Parent then
         connection:Disconnect()
         return
     end
-    
-    -- Cập nhật màu sắc động theo Theme / Rainbow
     local a = accent()
     backStroke.Color = a
     searchStroke.Color = a
     contentStroke.Color = a
     arrowLabel.TextColor3 = a
-    headerTitle.TextColor3 = a
-
-    -- Cập nhật thông số Server Status mượt mà mỗi khung hình
-    frameCount = frameCount + 1
-    lastUpdate = lastUpdate + dt
-    if lastUpdate >= 0.5 then
-        local currentFPS = math.floor(frameCount / lastUpdate)
-        fpsVal.Text = currentFPS .. " FPS"
-        
-        local p = Players.LocalPlayer
-        if p and p:GetNetworkPing() then
-            pingVal.Text = math.floor(p:GetNetworkPing() * 1000) .. " ms"
-        else
-            pingVal.Text = "N/A"
-        end
-        
-        playersVal.Text = #Players:GetPlayers() .. " / " .. Players.MaxPlayers
-        
-        local uptime = math.floor(tick() - startTime)
-        local hours = math.floor(uptime / 3600)
-        local minutes = math.floor((uptime % 3600) / 60)
-        local seconds = uptime % 60
-        uptimeVal.Text = string.format("%02d:%02d:%02d", hours, minutes, seconds)
-        
-        frameCount = 0
-        lastUpdate = 0
-    end
+    statusTitle.TextColor3 = a
 end)
 
 return { Root = root }[cite: 1]
