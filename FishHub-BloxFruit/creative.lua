@@ -38,6 +38,7 @@ local function RainbowStroke(strokeObj,speed)
 end
 
 -- Kiểu "IG story ring": vòng rainbow ngoài -> khoảng hở màu nền -> nội dung
+-- centerPos, ringD, gapD, contentD đều tính theo offset trong 'parent'
 local function StoryRing(parent,centerPos,ringD,gapD,bgColor,ringThickness,speed)
 	local ring=N('Frame',{Parent=parent,AnchorPoint=Vector2.new(.5,.5),Position=centerPos,Size=UDim2.fromOffset(ringD,ringD),BackgroundTransparency=1});Circle(ring)
 	local ringStroke=N('UIStroke',{Parent=ring,Thickness=ringThickness or 3,Transparency=0,ApplyStrokeMode=Enum.ApplyStrokeMode.Border})
@@ -108,11 +109,14 @@ N('TextLabel',{Parent=chip,Size=UDim2.fromOffset(96,16),BackgroundTransparency=1
 N('TextLabel',{Parent=header,Position=UDim2.fromOffset(TEXT_X,78),Size=UDim2.new(1,-(TEXT_X+16),0,50),BackgroundTransparency=1,Text='FishHub interface — social links.\nTap a circle below to copy the link.',Font=Enum.Font.GothamMedium,TextSize=9.5,TextColor3=Color3.fromRGB(148,153,168),TextWrapped=true,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top})
 
 local USERNAME='thankhuyenhuy'
+-- cache avatar (userId + ảnh) vào bảng global tồn tại xuyên suốt phiên chơi,
+-- để lần sau bấm lại tab Creative là hiện ảnh NGAY, không phải chờ gọi API lại
 local envTable=(type(getgenv)=='function' and getgenv())or _G
 envTable.__FishHubCreativeCache=envTable.__FishHubCreativeCache or {}
 local avatarCache=envTable.__FishHubCreativeCache
 
 if avatarCache.image then
+	-- đã có sẵn trong cache -> gán tức thì, không delay
 	av.Image=avatarCache.image
 	fallback.Visible=false
 else
@@ -164,9 +168,7 @@ for i,d in ipairs(socials)do
 	local iconHolder=N('Frame',{Parent=card,AnchorPoint=Vector2.new(.5,.5),Position=iconCenter,Size=UDim2.fromOffset(60,60),BackgroundColor3=Color3.fromRGB(7,8,13),BorderSizePixel=0});Circle(iconHolder)
 	local innerStroke=Stroke(iconHolder,1.3,.2)
 	local sc=N('UIScale',{Parent=card})
-	
-	-- Đặt logo chuẩn vào chính giữa khung tròn (bỏ trống bên trong) với màu cố định theo brand của từng mạng xã hội
-	local img=N('ImageLabel',{Parent=iconHolder,AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),Size=UDim2.fromOffset(30,30),BackgroundTransparency=1,Image=d.icon,ImageColor3=d.brand,ScaleType=Enum.ScaleType.Fit})
+	local img=N('ImageLabel',{Parent=iconHolder,AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),Size=UDim2.fromOffset(32,32),BackgroundTransparency=1,Image=d.icon,ImageColor3=d.brand,ScaleType=Enum.ScaleType.Fit})
 
 	N('TextLabel',{Parent=card,Position=UDim2.fromOffset(0,92),Size=UDim2.new(1,0,0,16),BackgroundTransparency=1,Text=d.name,Font=Enum.Font.GothamBold,TextSize=9,TextColor3=Color3.fromRGB(238,239,246),TextXAlignment=Enum.TextXAlignment.Center})
 	N('TextLabel',{Parent=card,Position=UDim2.fromOffset(0,108),Size=UDim2.new(1,0,0,14),BackgroundTransparency=1,Text='Tap to copy',Font=Enum.Font.GothamMedium,TextSize=7.5,TextColor3=Color3.fromRGB(110,115,130),TextXAlignment=Enum.TextXAlignment.Center})
@@ -190,6 +192,7 @@ for i,d in ipairs(socials)do
 	btn.Activated:Connect(function()
 		pcall(function()if setclipboard then setclipboard(d.url)end end)
 		notify('Copied '..d.name..' link!')
+		-- flash xanh báo copy thành công trên viền trong
 		Tween(innerStroke,.15,{Color=SUCCESS,Transparency=0,Thickness=2.2})
 		Tween(sc,.15,{Scale=1.12},Enum.EasingStyle.Back)
 		task.delay(.55,function()
