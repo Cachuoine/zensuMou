@@ -298,7 +298,7 @@ local function section(titleText, height)
     return inner
 end
 
-local status = section("PLAYER STATUS", 200)
+local status = section("PLAYER STATUS", 245)
 
 local function findValue(...)
     local names = {...}
@@ -627,7 +627,7 @@ end
 
 local raceCard = Instance.new("Frame")
 raceCard.Name = "RaceCard"
-raceCard.Size = UDim2.new(1, -10, 0, 38)
+raceCard.Size = UDim2.new(0.5, -10, 0, 38)
 raceCard.Position = UDim2.new(0, 5, 0, 97)
 raceCard.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
 raceCard.BorderSizePixel = 0
@@ -756,6 +756,76 @@ end
 -- Initial population so it shows up immediately, not after the first tick.
 refreshRace()
 
+-- ============================================================
+-- SERVER TIME (real elapsed time the server has been running)
+-- Sits to the right of the RACE card. Uses workspace:GetServerTimeNow()
+-- which returns real seconds since the server started.
+-- ============================================================
+
+local serverTimeCard = Instance.new("Frame")
+serverTimeCard.Name = "ServerTimeCard"
+serverTimeCard.Size = UDim2.new(0.5, -10, 0, 38)
+serverTimeCard.Position = UDim2.new(0.5, 5, 0, 97)
+serverTimeCard.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
+serverTimeCard.BorderSizePixel = 0
+serverTimeCard.Parent = status
+corner(serverTimeCard, 9)
+
+local serverTimeStroke = addStroke(serverTimeCard, 0.85, 1)
+table.insert(dynamicStrokes, serverTimeStroke)
+
+local serverTimeCardScale = Instance.new("UIScale")
+serverTimeCardScale.Parent = serverTimeCard
+
+local serverTimeTitle = label(
+    serverTimeCard,
+    "SERVER TIME",
+    8,
+    Color3.fromRGB(120, 125, 140),
+    Enum.Font.GothamBold
+)
+serverTimeTitle.Size = UDim2.new(1, -16, 0, 12)
+serverTimeTitle.Position = UDim2.new(0, 8, 0, 6)
+
+local serverTimeValue = label(
+    serverTimeCard,
+    "00:00:00",
+    12,
+    Color3.fromRGB(242, 244, 250),
+    Enum.Font.GothamBlack
+)
+serverTimeValue.Size = UDim2.new(1, -16, 0, 16)
+serverTimeValue.Position = UDim2.new(0, 8, 0, 18)
+serverTimeValue.TextTruncate = Enum.TextTruncate.AtEnd
+
+local function formatDuration(totalSeconds)
+    totalSeconds = math.max(0, math.floor(totalSeconds or 0))
+
+    local hours = math.floor(totalSeconds / 3600)
+    local minutes = math.floor((totalSeconds % 3600) / 60)
+    local seconds = totalSeconds % 60
+
+    return string.format("%02d:%02d:%02d", hours, minutes, seconds)
+end
+
+local function refreshServerTime()
+    local ok, now = pcall(function()
+        return workspace:GetServerTimeNow()
+    end)
+
+    serverTimeValue.Text = formatDuration(ok and now or 0)
+end
+
+-- Initial population, then keep it ticking every second in real time.
+refreshServerTime()
+
+task.spawn(function()
+    while tab.Parent do
+        refreshServerTime()
+        task.wait(1)
+    end
+end)
+
 local function getTeamKind()
     local team = player.Team
 
@@ -798,6 +868,110 @@ local function refreshReputation()
 
     reputation.Text = formatNumber(bountyHonorValue)
 end
+
+-- ============================================================
+-- ID ROW (bottom of PLAYER STATUS)
+-- One box split into two halves: PLACE ID and GAME ID.
+-- Clicking either half copies that ID to the clipboard.
+-- ============================================================
+
+local idRow = Instance.new("Frame")
+idRow.Name = "IdRow"
+idRow.Size = UDim2.new(1, -10, 0, 38)
+idRow.Position = UDim2.new(0, 5, 0, 142)
+idRow.BackgroundColor3 = Color3.fromRGB(12, 13, 19)
+idRow.BorderSizePixel = 0
+idRow.Parent = status
+corner(idRow, 9)
+
+local idRowStroke = addStroke(idRow, 0.85, 1)
+table.insert(dynamicStrokes, idRowStroke)
+
+local idRowScale = Instance.new("UIScale")
+idRowScale.Parent = idRow
+
+local idDivider = Instance.new("Frame")
+idDivider.Name = "Divider"
+idDivider.Size = UDim2.new(0, 1, 1, -14)
+idDivider.AnchorPoint = Vector2.new(0.5, 0.5)
+idDivider.Position = UDim2.new(0.5, 0, 0.5, 0)
+idDivider.BackgroundColor3 = theme()
+idDivider.BackgroundTransparency = 0.75
+idDivider.BorderSizePixel = 0
+idDivider.ZIndex = 2
+idDivider.Parent = idRow
+table.insert(dynamicAccents, idDivider)
+
+local function makeIdButton(xScale, titleText, valueText)
+    local btn = Instance.new("TextButton")
+    btn.Name = titleText:gsub("%s+", "")
+    btn.Size = UDim2.new(0.5, -8, 1, -4)
+    btn.Position = UDim2.new(xScale, xScale == 0 and 4 or 4, 0, 2)
+    btn.BackgroundTransparency = 1
+    btn.Text = ""
+    btn.AutoButtonColor = false
+    btn.ZIndex = 3
+    btn.Parent = idRow
+
+    local title = label(
+        btn,
+        titleText,
+        8,
+        Color3.fromRGB(120, 125, 140),
+        Enum.Font.GothamBold
+    )
+    title.Size = UDim2.new(1, -16, 0, 12)
+    title.Position = UDim2.new(0, 8, 0, 6)
+
+    local value = label(
+        btn,
+        valueText,
+        12,
+        Color3.fromRGB(242, 244, 250),
+        Enum.Font.GothamBlack
+    )
+    value.Size = UDim2.new(1, -16, 0, 16)
+    value.Position = UDim2.new(0, 8, 0, 18)
+    value.TextTruncate = Enum.TextTruncate.AtEnd
+
+    return btn, title, value
+end
+
+local function copyIdToClipboard(text, valueLabel, originalText)
+    local ok = pcall(function()
+        if setclipboard then
+            setclipboard(tostring(text))
+        elseif toclipboard then
+            toclipboard(tostring(text))
+        else
+            error("no clipboard function available")
+        end
+    end)
+
+    if not valueLabel then return end
+
+    valueLabel.Text = ok and "Copied!" or "Copy failed"
+
+    task.delay(1, function()
+        if valueLabel and valueLabel.Parent then
+            valueLabel.Text = originalText
+        end
+    end)
+end
+
+local placeIdText = tostring(game.PlaceId)
+local gameIdText = tostring(game.GameId)
+
+local placeIdBtn, placeIdTitle, placeIdValue = makeIdButton(0, "PLACE ID", placeIdText)
+local gameIdBtn, gameIdTitle, gameIdValue = makeIdButton(0.5, "GAME ID", gameIdText)
+
+placeIdBtn.MouseButton1Click:Connect(function()
+    copyIdToClipboard(placeIdText, placeIdValue, placeIdText)
+end)
+
+gameIdBtn.MouseButton1Click:Connect(function()
+    copyIdToClipboard(gameIdText, gameIdValue, gameIdText)
+end)
 
 local info = section("INFORMATION", 160)
 
