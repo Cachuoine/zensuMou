@@ -36,13 +36,11 @@ for _, child in ipairs(Tab:GetChildren()) do child:Destroy() end
 Tab.BackgroundTransparency = 1
 Tab.BorderSizePixel = 0
 Tab.ScrollBarThickness = 0
-Tab.AutomaticCanvasSize = Enum.AutomaticSize.Y
+Tab.ScrollingEnabled = false
 
-local root = New("Frame", { Parent = Tab, Size = UDim2.new(1, -10, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1 })
-New("UIPadding", { Parent = root, PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, 5), PaddingRight = UDim.new(0, 5) })
-New("UIListLayout", { Parent = root, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 10) })
+local root = New("Frame", { Parent = Tab, Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1 })
 
-local topBar = New("Frame", { Parent = root, LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 45), BackgroundTransparency = 1 })
+local topBar = New("Frame", { Parent = root, Size = UDim2.new(1, -10, 0, 45), Position = UDim2.new(0, 5, 0, 8), BackgroundTransparency = 1 })
 
 local backBtn = New("TextButton", { Parent = topBar, Size = UDim2.fromOffset(45, 45), BackgroundColor3 = Color3.fromRGB(12, 13, 19), AutoButtonColor = false, Text = "" })
 Corner(backBtn, 10)
@@ -52,93 +50,114 @@ local arrowLabel = New("TextLabel", { Parent = backBtn, Size = UDim2.fromScale(1
 local searchBox = New("Frame", { Parent = topBar, Position = UDim2.new(0, 55, 0, 0), Size = UDim2.new(1, -55, 1, 0), BackgroundColor3 = Color3.fromRGB(12, 13, 19) })
 Corner(searchBox, 10)
 local searchStroke = Stroke(searchBox, 1, 0.4)
-
 New("TextLabel", { Parent = searchBox, Position = UDim2.new(0, 12, 0, 0), Size = UDim2.new(0, 20, 1, 0), BackgroundTransparency = 1, Text = "🔍", TextSize = 14 })
 local searchInput = New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
 
-local splitContainer = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 360), BackgroundTransparency = 1 })
+local mainLayout = New("Frame", { Parent = root, Position = UDim2.new(0, 5, 0, 61), Size = UDim2.new(1, -10, 1, -69), BackgroundTransparency = 1 })
 
-local menuContainer = New("Frame", { Parent = splitContainer, Size = UDim2.new(0.32, -5, 1, 0), BackgroundColor3 = Color3.fromRGB(12, 13, 19) })
-Corner(menuContainer, 12)
-local menuStroke = Stroke(menuContainer, 1, 0.5)
-New("UIPadding", { Parent = menuContainer, PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6) })
-New("UIListLayout", { Parent = menuContainer, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6) })
+local leftMenu = New("Frame", { Parent = mainLayout, Size = UDim2.new(0, 140, 1, 0), BackgroundColor3 = Color3.fromRGB(10, 11, 16) })
+Corner(leftMenu, 10)
+local leftStroke = Stroke(leftMenu, 1, 0.5)
 
-local contentContainer = New("Frame", { Parent = splitContainer, Position = UDim2.new(0.32, 5, 0, 0), Size = UDim2.new(0.68, -5, 1, 0), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
-Corner(contentContainer, 12)
-local contentStroke = Stroke(contentContainer, 1, 0.6)
-New("UIPadding", { Parent = contentContainer, PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10) })
+local menuList = New("UIListLayout", { Parent = leftMenu, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4) })
+New("UIPadding", { Parent = leftMenu, PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6) })
 
-local contentScroll = New("ScrollingFrame", { Parent = contentContainer, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 2, AutomaticCanvasSize = Enum.AutomaticSize.Y })
-New("UIListLayout", { Parent = contentScroll, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6) })
+local divider = New("Frame", { Parent = mainLayout, Position = UDim2.new(0, 146, 0, 0), Size = UDim2.new(0, 2, 1, 0), BackgroundColor3 = accent(), BorderSizePixel = 0 })
+
+local rightContent = New("Frame", { Parent = mainLayout, Position = UDim2.new(0, 154, 0, 0), Size = UDim2.new(1, -154, 1, 0), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
+Corner(rightContent, 10)
+local contentStroke = Stroke(rightContent, 1, 0.6)
+
+local contentInner = New("ScrollingFrame", { Parent = rightContent, Size = UDim2.new(1, -10, 1, -10), Position = UDim2.new(0, 5, 0, 5), BackgroundTransparency = 1, ScrollBarThickness = 2, AutomaticCanvasSize = Enum.AutomaticSize.Y, CanvasSize = UDim2.new(0,0,0,0) })
+New("UIListLayout", { Parent = contentInner, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6) })
 
 local tabsData = {
     { Name = "item", Url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/stackfarm/item.lua" },
     { Name = "quest", Url = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/stackfarm/quest.lua" }
 }
 
-local activeTabButton = nil
-local contentCache = {}
-
-local function loadUrlContent(url)
-    for _, child in ipairs(contentScroll:GetChildren()) do
-        if child:IsA("GuiObject") and not child:IsA("UIListLayout") then child:Destroy() end
+local function loadTabContent(url)
+    for _, c in ipairs(contentInner:GetChildren()) do
+        if not c:IsA("UIListLayout") then c:Destroy() end
     end
-    
-    if contentCache[url] then
-        New("TextLabel", { Parent = contentScroll, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Text = contentCache[url], Font = Enum.Font.Gotham, TextSize = 12, TextColor3 = Color3.fromRGB(210, 215, 230), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = true })
-        return
-    end
+    local success, result = pcall(function()
+        return game:HttpGet(url)
+    end)
+    local textLabel = New("TextLabel", {
+        Parent = contentInner,
+        Size = UDim2.new(1, 0, 0, 0),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        BackgroundTransparency = 1,
+        Font = Enum.Font.GothamMedium,
+        TextSize = 13,
+        TextColor3 = Color3.fromRGB(210, 215, 230),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
+        TextWrapped = true,
+        Text = success and result or "Error loading content from URL."
+    })
+end
 
-    local loadingLabel = New("TextLabel", { Parent = contentScroll, Size = UDim2.new(1, 0, 0, 30), BackgroundTransparency = 1, Text = "Loading content...", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(150, 155, 170), TextXAlignment = Enum.TextXAlignment.Left })
+local tabButtons = {}
+for i, data in ipairs(tabsData) do
+    local btn = New("TextButton", {
+        Parent = leftMenu,
+        Size = UDim2.new(1, 0, 0, 36),
+        BackgroundColor3 = Color3.fromRGB(15, 17, 25),
+        AutoButtonColor = false,
+        Text = "",
+        LayoutOrder = i
+    })
+    Corner(btn, 8)
     
-    task.spawn(function()
-        local success, result = pcall(function()
-            return game:HttpGet(url)
-        end)
-        loadingLabel:Destroy()
-        if success then
-            contentCache[url] = result
-            New("TextLabel", { Parent = contentScroll, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Text = result, Font = Enum.Font.Gotham, TextSize = 12, TextColor3 = Color3.fromRGB(210, 215, 230), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = true })
+    local indicator = New("Frame", {
+        Parent = btn,
+        Size = UDim2.new(0, 3, 0.7, 0),
+        Position = UDim2.new(0, 0, 0.15, 0),
+        BackgroundColor3 = accent(),
+        BorderSizePixel = 0,
+        BackgroundTransparency = 1
+    })
+    Corner(indicator, 2)
+
+    local lbl = New("TextLabel", {
+        Parent = btn,
+        Size = UDim2.new(1, -10, 1, 0),
+        Position = UDim2.new(0, 10, 0, 0),
+        BackgroundTransparency = 1,
+        Text = data.Name,
+        Font = Enum.Font.GothamSemibold,
+        TextSize = 12,
+        TextColor3 = Color3.fromRGB(170, 175, 195),
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    table.insert(tabButtons, { Button = btn, Indicator = indicator, Label = lbl, Url = data.Url })
+end
+
+local function selectTab(index)
+    for idx, item in ipairs(tabButtons) do
+        if idx == index then
+            TweenService:Create(item.Button, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(25, 28, 42) }):Play()
+            TweenService:Create(item.Indicator, TweenInfo.new(0.2), { BackgroundTransparency = 0 }):Play()
+            TweenService:Create(item.Label, TweenInfo.new(0.2), { TextColor3 = accent() }):Play()
+            loadTabContent(item.Url)
         else
-            New("TextLabel", { Parent = contentScroll, Size = UDim2.new(1, 0, 0, 30), BackgroundTransparency = 1, Text = "Failed to load content from URL.", Font = Enum.Font.Gotham, TextSize = 12, TextColor3 = Color3.fromRGB(255, 100, 100), TextXAlignment = Enum.TextXAlignment.Left })
+            TweenService:Create(item.Button, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(15, 17, 25) }):Play()
+            TweenService:Create(item.Indicator, TweenInfo.new(0.2), { BackgroundTransparency = 1 }):Play()
+            TweenService:Create(item.Label, TweenInfo.new(0.2), { TextColor3 = Color3.fromRGB(170, 175, 195) }):Play()
         end
+    end
+end
+
+for idx, item in ipairs(tabButtons) do
+    item.Button.Activated:Connect(function()
+        selectTab(idx)
     end)
 end
 
-for i, data in ipairs(tabsData) do
-    local btn = New("TextButton", { Parent = menuContainer, Size = UDim2.new(1, 0, 0, 38), BackgroundColor3 = Color3.fromRGB(16, 18, 26), AutoButtonColor = false, Text = "" })
-    Corner(btn, 8)
-    
-    local indicator = New("Frame", { Parent = btn, Size = UDim2.new(0, 3, 1, -8), Position = UDim2.new(0, 4, 0, 4), BackgroundColor3 = accent(), BackgroundTransparency = 1 })
-    Corner(indicator, 2)
-    
-    local label = New("TextLabel", { Parent = btn, Position = UDim2.new(0, 15, 0, 0), Size = UDim2.new(1, -20, 1, 0), BackgroundTransparency = 1, Text = data.Name, Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(180, 185, 200), TextXAlignment = Enum.TextXAlignment.Left })
-
-    btn.Activated:Connect(function()
-        if activeTabButton == btn then return end
-        if activeTabButton then
-            TweenService:Create(activeTabButton, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(16, 18, 26) }):Play()
-            local oldInd = activeTabButton:FindFirstChildOfClass("Frame")
-            if oldInd then TweenService:Create(oldInd, TweenInfo.new(0.2), { BackgroundTransparency = 1 }):Play() end
-            local oldLbl = activeTabButton:FindFirstChildOfClass("TextLabel")
-            if oldLbl then TweenService:Create(oldLbl, TweenInfo.new(0.2), { TextColor3 = Color3.fromRGB(180, 185, 200) }):Play() end
-        end
-        activeTabButton = btn
-        TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(24, 27, 38) }):Play()
-        TweenService:Create(indicator, TweenInfo.new(0.2), { BackgroundTransparency = 0 }):Play()
-        TweenService:Create(label, TweenInfo.new(0.2), { TextColor3 = accent() }):Play()
-        
-        loadUrlContent(data.Url)
-    end)
-
-    if i == 1 then
-        activeTabButton = btn
-        btn.BackgroundColor3 = Color3.fromRGB(24, 27, 38)
-        indicator.BackgroundTransparency = 0
-        label.TextColor3 = accent()
-        loadUrlContent(data.Url)
-    end
+if #tabButtons > 0 then
+    selectTab(1)
 end
 
 backBtn.Activated:Connect(function()
@@ -158,9 +177,13 @@ connection = RunService.RenderStepped:Connect(function()
     local a = accent()
     backStroke.Color = a
     searchStroke.Color = a
-    menuStroke.Color = a
     contentStroke.Color = a
+    leftStroke.Color = a
     arrowLabel.TextColor3 = a
+    divider.BackgroundColor3 = a
+    for _, item in ipairs(tabButtons) do
+        item.Indicator.BackgroundColor3 = a
+    end
 end)
 
 return { Root = root }
