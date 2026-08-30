@@ -180,7 +180,7 @@ loadFunction = function()
         {"SETTING FARM", "settingfarm", "Farming preferences."},
         {"FARM", "farm", "Farming functions and controls."},
         {"STACK FARM", "stackfarm", "Stack farm and quest utilities."},
-        {"TELEPORT", "teleport", "Teleport travel and navigation."},
+        {"ISLAND", "island", "Island travel and navigation."},
         {"PLAYER", "player", "Player utilities and helpers."},
         {"FRUIT", "fruit", "Fruit utilities and helpers."},
         {"SETTING", "setting", "FishHub settings and controls."},
