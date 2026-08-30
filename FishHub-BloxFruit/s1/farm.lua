@@ -56,6 +56,18 @@ for _, c in ipairs(Tab:GetChildren()) do c:Destroy() end
 Tab.BackgroundTransparency = 1
 Tab.BorderSizePixel       = 0
 
+-- Reset parent scroll state and lock it while this module is mounted.
+-- The parent Tab is a ScrollingFrame; if we don't reset CanvasPosition,
+-- the module inherits whatever scroll position the previous page had
+-- (e.g. the user scrolled the function page to the bottom, then opened
+-- a card, the new content appears scrolled instead of at the top).
+-- Locking ScrollingEnabled prevents wheel/touch events inside our UI
+-- from bubbling up and scrolling the parent.
+if Tab:IsA("ScrollingFrame") then
+    Tab.CanvasPosition   = Vector2.new(0, 0)
+    Tab.ScrollingEnabled = false
+end
+
 -- =================== root ===================
 local root = new("Frame", {
     Parent          = Tab,
@@ -290,6 +302,11 @@ end)
 
 -- =================== back button ===================
 backBtn.Activated:Connect(function()
+    -- Re-enable the parent scroll BEFORE handing control back to the home page
+    if Tab:IsA("ScrollingFrame") then
+        Tab.ScrollingEnabled = true
+        Tab.CanvasPosition   = Vector2.new(0, 0)
+    end
     if type(context.BackToMain) == "function" then
         pcall(context.BackToMain)
     elseif type(context.LoadFunction) == "function" then
