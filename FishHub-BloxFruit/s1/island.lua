@@ -41,8 +41,6 @@ end
 for _, c in ipairs(Tab:GetChildren()) do c:Destroy() end
 Tab.BackgroundTransparency = 1
 Tab.BorderSizePixel       = 0
-Tab.ScrollBarThickness    = 0
-Tab.AutomaticCanvasSize   = Enum.AutomaticSize.Y
 
 -- =================== root ===================
 local root = new("Frame", {
@@ -88,12 +86,11 @@ local searchInput = new("TextBox", {
     TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left,
 })
 
--- =================== content panel ===================
-local content = new("ScrollingFrame", {
-    Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 360),
+-- =================== content panel (NO scroll at all) ===================
+local content = new("Frame", {
+    Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 460),
     BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.25,
-    ScrollBarThickness = 0, ScrollingDirection = Enum.ScrollingDirection.Y,
-    BorderSizePixel = 0, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    BorderSizePixel = 0, ClipsDescendants = true,
 })
 corner(content, 14)
 local contentStroke = stroke(content, 1, 0.45)
