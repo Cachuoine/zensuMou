@@ -1,3 +1,10 @@
+--[[
+    shop.lua
+    Module: SHOP
+    Tabs: Sword Shop, Gun Shop, Fighting Shop, Miss
+]]
+
+local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 
@@ -7,26 +14,24 @@ if type(context) ~= "table" or not context.Tab then return end
 local Tab = context.Tab
 local Config = context.Config or {}
 
+------------------------------------------------------------
+-- Helpers
+------------------------------------------------------------
 local function accent()
     if Config.Rainbow or Config.RainbowMode then
         return Color3.fromHSV((tick() % 5) / 5, 1, 1)
     end
-    return typeof(Config.ThemeColor) == "Color3"
-        and Config.ThemeColor
-        or Color3.fromRGB(0, 229, 255)
+    return typeof(Config.ThemeColor) == "Color3" and Config.ThemeColor or Color3.fromRGB(0, 229, 255)
 end
 
-local function New(className, props)
-    local obj = Instance.new(className)
+local function New(class, props)
+    local obj = Instance.new(class)
     for k, v in pairs(props or {}) do obj[k] = v end
     return obj
 end
 
 local function Corner(parent, radius)
-    return New("UICorner", {
-        Parent = parent,
-        CornerRadius = UDim.new(0, radius)
-    })
+    return New("UICorner", { Parent = parent, CornerRadius = UDim.new(0, radius) })
 end
 
 local function Stroke(parent, thickness, transparency)
@@ -43,7 +48,7 @@ local function Tween(obj, duration, props, style, direction)
     local t = TweenService:Create(
         obj,
         TweenInfo.new(
-            duration or 0.18,
+            duration or 0.22,
             style or Enum.EasingStyle.Quint,
             direction or Enum.EasingDirection.Out
         ),
@@ -53,23 +58,62 @@ local function Tween(obj, duration, props, style, direction)
     return t
 end
 
-for _, child in ipairs(Tab:GetChildren()) do
-    child:Destroy()
-end
+------------------------------------------------------------
+-- Configuration
+------------------------------------------------------------
+local PAGE_TITLE = "SHOP"
+local TABS = {
+    {
+        name = "Sword Shop",
+        url  = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/shop/sword.lua",
+        desc = "Sword purchase and info",
+        body = "Sword shop loaded. Browse, preview, and purchase swords through this tab."
+    },
+    {
+        name = "Gun Shop",
+        url  = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/shop/gun.lua",
+        desc = "Gun purchase and info",
+        body = "Gun shop loaded. Browse, preview, and purchase guns through this tab."
+    },
+    {
+        name = "Fighting Shop",
+        url  = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/shop/melee.lua",
+        desc = "Fighting style shop",
+        body = "Fighting style shop loaded. Browse and acquire fighting styles here."
+    },
+    {
+        name = "Miss",
+        url  = "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/shop/missshop.lua",
+        desc = "Miscellaneous shop tools",
+        body = "Miscellaneous shop tools loaded. Catch-all helpers for shopping."
+    },
+}
 
-Tab.BackgroundTransparency = 1
-Tab.BorderSizePixel = 0
-Tab.ScrollBarThickness = 0
+local TAB_HEIGHT  = 40
+local TAB_GAP     = 6
+local MENU_PAD    = 10
+local MAIN_H      = 320
+
+------------------------------------------------------------
+-- Clear & Setup
+------------------------------------------------------------
+for _, c in ipairs(Tab:GetChildren()) do c:Destroy() end
+
+Tab.BackgroundTransparency     = 1
+Tab.BorderSizePixel            = 0
+Tab.ScrollBarThickness         = 0
 Tab.ScrollBarImageTransparency = 1
-Tab.AutomaticCanvasSize = Enum.AutomaticSize.Y
+Tab.AutomaticCanvasSize        = Enum.AutomaticSize.Y
 
+------------------------------------------------------------
+-- Root
+------------------------------------------------------------
 local root = New("Frame", {
     Parent = Tab,
     Size = UDim2.new(1, -10, 0, 0),
     AutomaticSize = Enum.AutomaticSize.Y,
     BackgroundTransparency = 1
 })
-
 New("UIPadding", {
     Parent = root,
     PaddingTop = UDim.new(0, 8),
@@ -77,14 +121,15 @@ New("UIPadding", {
     PaddingLeft = UDim.new(0, 5),
     PaddingRight = UDim.new(0, 5)
 })
-
 New("UIListLayout", {
     Parent = root,
     SortOrder = Enum.SortOrder.LayoutOrder,
     Padding = UDim.new(0, 10)
 })
 
--- Top bar: Back + Search, kept compatible with the main function.lua.
+------------------------------------------------------------
+-- Top bar (back + search)
+------------------------------------------------------------
 local topBar = New("Frame", {
     Parent = root,
     LayoutOrder = 1,
@@ -95,15 +140,13 @@ local topBar = New("Frame", {
 local backBtn = New("TextButton", {
     Parent = topBar,
     Size = UDim2.fromOffset(45, 45),
-    BackgroundColor3 = Color3.fromRGB(11, 13, 19),
+    BackgroundColor3 = Color3.fromRGB(12, 13, 19),
     AutoButtonColor = false,
-    Text = "",
-    BorderSizePixel = 0
+    Text = ""
 })
-Corner(backBtn, 11)
+Corner(backBtn, 10)
 local backStroke = Stroke(backBtn, 1, 0.4)
-
-local arrow = New("TextLabel", {
+local arrowLabel = New("TextLabel", {
     Parent = backBtn,
     Size = UDim2.fromScale(1, 1),
     BackgroundTransparency = 1,
@@ -113,36 +156,28 @@ local arrow = New("TextLabel", {
     TextColor3 = accent()
 })
 
-local backScale = New("UIScale", {
-    Parent = backBtn,
-    Scale = 1
-})
-
 local searchBox = New("Frame", {
     Parent = topBar,
     Position = UDim2.new(0, 55, 0, 0),
     Size = UDim2.new(1, -55, 1, 0),
-    BackgroundColor3 = Color3.fromRGB(11, 13, 19),
-    BorderSizePixel = 0
+    BackgroundColor3 = Color3.fromRGB(12, 13, 19)
 })
-Corner(searchBox, 11)
+Corner(searchBox, 10)
 local searchStroke = Stroke(searchBox, 1, 0.4)
-
 New("TextLabel", {
     Parent = searchBox,
-    Position = UDim2.fromOffset(12, 0),
-    Size = UDim2.fromOffset(20, 45),
+    Position = UDim2.new(0, 12, 0, 0),
+    Size = UDim2.new(0, 20, 1, 0),
     BackgroundTransparency = 1,
     Text = "⌕",
     Font = Enum.Font.GothamBold,
-    TextSize = 19,
-    TextColor3 = accent()
+    TextSize = 14,
+    TextColor3 = Color3.fromRGB(140, 145, 160)
 })
-
-local search = New("TextBox", {
+New("TextBox", {
     Parent = searchBox,
-    Position = UDim2.fromOffset(40, 0),
-    Size = UDim2.new(1, -52, 1, 0),
+    Position = UDim2.new(0, 38, 0, 0),
+    Size = UDim2.new(1, -48, 1, 0),
     BackgroundTransparency = 1,
     ClearTextOnFocus = false,
     PlaceholderText = "search...",
@@ -154,306 +189,424 @@ local search = New("TextBox", {
     TextXAlignment = Enum.TextXAlignment.Left
 })
 
--- Two-panel layout: left menu is deliberately smaller than right content.
-local workspace = New("Frame", {
+------------------------------------------------------------
+-- Main split
+------------------------------------------------------------
+local LEFT_W = 124
+local GAP    = 10
+
+local mainFrame = New("Frame", {
     Parent = root,
     LayoutOrder = 2,
-    Size = UDim2.new(1, 0, 0, 282),
-    BackgroundTransparency = 1
-})
-
-local menuPanel = New("Frame", {
-    Parent = workspace,
-    Size = UDim2.new(0.30, 0, 1, 0),
-    BackgroundColor3 = Color3.fromRGB(8, 9, 14),
-    BorderSizePixel = 0,
+    Size = UDim2.new(1, 0, 0, MAIN_H),
+    BackgroundTransparency = 1,
     ClipsDescendants = true
 })
-Corner(menuPanel, 14)
-local menuStroke = Stroke(menuPanel, 1, 0.58)
 
-New("TextLabel", {
-    Parent = menuPanel,
-    Position = UDim2.fromOffset(13, 10),
-    Size = UDim2.new(1, -26, 0, 18),
+local leftMenu = New("Frame", {
+    Parent = mainFrame,
+    Size = UDim2.new(0, LEFT_W, 1, 0),
+    BackgroundColor3 = Color3.fromRGB(10, 11, 17),
+    BackgroundTransparency = 0.1
+})
+Corner(leftMenu, 12)
+local leftStroke = Stroke(leftMenu, 1, 0.55)
+New("UIGradient", {
+    Parent = leftMenu,
+    Rotation = 90,
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(18, 20, 30)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(7, 8, 13))
+    })
+})
+
+local rightContent = New("Frame", {
+    Parent = mainFrame,
+    Position = UDim2.new(0, LEFT_W + GAP, 0, 0),
+    Size = UDim2.new(1, -(LEFT_W + GAP), 1, 0),
+    BackgroundColor3 = Color3.fromRGB(8, 9, 14),
+    BackgroundTransparency = 0.05
+})
+Corner(rightContent, 12)
+local rightStroke = Stroke(rightContent, 1, 0.55)
+New("UIGradient", {
+    Parent = rightContent,
+    Rotation = 90,
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 16, 24)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(6, 7, 12))
+    })
+})
+
+------------------------------------------------------------
+-- Tab list (left)
+------------------------------------------------------------
+local tabList = New("Frame", {
+    Parent = leftMenu,
+    Position = UDim2.new(0, MENU_PAD, 0, MENU_PAD),
+    Size = UDim2.new(1, -MENU_PAD * 2, 1, -MENU_PAD * 2),
     BackgroundTransparency = 1,
-    Text = "MENU",
+    ClipsDescendants = true
+})
+New("UIListLayout", {
+    Parent = tabList,
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Padding = UDim.new(0, TAB_GAP)
+})
+
+local tabIndicator = New("Frame", {
+    Parent = leftMenu,
+    Position = UDim2.new(0, 2, 0, MENU_PAD + 2),
+    Size = UDim2.new(0, 3, 0, TAB_HEIGHT - 4),
+    BackgroundColor3 = accent(),
+    BorderSizePixel = 0
+})
+Corner(tabIndicator, 2)
+New("UIGradient", {
+    Parent = tabIndicator,
+    Rotation = 90,
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, accent())
+    })
+})
+local indicatorGlow = New("Frame", {
+    Parent = tabIndicator,
+    Position = UDim2.fromScale(0.5, 0.5),
+    AnchorPoint = Vector2.new(0.5, 0.5),
+    Size = UDim2.fromScale(5, 1.6),
+    BackgroundColor3 = accent(),
+    BackgroundTransparency = 0.7,
+    BorderSizePixel = 0
+})
+Corner(indicatorGlow, 4)
+New("UIGradient", {
+    Parent = indicatorGlow,
+    Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.55),
+        NumberSequenceKeypoint.new(1, 0)
+    })
+})
+
+------------------------------------------------------------
+-- Right content body
+------------------------------------------------------------
+local rightTitle = New("TextLabel", {
+    Parent = rightContent,
+    Position = UDim2.new(0, 20, 0, 16),
+    Size = UDim2.new(1, -130, 0, 24),
+    BackgroundTransparency = 1,
+    Text = "",
     Font = Enum.Font.GothamBlack,
+    TextSize = 15,
+    TextColor3 = Color3.fromRGB(245, 246, 252),
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
+local rightSubtitle = New("TextLabel", {
+    Parent = rightContent,
+    Position = UDim2.new(0, 20, 0, 40),
+    Size = UDim2.new(1, -40, 0, 14),
+    BackgroundTransparency = 1,
+    Text = "",
+    Font = Enum.Font.GothamMedium,
     TextSize = 9,
     TextColor3 = Color3.fromRGB(125, 130, 145),
     TextXAlignment = Enum.TextXAlignment.Left
 })
 
-local menu = New("Frame", {
-    Parent = menuPanel,
-    Position = UDim2.fromOffset(8, 34),
-    Size = UDim2.new(1, -16, 1, -42),
-    BackgroundTransparency = 1
+local statusBadge = New("Frame", {
+    Parent = rightContent,
+    Position = UDim2.new(1, -110, 0, 18),
+    Size = UDim2.new(0, 0, 0, 22),
+    AutomaticSize = Enum.AutomaticSize.X,
+    BackgroundColor3 = Color3.fromRGB(15, 17, 25),
+    BorderSizePixel = 0
+})
+Corner(statusBadge, 8)
+local statusStroke = Stroke(statusBadge, 1, 0.5)
+New("UIPadding", {
+    Parent = statusBadge,
+    PaddingLeft = UDim.new(0, 10),
+    PaddingRight = UDim.new(0, 10)
+})
+local statusLabel = New("TextLabel", {
+    Parent = statusBadge,
+    Size = UDim2.new(0, 0, 1, 0),
+    AutomaticSize = Enum.AutomaticSize.X,
+    BackgroundTransparency = 1,
+    Text = "● IDLE",
+    Font = Enum.Font.GothamBold,
+    TextSize = 10,
+    TextColor3 = Color3.fromRGB(140, 145, 160)
 })
 
-New("UIListLayout", {
-    Parent = menu,
-    SortOrder = Enum.SortOrder.LayoutOrder,
-    Padding = UDim.new(0, 5)
-})
-
-local divider = New("Frame", {
-    Parent = workspace,
-    Position = UDim2.new(0.30, 6, 0, 8),
-    Size = UDim2.new(0, 1, 1, -16),
+local rightDivider = New("Frame", {
+    Parent = rightContent,
+    Position = UDim2.new(0, 18, 0, 64),
+    Size = UDim2.new(1, -36, 0, 1),
     BackgroundColor3 = accent(),
-    BackgroundTransparency = 0.45,
+    BackgroundTransparency = 0.75,
     BorderSizePixel = 0
 })
 
-local contentPanel = New("Frame", {
-    Parent = workspace,
-    Position = UDim2.new(0.30, 17, 0, 0),
-    Size = UDim2.new(0.70, -17, 1, 0),
-    BackgroundColor3 = Color3.fromRGB(8, 9, 14),
-    BorderSizePixel = 0,
+local rightBody = New("Frame", {
+    Parent = rightContent,
+    Position = UDim2.new(0, 20, 0, 76),
+    Size = UDim2.new(1, -40, 1, -88),
+    BackgroundTransparency = 1,
     ClipsDescendants = true
 })
-Corner(contentPanel, 14)
-local contentStroke = Stroke(contentPanel, 1, 0.58)
 
-local contentTitle = New("TextLabel", {
-    Parent = contentPanel,
-    Position = UDim2.fromOffset(14, 10),
-    Size = UDim2.new(1, -28, 0, 20),
+local bodyHeading = New("TextLabel", {
+    Parent = rightBody,
+    Size = UDim2.new(1, 0, 0, 16),
     BackgroundTransparency = 1,
-    Text = "CONTENT",
-    Font = Enum.Font.GothamBlack,
+    Text = "▸ MODULE",
+    Font = Enum.Font.GothamBold,
     TextSize = 10,
-    TextColor3 = Color3.fromRGB(240, 242, 248),
+    TextColor3 = accent(),
     TextXAlignment = Enum.TextXAlignment.Left
 })
 
-local contentLine = New("Frame", {
-    Parent = contentPanel,
-    Position = UDim2.fromOffset(14, 32),
-    Size = UDim2.new(1, -28, 0, 1),
-    BackgroundColor3 = accent(),
-    BackgroundTransparency = 0.55,
-    BorderSizePixel = 0
-})
-
-local content = New("Frame", {
-    Parent = contentPanel,
-    Position = UDim2.fromOffset(14, 45),
-    Size = UDim2.new(1, -28, 1, -57),
+local bodyText = New("TextLabel", {
+    Parent = rightBody,
+    Position = UDim2.new(0, 0, 0, 24),
+    Size = UDim2.new(1, 0, 0, 0),
+    AutomaticSize = Enum.AutomaticSize.Y,
     BackgroundTransparency = 1,
-    ClipsDescendants = true
+    Text = "",
+    Font = Enum.Font.GothamMedium,
+    TextSize = 12,
+    TextColor3 = Color3.fromRGB(210, 215, 225),
+    TextWrapped = true,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    TextYAlignment = Enum.TextYAlignment.Top
 })
 
-local tabs = {}
-local active
+local bodyMeta = New("TextLabel", {
+    Parent = rightBody,
+    Position = UDim2.new(0, 0, 0, 0),
+    Size = UDim2.new(1, 0, 0, 0),
+    AutomaticSize = Enum.AutomaticSize.Y,
+    BackgroundTransparency = 1,
+    Text = "",
+    Font = Enum.Font.GothamMedium,
+    TextSize = 9,
+    TextColor3 = Color3.fromRGB(95, 100, 115),
+    TextWrapped = true,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    TextYAlignment = Enum.TextYAlignment.Top,
+    Visible = false
+})
 
-local function showLoading(title)
-    for _, child in ipairs(content:GetChildren()) do
-        child:Destroy()
+------------------------------------------------------------
+-- Tab buttons
+------------------------------------------------------------
+local tabButtons = {}
+local currentTabIndex = 0
+local statusPulseThread = nil
+
+local function setStatus(text, color, pulse)
+    if statusPulseThread then
+        task.cancel(statusPulseThread)
+        statusPulseThread = nil
     end
-    New("TextLabel", {
-        Parent = content,
-        Size = UDim2.new(1, 0, 0, 50),
-        BackgroundTransparency = 1,
-        Text = "LOADING  •  " .. string.upper(title),
-        Font = Enum.Font.GothamMedium,
-        TextSize = 9,
-        TextColor3 = accent(),
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-end
-
-local function loadRemote(data)
-    showLoading(data.title)
-
-    local ok, source = pcall(function()
-        return game:HttpGet(data.url)
-    end)
-
-    if not ok or type(source) ~= "string" or source == "" then
-        for _, child in ipairs(content:GetChildren()) do child:Destroy() end
-        New("TextLabel", {
-            Parent = content,
-            Size = UDim2.new(1, 0, 0, 55),
-            BackgroundTransparency = 1,
-            Text = "Unable to load module.\n" .. tostring(data.title),
-            Font = Enum.Font.GothamMedium,
-            TextSize = 9,
-            TextColor3 = Color3.fromRGB(255, 125, 125),
-            TextWrapped = true,
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-        return
-    end
-
-    local fnOk, fn = pcall(loadstring, source)
-    if not fnOk or type(fn) ~= "function" then
-        for _, child in ipairs(content:GetChildren()) do child:Destroy() end
-        New("TextLabel", {
-            Parent = content,
-            Size = UDim2.new(1, 0, 0, 70),
-            BackgroundTransparency = 1,
-            Text = "Module compile error.\n" .. tostring(fn),
-            Font = Enum.Font.GothamMedium,
-            TextSize = 9,
-            TextColor3 = Color3.fromRGB(255, 125, 125),
-            TextWrapped = true,
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-        return
-    end
-
-    for _, child in ipairs(content:GetChildren()) do
-        child:Destroy()
-    end
-
-    local subContext = {}
-    for k, v in pairs(context) do
-        subContext[k] = v
-    end
-    subContext.Tab = content
-    subContext.ContentTab = content
-    subContext.ParentTab = Tab
-    subContext.BackToMain = context.BackToMain
-    subContext.LoadFunction = context.LoadFunction
-    subContext.Navigate = context.Navigate
-
-    local runOk, runErr = pcall(fn, subContext)
-    if not runOk then
-        for _, child in ipairs(content:GetChildren()) do
-            child:Destroy()
-        end
-        New("TextLabel", {
-            Parent = content,
-            Size = UDim2.new(1, 0, 0, 70),
-            BackgroundTransparency = 1,
-            Text = "Module runtime error.\n" .. tostring(runErr),
-            Font = Enum.Font.GothamMedium,
-            TextSize = 9,
-            TextColor3 = Color3.fromRGB(255, 125, 125),
-            TextWrapped = true,
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
+    if not statusBadge or not statusBadge.Parent then return end
+    statusLabel.Text = text
+    statusLabel.TextColor3 = color
+    statusStroke.Color = color
+    if pulse then
+        statusPulseThread = task.spawn(function()
+            local flip = true
+            while statusBadge and statusBadge.Parent do
+                if flip then
+                    Tween(statusBadge, 0.7, { BackgroundTransparency = 0.45 }, Enum.EasingStyle.Sine)
+                else
+                    Tween(statusBadge, 0.7, { BackgroundTransparency = 0.05 }, Enum.EasingStyle.Sine)
+                end
+                flip = not flip
+                task.wait(0.7)
+            end
+        end)
     end
 end
 
-local function selectTab(item, instant)
-    if active == item then return end
-
-    if active then
-        Tween(active.line, instant and 0 or 0.18, {
-            Size = UDim2.new(0, 3, 0, 0),
-            BackgroundTransparency = 1
-        })
-        Tween(active.button, instant and 0 or 0.18, {
-            BackgroundTransparency = 1
-        })
+local function moveIndicatorTo(index, animate)
+    local targetY = MENU_PAD + 2 + (index - 1) * (TAB_HEIGHT + TAB_GAP)
+    if animate then
+        Tween(tabIndicator, 0.28, { Position = UDim2.new(0, 2, 0, targetY) }, Enum.EasingStyle.Quint)
+    else
+        tabIndicator.Position = UDim2.new(0, 2, 0, targetY)
     end
-
-    active = item
-
-    Tween(item.line, instant and 0 or 0.20, {
-        Size = UDim2.new(0, 3, 0.72, 0),
-        BackgroundTransparency = 0
-    }, Enum.EasingStyle.Quint)
-
-    Tween(item.button, instant and 0 or 0.20, {
-        BackgroundTransparency = 0.88
-    }, Enum.EasingStyle.Quint)
-
-    contentTitle.Text = string.upper(item.title)
-    loadRemote(item)
 end
 
-local definitions = {
-    {"sword shop", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/shop/sword.lua"},
-    {"gun shop", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/shop/gun.lua"},
-    {"fighting shop", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/shop/melee.lua"},
-    {"miss", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/shop/missshop.lua"}
-}
-
-for index, data in ipairs(definitions) do
-    local title, url = data[1], data[2]
-
-    local button = New("TextButton", {
-        Parent = menu,
+local function makeTab(index, data)
+    local tab = New("TextButton", {
+        Parent = tabList,
         LayoutOrder = index,
-        Size = UDim2.new(1, 0, 0, 38),
-        BackgroundColor3 = Color3.fromRGB(19, 21, 29),
-        BackgroundTransparency = 1,
         AutoButtonColor = false,
         Text = "",
+        Size = UDim2.new(1, 0, 0, TAB_HEIGHT),
+        BackgroundColor3 = Color3.fromRGB(20, 22, 30),
+        BackgroundTransparency = 1,
         BorderSizePixel = 0
     })
-    Corner(button, 9)
+    Corner(tab, 10)
 
-    local line = New("Frame", {
-        Parent = button,
-        Position = UDim2.new(0, 0, 0.14, 0),
-        Size = UDim2.new(0, 3, 0, 0),
+    New("UIGradient", {
+        Parent = tab,
+        Rotation = 90,
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(24, 26, 36)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(12, 13, 19))
+        })
+    })
+
+    local tabStroke = Stroke(tab, 1, 0.75)
+
+    local titleLabel = New("TextLabel", {
+        Parent = tab,
+        Position = UDim2.new(0, 14, 0, 0),
+        Size = UDim2.new(1, -28, 0, 22),
+        BackgroundTransparency = 1,
+        Text = data.name,
+        Font = Enum.Font.GothamBold,
+        TextSize = 11,
+        TextColor3 = Color3.fromRGB(180, 185, 200),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Bottom,
+        TextTruncate = Enum.TextTruncate.AtEnd
+    })
+
+    local descLabel = New("TextLabel", {
+        Parent = tab,
+        Position = UDim2.new(0, 14, 0, 22),
+        Size = UDim2.new(1, -24, 1, -26),
+        BackgroundTransparency = 1,
+        Text = data.desc,
+        Font = Enum.Font.GothamMedium,
+        TextSize = 8,
+        TextColor3 = Color3.fromRGB(100, 105, 120),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
+        TextTruncate = Enum.TextTruncate.AtEnd
+    })
+
+    local sideDot = New("Frame", {
+        Parent = tab,
+        Position = UDim2.new(1, -12, 0.5, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Size = UDim2.fromOffset(4, 4),
         BackgroundColor3 = accent(),
         BackgroundTransparency = 1,
         BorderSizePixel = 0
     })
-    Corner(line, 4)
+    Corner(sideDot, 99)
 
-    New("TextLabel", {
-        Parent = button,
-        Position = UDim2.fromOffset(13, 0),
-        Size = UDim2.new(1, -19, 1, 0),
-        BackgroundTransparency = 1,
-        Text = string.upper(title),
-        Font = Enum.Font.GothamBold,
-        TextSize = 8,
-        TextColor3 = Color3.fromRGB(205, 209, 220),
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-
-    local item = {
-        title = title,
-        url = url,
-        button = button,
-        line = line
+    tabButtons[index] = {
+        button  = tab,
+        stroke  = tabStroke,
+        title   = titleLabel,
+        desc    = descLabel,
+        sideDot = sideDot,
+        bg      = tab,
     }
-    tabs[#tabs + 1] = item
 
-    button.MouseEnter:Connect(function()
-        if active ~= item then
-            Tween(button, 0.14, {BackgroundTransparency = 0.94})
+    tab.MouseEnter:Connect(function()
+        if currentTabIndex ~= index then
+            Tween(titleLabel, 0.18, { TextColor3 = Color3.fromRGB(225, 230, 245) })
         end
+        Tween(tabStroke, 0.18, { Transparency = 0.45 })
     end)
 
-    button.MouseLeave:Connect(function()
-        if active ~= item then
-            Tween(button, 0.14, {BackgroundTransparency = 1})
+    tab.MouseLeave:Connect(function()
+        if currentTabIndex ~= index then
+            Tween(titleLabel, 0.18, { TextColor3 = Color3.fromRGB(180, 185, 200) })
         end
+        Tween(tabStroke, 0.18, { Transparency = 0.75 })
     end)
 
-    button.Activated:Connect(function()
-        selectTab(item, false)
+    tab.Activated:Connect(function()
+        selectTab(index, true)
     end)
 end
 
-search:GetPropertyChangedSignal("Text"):Connect(function()
-    local query = string.lower(search.Text or "")
-    for _, item in ipairs(tabs) do
-        item.button.Visible =
-            query == "" or string.find(string.lower(item.title), query, 1, true) ~= nil
+local function loadTabContent(data)
+    setStatus("● LOADING", Color3.fromRGB(255, 200, 80), true)
+    bodyText.Text = "Loading module from remote...\n" .. data.url
+    bodyMeta.Visible = false
+
+    task.spawn(function()
+        local success, result = pcall(function()
+            return game:HttpGet(data.url)
+        end)
+        if not success or not result then
+            setStatus("● ERROR", Color3.fromRGB(255, 90, 90), false)
+            bodyText.Text = "Failed to fetch module.\n" .. tostring(result or "Unknown error")
+            return
+        end
+
+        local fn, err = loadstring(result)
+        if not fn then
+            setStatus("● ERROR", Color3.fromRGB(255, 90, 90), false)
+            bodyText.Text = "Parse error in module script."
+            return
+        end
+
+        local ok, runtimeErr = pcall(fn, context)
+        if not ok then
+            setStatus("● ERROR", Color3.fromRGB(255, 90, 90), false)
+            bodyText.Text = "Runtime error in module script.\n" .. tostring(runtimeErr)
+            return
+        end
+
+        setStatus("● ACTIVE", accent(), true)
+        bodyText.Text = data.body or ("Module \"" .. data.name .. "\" is now active.")
+        bodyMeta.Text = "src  ›  " .. data.url
+        bodyMeta.Visible = true
+    end)
+end
+
+local function selectTab(index, animate)
+    if index < 1 or index > #TABS then return end
+    if index == currentTabIndex then return end
+    currentTabIndex = index
+
+    moveIndicatorTo(index, animate)
+
+    for i, btn in ipairs(tabButtons) do
+        if i == index then
+            Tween(btn.title, 0.2, { TextColor3 = accent() })
+            Tween(btn.desc, 0.2, { TextColor3 = Color3.fromRGB(180, 185, 200) })
+            Tween(btn.bg, 0.2, { BackgroundTransparency = 0 })
+            Tween(btn.stroke, 0.2, { Transparency = 0.15, Color = accent(), Thickness = 1.4 })
+            Tween(btn.sideDot, 0.2, { BackgroundTransparency = 0 })
+        else
+            Tween(btn.title, 0.2, { TextColor3 = Color3.fromRGB(180, 185, 200) })
+            Tween(btn.desc, 0.2, { TextColor3 = Color3.fromRGB(100, 105, 120) })
+            Tween(btn.bg, 0.2, { BackgroundTransparency = 1 })
+            Tween(btn.stroke, 0.2, { Transparency = 0.75, Color = accent(), Thickness = 1 })
+            Tween(btn.sideDot, 0.2, { BackgroundTransparency = 1 })
+        end
     end
-end)
 
-backBtn.MouseEnter:Connect(function()
-    Tween(backScale, 0.15, {Scale = 1.06}, Enum.EasingStyle.Back)
-    Tween(backStroke, 0.15, {Transparency = 0.05, Thickness = 1.5})
-end)
+    local data = TABS[index]
+    rightTitle.Text = data.name:upper()
+    rightSubtitle.Text = data.desc
+    loadTabContent(data)
+end
 
-backBtn.MouseLeave:Connect(function()
-    Tween(backScale, 0.15, {Scale = 1}, Enum.EasingStyle.Quint)
-    Tween(backStroke, 0.15, {Transparency = 0.4, Thickness = 1})
-end)
+------------------------------------------------------------
+-- Build tabs
+------------------------------------------------------------
+for i, data in ipairs(TABS) do
+    makeTab(i, data)
+end
 
+------------------------------------------------------------
+-- Back button
+------------------------------------------------------------
 backBtn.Activated:Connect(function()
     if type(context.BackToMain) == "function" then
         context.BackToMain()
@@ -462,33 +615,78 @@ backBtn.Activated:Connect(function()
     end
 end)
 
-local alive = true
-Tab.AncestryChanged:Connect(function(_, parent)
-    if not parent then alive = false end
-end)
-
-task.spawn(function()
-    while alive and root.Parent do
-        local a = accent()
-        backStroke.Color = a
-        searchStroke.Color = a
-        menuStroke.Color = a
-        contentStroke.Color = a
-        divider.BackgroundColor3 = a
-        contentLine.BackgroundColor3 = a
-        arrow.TextColor3 = a
-
-        for _, item in ipairs(tabs) do
-            item.line.BackgroundColor3 = a
+------------------------------------------------------------
+-- Accent color updater
+------------------------------------------------------------
+local connection
+connection = RunService.RenderStepped:Connect(function()
+    if not root or not root.Parent then
+        connection:Disconnect()
+        return
+    end
+    local a = accent()
+    backStroke.Color = a
+    searchStroke.Color = a
+    leftStroke.Color = a
+    rightStroke.Color = a
+    tabIndicator.BackgroundColor3 = a
+    indicatorGlow.BackgroundColor3 = a
+    rightDivider.BackgroundColor3 = a
+    bodyHeading.TextColor3 = a
+    arrowLabel.TextColor3 = a
+    if statusBadge and statusBadge.Parent then
+        if statusLabel.TextColor3 ~= Color3.fromRGB(255, 200, 80)
+            and statusLabel.TextColor3 ~= Color3.fromRGB(255, 90, 90) then
+            statusLabel.TextColor3 = a
+            statusStroke.Color = a
         end
+    end
 
-        task.wait(0)
+    for i, btn in ipairs(tabButtons) do
+        if btn.stroke and btn.stroke.Parent then
+            if i == currentTabIndex then
+                btn.stroke.Color = a
+                btn.sideDot.BackgroundColor3 = a
+            end
+        end
     end
 end)
 
-if tabs[1] then
-    active = nil
-    selectTab(tabs[1], true)
-end
+------------------------------------------------------------
+-- Sparkle pulse
+------------------------------------------------------------
+task.spawn(function()
+    local flip = true
+    while root and root.Parent do
+        if currentTabIndex > 0 then
+            local btn = tabButtons[currentTabIndex]
+            if btn and btn.bg and btn.bg.Parent then
+                if flip then
+                    Tween(btn.bg, 1.3, { BackgroundTransparency = 0.18 }, Enum.EasingStyle.Sine)
+                else
+                    Tween(btn.bg, 1.3, { BackgroundTransparency = 0.0 }, Enum.EasingStyle.Sine)
+                end
+            end
+        end
+        if indicatorGlow and indicatorGlow.Parent then
+            if flip then
+                Tween(indicatorGlow, 1.0, { BackgroundTransparency = 0.6 }, Enum.EasingStyle.Sine)
+            else
+                Tween(indicatorGlow, 1.0, { BackgroundTransparency = 0.85 }, Enum.EasingStyle.Sine)
+            end
+        end
+        flip = not flip
+        task.wait(1.3)
+    end
+end)
+
+------------------------------------------------------------
+-- Auto-select first tab
+------------------------------------------------------------
+task.defer(function()
+    if #TABS > 0 then
+        selectTab(1, false)
+    end
+end)
 
 return { Root = root }
