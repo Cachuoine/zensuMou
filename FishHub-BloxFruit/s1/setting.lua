@@ -1,295 +1,246 @@
 --[[
-    setting.lua
-    Blox Fruit - Setting Panel
-    Layout: Top bar (back + search) + content area
-    Note: Không có tabs, chỉ là panel setting đơn giản.
-          Top bar & search icon dùng chung style với các file khác.
+================================================================
+ setting.lua  —  FishHub · Blox Fruit
+ Panel đơn giản, không có tabs.
+ TopBar & search icon dùng chung style với các file khác.
+================================================================
 ]]
 
-local Players            = game:GetService("Players")
-local TweenService       = game:GetService("TweenService")
-local RunService         = game:GetService("RunService")
+local Players        = game:GetService("Players")
+local TweenService   = game:GetService("TweenService")
+local RunService     = game:GetService("RunService")
+local CoreGui        = game:GetService("CoreGui")
 
-local player   = Players.LocalPlayer
+local player = Players.LocalPlayer
 
--- =========================================================================
--- THEME / CONFIG
--- =========================================================================
-local CONFIG = {
-    ThemeColor   = Color3.fromRGB(0, 229, 255),
-    Rainbow      = false,
-    BgDark       = Color3.fromRGB(8, 9, 14),
-    BgPanel      = Color3.fromRGB(14, 16, 24),
+----------------------------------------------------------------
+-- THEME  (giống các file khác)
+----------------------------------------------------------------
+local THEME = {
+    Accent       = Color3.fromRGB(0, 229, 255),
+    BgRoot       = Color3.fromRGB(7, 8, 13),
+    BgPanel      = Color3.fromRGB(13, 15, 22),
     BgTab        = Color3.fromRGB(18, 20, 30),
     BgItem       = Color3.fromRGB(20, 22, 32),
-    TextPrimary  = Color3.fromRGB(240, 242, 248),
-    TextMuted    = Color3.fromRGB(130, 135, 150),
-    StrokeAlpha  = 0.55,
+    BgInput      = Color3.fromRGB(16, 18, 26),
+    TextHi       = Color3.fromRGB(240, 242, 248),
+    TextMid      = Color3.fromRGB(170, 175, 190),
+    TextLo       = Color3.fromRGB(110, 115, 130),
+    Stroke       = 0.55,
 }
 
--- =========================================================================
--- UTILS
--- =========================================================================
-local function New(class, props)
-    local inst = Instance.new(class)
-    for k, v in pairs(props or {}) do inst[k] = v end
-    return inst
+----------------------------------------------------------------
+-- HELPERS
+----------------------------------------------------------------
+local function new(class, props)
+    local i = Instance.new(class)
+    for k, v in pairs(props or {}) do i[k] = v end
+    return i
 end
-
-local function Corner(parent, r)
-    return New("UICorner", { Parent = parent, CornerRadius = UDim.new(0, r) })
-end
-
-local function Stroke(parent, thickness, transparency, color)
-    return New("UIStroke", {
-        Parent = parent,
-        Color = color or CONFIG.ThemeColor,
-        Thickness = thickness or 1,
-        Transparency = transparency or CONFIG.StrokeAlpha,
+local function corner(p, r) return new("UICorner", { Parent = p, CornerRadius = UDim.new(0, r) }) end
+local function stroke(p, t, tr, c)
+    return new("UIStroke", {
+        Parent = p, Color = c or THEME.Accent,
+        Thickness = t or 1, Transparency = tr or THEME.Stroke,
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
     })
 end
-
-local function Pad(parent, t, b, l, r)
-    return New("UIPadding", {
-        Parent = parent,
-        PaddingTop    = UDim.new(0, t or 0),
-        PaddingBottom = UDim.new(0, b or 0),
-        PaddingLeft   = UDim.new(0, l or 0),
-        PaddingRight  = UDim.new(0, r or 0),
-    })
-end
-
-local function tween(obj, props, duration, style, dir)
-    local info = TweenInfo.new(
-        duration or 0.25,
-        style or Enum.EasingStyle.Quint,
-        dir or Enum.EasingDirection.Out
-    )
+local function tween(obj, props, dur, style, dir)
+    local info = TweenInfo.new(dur or 0.18, style or Enum.EasingStyle.Quint, dir or Enum.EasingDirection.Out)
     local t = TweenService:Create(obj, info, props)
     t:Play()
     return t
 end
 
--- =========================================================================
--- UI BUILD
--- =========================================================================
-if player.PlayerGui:FindFirstChild("FishHubSetting") then
-    player.PlayerGui.FishHubSetting:Destroy()
-end
+----------------------------------------------------------------
+-- GUI
+----------------------------------------------------------------
+local guiParent = (gethui and gethui()) or CoreGui or player.PlayerGui
+local guiName   = "FishHub_Setting"
+if guiParent:FindFirstChild(guiName) then guiParent[guiName]:Destroy() end
 
-local gui = New("ScreenGui", {
-    Name = "FishHubSetting",
-    Parent = player.PlayerGui,
+local gui = new("ScreenGui", {
+    Name = guiName, Parent = guiParent,
     ResetOnSpawn = false,
     ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
     IgnoreGuiInset = true,
 })
 
-local main = New("Frame", {
+local main = new("Frame", {
     Parent = gui,
     AnchorPoint = Vector2.new(0.5, 0.5),
     Position = UDim2.fromScale(0.5, 0.5),
-    Size = UDim2.fromOffset(540, 420),
-    BackgroundColor3 = CONFIG.BgDark,
-    BorderSizePixel = 0,
-    ClipsDescendants = true,
+    Size = UDim2.fromOffset(560, 440),
+    BackgroundColor3 = THEME.BgRoot,
+    BorderSizePixel = 0, ClipsDescendants = true,
 })
-Corner(main, 14)
-Stroke(main, 1.2, 0.3)
-New("ImageLabel", {
-    Parent = main,
-    Size = UDim2.fromScale(1, 1),
-    BackgroundTransparency = 1,
-    Image = "rbxassetid://5554236805",
-    ImageTransparency = 0.92,
-    ImageColor3 = CONFIG.ThemeColor,
-    ScaleType = Enum.ScaleType.Crop,
-    ZIndex = 0,
-})
+corner(main, 14)
+stroke(main, 1.2, 0.35)
 
--- =================== TOP BAR (giống các file khác) ===================
-local topBar = New("Frame", {
+----------------------------------------------------------------
+-- TOP BAR
+----------------------------------------------------------------
+local topBar = new("Frame", {
     Parent = main,
     Size = UDim2.new(1, 0, 0, 48),
-    BackgroundColor3 = CONFIG.BgPanel,
-    BackgroundTransparency = 0.25,
-    BorderSizePixel = 0,
-    ZIndex = 5,
+    BackgroundColor3 = THEME.BgPanel,
+    BackgroundTransparency = 0.2,
+    BorderSizePixel = 0, ZIndex = 5,
 })
-Corner(topBar, 14)
-New("Frame", {
-    Parent = topBar,
-    Size = UDim2.new(1, 0, 0, 14),
-    Position = UDim2.new(0, 0, 1, -14),
+corner(topBar, 14)
+new("Frame", {
+    Parent = topBar, Size = UDim2.new(1, 0, 0, 16),
+    Position = UDim2.new(0, 0, 1, -16),
     BackgroundColor3 = topBar.BackgroundColor3,
     BackgroundTransparency = topBar.BackgroundTransparency,
     BorderSizePixel = 0,
 })
+new("Frame", {
+    Parent = topBar, Size = UDim2.new(1, -24, 0, 1),
+    Position = UDim2.new(0, 12, 1, -1),
+    BackgroundColor3 = THEME.Accent,
+    BackgroundTransparency = 0.75, BorderSizePixel = 0,
+})
 
-local backBtn = New("TextButton", {
-    Parent = topBar,
-    Position = UDim2.new(0, 10, 0, 8),
+-- Back
+local back = new("TextButton", {
+    Parent = topBar, Position = UDim2.new(0, 10, 0, 8),
     Size = UDim2.fromOffset(32, 32),
-    BackgroundColor3 = CONFIG.BgTab,
-    AutoButtonColor = false,
-    Text = "",
+    BackgroundColor3 = THEME.BgTab, AutoButtonColor = false, Text = "",
 })
-Corner(backBtn, 8)
-Stroke(backBtn, 1, 0.5)
-local backIcon = New("TextLabel", {
-    Parent = backBtn,
-    Size = UDim2.fromScale(1, 1),
-    BackgroundTransparency = 1,
-    Text = "←",
-    Font = Enum.Font.GothamBold,
-    TextSize = 16,
-    TextColor3 = CONFIG.ThemeColor,
+corner(back, 8); stroke(back, 1, 0.5)
+local backIcon = new("TextLabel", {
+    Parent = back, Size = UDim2.fromScale(1, 1),
+    BackgroundTransparency = 1, Text = "←",
+    Font = Enum.Font.GothamBold, TextSize = 16, TextColor3 = THEME.Accent,
 })
-backBtn.MouseEnter:Connect(function()
-    tween(backBtn, { BackgroundColor3 = Color3.fromRGB(28, 32, 48) }, 0.18)
-    tween(backIcon, { TextColor3 = Color3.fromRGB(255, 255, 255) }, 0.18)
+back.MouseEnter:Connect(function()
+    tween(back, { BackgroundColor3 = Color3.fromRGB(24, 27, 40) }, 0.15)
+    tween(backIcon, { TextColor3 = Color3.new(1,1,1) }, 0.15)
 end)
-backBtn.MouseLeave:Connect(function()
-    tween(backBtn, { BackgroundColor3 = CONFIG.BgTab }, 0.18)
-    tween(backIcon, { TextColor3 = CONFIG.ThemeColor }, 0.18)
+back.MouseLeave:Connect(function()
+    tween(back, { BackgroundColor3 = THEME.BgTab }, 0.15)
+    tween(backIcon, { TextColor3 = THEME.Accent }, 0.15)
+end)
+back.Activated:Connect(function()
+    tween(main, { Size = UDim2.fromOffset(0, 0) }, 0.22, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+    task.delay(0.22, function() gui:Destroy() end)
 end)
 
-New("TextLabel", {
-    Parent = topBar,
-    Position = UDim2.new(0, 52, 0, 0),
-    Size = UDim2.new(0, 110, 1, 0),
-    BackgroundTransparency = 1,
-    Text = "SETTING",
-    Font = Enum.Font.GothamBold,
-    TextSize = 15,
-    TextColor3 = CONFIG.TextPrimary,
-    TextXAlignment = Enum.TextXAlignment.Left,
+new("TextLabel", {
+    Parent = topBar, Position = UDim2.new(0, 52, 0, 0),
+    Size = UDim2.new(0, 110, 1, 0), BackgroundTransparency = 1,
+    Text = "SETTING", Font = Enum.Font.GothamBold, TextSize = 15,
+    TextColor3 = THEME.TextHi, TextXAlignment = Enum.TextXAlignment.Left,
 })
 
--- Search box — icon "⌕" giống hệt các file khác
-local searchBox = New("Frame", {
-    Parent = topBar,
-    Position = UDim2.new(0, 170, 0, 8),
-    Size = UDim2.new(1, -180, 0, 32),
-    BackgroundColor3 = CONFIG.BgTab,
-    BorderSizePixel = 0,
+-- Search box  (icon "⌕" giống hệt các file khác)
+local searchBox = new("Frame", {
+    Parent = topBar, Position = UDim2.new(0, 168, 0, 8),
+    Size = UDim2.new(1, -178, 0, 32),
+    BackgroundColor3 = THEME.BgInput, BorderSizePixel = 0,
 })
-Corner(searchBox, 8)
-Stroke(searchBox, 1, 0.55)
+corner(searchBox, 8); stroke(searchBox, 1, 0.55)
 
-local searchIcon = New("TextLabel", {
-    Parent = searchBox,
-    Position = UDim2.new(0, 10, 0, 0),
-    Size = UDim2.fromOffset(20, 32),
-    BackgroundTransparency = 1,
-    Text = "⌕",
-    Font = Enum.Font.GothamBold,
-    TextSize = 16,
-    TextColor3 = CONFIG.ThemeColor,
-    TextXAlignment = Enum.TextXAlignment.Center,
+local searchIcon = new("TextLabel", {
+    Parent = searchBox, Position = UDim2.new(0, 10, 0, 0),
+    Size = UDim2.fromOffset(20, 32), BackgroundTransparency = 1,
+    Text = "⌕", Font = Enum.Font.GothamBold, TextSize = 16,
+    TextColor3 = THEME.Accent, TextXAlignment = Enum.TextXAlignment.Center,
 })
-local searchInput = New("TextBox", {
-    Parent = searchBox,
-    Position = UDim2.new(0, 36, 0, 0),
-    Size = UDim2.new(1, -42, 1, 0),
-    BackgroundTransparency = 1,
-    ClearTextOnFocus = false,
-    Text = "",
+local searchInput = new("TextBox", {
+    Parent = searchBox, Position = UDim2.new(0, 36, 0, 0),
+    Size = UDim2.new(1, -42, 1, 0), BackgroundTransparency = 1,
+    ClearTextOnFocus = false, Text = "",
     PlaceholderText = "search settings...",
-    PlaceholderColor3 = CONFIG.TextMuted,
-    Font = Enum.Font.GothamMedium,
-    TextSize = 12,
-    TextColor3 = CONFIG.TextPrimary,
-    TextXAlignment = Enum.TextXAlignment.Left,
+    PlaceholderColor3 = THEME.TextLo,
+    Font = Enum.Font.GothamMedium, TextSize = 12,
+    TextColor3 = THEME.TextHi, TextXAlignment = Enum.TextXAlignment.Left,
 })
 
--- =================== BODY (content area) ===================
-local body = New("Frame", {
-    Parent = main,
-    Position = UDim2.new(0, 0, 0, 48),
+----------------------------------------------------------------
+-- BODY  — simple list (no tabs)
+----------------------------------------------------------------
+local body = new("Frame", {
+    Parent = main, Position = UDim2.new(0, 0, 0, 48),
     Size = UDim2.new(1, 0, 1, -48),
-    BackgroundTransparency = 1,
-    BorderSizePixel = 0,
+    BackgroundColor3 = THEME.BgPanel,
+    BackgroundTransparency = 0.55,
+    BorderSizePixel = 0, ClipsDescendants = true,
 })
-
-local contentWrap = New("Frame", {
+new("UIPadding", {
     Parent = body,
-    Size = UDim2.new(1, 0, 1, 0),
-    BackgroundColor3 = CONFIG.BgPanel,
-    BackgroundTransparency = 0.5,
-    BorderSizePixel = 0,
-    ClipsDescendants = true,
+    PaddingTop = UDim.new(0, 14), PaddingBottom = UDim.new(0, 14),
+    PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 16),
 })
-Pad(contentWrap, 14, 14, 14, 14)
-
-local list = New("UIListLayout", {
-    Parent = contentWrap,
-    SortOrder = Enum.SortOrder.LayoutOrder,
+new("UIListLayout", {
+    Parent = body, SortOrder = Enum.SortOrder.LayoutOrder,
     Padding = UDim.new(0, 8),
 })
 
--- Một số setting mẫu
+-- Setting items
 local SETTINGS = {
-    { label = "UI Theme",   hint = "accent color" },
-    { label = "Rainbow",    hint = "animated hue" },
-    { label = "Auto Save",  hint = "persist state" },
-    { label = "Notifications", hint = "popup alerts" },
-    { label = "Language",   hint = "ui locale" },
+    { label = "UI Theme",        hint = "accent color" },
+    { label = "Rainbow",         hint = "animated hue" },
+    { label = "Auto Save",       hint = "persist state" },
+    { label = "Notifications",   hint = "popup alerts"  },
+    { label = "Language",        hint = "ui locale"     },
+    { label = "Performance",     hint = "fps boost"     },
+    { label = "Reset Config",    hint = "restore"       },
 }
 
 for i, s in ipairs(SETTINGS) do
-    local row = New("Frame", {
-        Parent = contentWrap,
-        LayoutOrder = i,
+    local row = new("Frame", {
+        Parent = body, LayoutOrder = i,
         Size = UDim2.new(1, 0, 0, 44),
-        BackgroundColor3 = CONFIG.BgItem,
-        BorderSizePixel = 0,
+        BackgroundColor3 = THEME.BgItem, BorderSizePixel = 0,
     })
-    Corner(row, 8)
-    Stroke(row, 1, 0.7)
+    corner(row, 8); stroke(row, 1, 0.7)
 
-    New("TextLabel", {
-        Parent = row,
-        Position = UDim2.new(0, 14, 0, 0),
-        Size = UDim2.new(1, -80, 1, 0),
-        BackgroundTransparency = 1,
-        Text = s.label,
-        Font = Enum.Font.GothamBold,
-        TextSize = 12,
-        TextColor3 = CONFIG.TextPrimary,
-        TextXAlignment = Enum.TextXAlignment.Left,
+    new("TextLabel", {
+        Parent = row, Position = UDim2.new(0, 14, 0, 0),
+        Size = UDim2.new(1, -90, 1, 0), BackgroundTransparency = 1,
+        Text = s.label, Font = Enum.Font.GothamBold, TextSize = 12,
+        TextColor3 = THEME.TextHi, TextXAlignment = Enum.TextXAlignment.Left,
     })
 
-    New("TextLabel", {
-        Parent = row,
-        Position = UDim2.new(1, -70, 0, 0),
-        Size = UDim2.new(0, 60, 1, 0),
-        BackgroundTransparency = 1,
-        Text = s.hint,
-        Font = Enum.Font.GothamMedium,
-        TextSize = 10,
-        TextColor3 = CONFIG.TextMuted,
-        TextXAlignment = Enum.TextXAlignment.Right,
+    new("TextLabel", {
+        Parent = row, Position = UDim2.new(1, -80, 0, 0),
+        Size = UDim2.new(0, 70, 1, 0), BackgroundTransparency = 1,
+        Text = s.hint, Font = Enum.Font.GothamMedium, TextSize = 10,
+        TextColor3 = THEME.TextLo, TextXAlignment = Enum.TextXAlignment.Right,
     })
+
+    -- hover effect
+    local btn = new("TextButton", {
+        Parent = row, Size = UDim2.fromScale(1, 1),
+        BackgroundTransparency = 1, AutoButtonColor = false, Text = "",
+    })
+    btn.MouseEnter:Connect(function()
+        tween(row, { BackgroundColor3 = Color3.fromRGB(26, 28, 42) }, 0.15)
+    end)
+    btn.MouseLeave:Connect(function()
+        tween(row, { BackgroundColor3 = THEME.BgItem }, 0.15)
+    end)
 end
 
--- =================== SEARCH (filter rows) ===================
+-- search filter rows
 searchInput:GetPropertyChangedSignal("Text"):Connect(function()
     local q = searchInput.Text:lower()
-    for idx, child in ipairs(contentWrap:GetChildren()) do
-        if child:IsA("Frame") and SETTINGS[idx] then
-            child.Visible = q == "" or SETTINGS[idx].label:lower():find(q, 1, true) ~= nil
+    local idx = 0
+    for _, child in ipairs(body:GetChildren()) do
+        if child:IsA("Frame") then
+            idx += 1
+            if SETTINGS[idx] then
+                local match = (q == "") or SETTINGS[idx].label:lower():find(q, 1, true) ~= nil
+                child.Visible = match
+            end
         end
     end
 end)
 
--- =================== BACK ===================
-backBtn.Activated:Connect(function()
-    tween(main, { Size = UDim2.fromOffset(0, 0) }, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-    task.delay(0.3, function() gui:Destroy() end)
-end)
-
--- =================== INTRO ===================
+----------------------------------------------------------------
+-- INTRO
+----------------------------------------------------------------
 main.Size = UDim2.fromOffset(0, 0)
-tween(main, { Size = UDim2.fromOffset(540, 420) }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+tween(main, { Size = UDim2.fromOffset(560, 440) }, 0.32, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
