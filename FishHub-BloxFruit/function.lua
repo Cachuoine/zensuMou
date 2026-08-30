@@ -179,7 +179,7 @@ loadFunction = function()
         {"SHOP", "shop", "Shop and item utilities."},
         {"SETTING FARM", "settingfarm", "Farming preferences."},
         {"FARM", "farm", "Farming functions and controls."},
-        {"ITEM", "item", "Items and quest utilities."},
+        {"STACK FARM", "stackfarm", "Stack farm and quest utilities."},
         {"ISLAND", "island", "Island travel and navigation."},
         {"PLAYER", "player", "Player utilities and helpers."},
         {"FRUIT", "fruit", "Fruit utilities and helpers."},
