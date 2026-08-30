@@ -135,13 +135,24 @@ local divider = new("Frame", {
     BackgroundTransparency = 0.78,
 })
 
--- Right content panel (larger, NO scroll at all)
-local rightPanel = new("Frame", {
+-- Right content panel.
+-- A ScrollingFrame is required here so it SWALLOWS mouse-wheel / touch drag
+-- events, preventing the parent Tab (which is itself a ScrollingFrame) from
+-- scrolling behind us. Visually there is no scrollbar (ScrollBarThickness=0)
+-- and the user cannot actually scroll inside us (ScrollingEnabled=false).
+local rightPanel = new("ScrollingFrame", {
     Parent = mainArea, Position = UDim2.new(0.28, 14, 0, 0), Size = UDim2.new(0.72, -14, 1, 0),
     BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.25,
     BorderSizePixel = 0, ClipsDescendants = true,
+    ScrollBarThickness = 0, ScrollBarImageTransparency = 1,
+    ScrollingDirection = Enum.ScrollingDirection.Y,
+    ScrollingEnabled = false,                       -- no internal scroll
+    ElasticBehavior = Enum.ElasticBehavior.Never,  -- no rubber-band
+    CanvasSize = UDim2.new(0, 0, 0, 0),
+    AutomaticCanvasSize = Enum.AutomaticSize.Y,
 })
 corner(rightPanel, 14)
+rightPanel.Active = true  -- absorb wheel input
 local rightStroke = stroke(rightPanel, 1, 0.45)
 new("UIPadding", { Parent = rightPanel, PaddingTop = UDim.new(0, 18), PaddingBottom = UDim.new(0, 18), PaddingLeft = UDim.new(0, 20), PaddingRight = UDim.new(0, 20) })
 
