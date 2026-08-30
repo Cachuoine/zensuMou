@@ -1,6 +1,4 @@
-local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
 
 local context = ...
 if type(context) ~= "table" or not context.Tab then return end
@@ -9,11 +7,9 @@ local Tab = context.Tab
 local Config = context.Config or {}
 
 local function accent()
-    if Config.Rainbow or Config.RainbowMode then
-        local hue = tick() % 5 / 5
-        return Color3.fromHSV(hue, 1, 1)
-    end
-    return typeof(Config.ThemeColor) == "Color3" and Config.ThemeColor or Color3.fromRGB(0, 229, 255)
+    return typeof(Config.ThemeColor) == "Color3"
+        and Config.ThemeColor
+        or Color3.fromRGB(0, 229, 255)
 end
 
 local function New(className, props)
@@ -23,62 +19,130 @@ local function New(className, props)
 end
 
 local function Corner(parent, radius)
-    return New("UICorner", { Parent = parent, CornerRadius = UDim.new(0, radius) })
+    return New("UICorner", {
+        Parent = parent,
+        CornerRadius = UDim.new(0, radius)
+    })
 end
 
 local function Stroke(parent, thickness, transparency)
-    return New("UIStroke", { Parent = parent, Color = accent(), Thickness = thickness or 1, Transparency = transparency or 0.5, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
+    return New("UIStroke", {
+        Parent = parent,
+        Color = accent(),
+        Thickness = thickness or 1,
+        Transparency = transparency or 0.5,
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    })
 end
 
-for _, child in ipairs(Tab:GetChildren()) do child:Destroy() end
+for _, child in ipairs(Tab:GetChildren()) do
+    child:Destroy()
+end
 
 Tab.BackgroundTransparency = 1
 Tab.BorderSizePixel = 0
 Tab.ScrollBarThickness = 0
+Tab.ScrollBarImageTransparency = 1
 Tab.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
-local root = New("Frame", { Parent = Tab, Size = UDim2.new(1, -10, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1 })
-New("UIPadding", { Parent = root, PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, 5), PaddingRight = UDim.new(0, 5) })
-New("UIListLayout", { Parent = root, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 10) })
+local root = New("Frame", {
+    Parent = Tab,
+    Size = UDim2.new(1, -10, 0, 0),
+    AutomaticSize = Enum.AutomaticSize.Y,
+    BackgroundTransparency = 1
+})
 
-local topBar = New("Frame", { Parent = root, LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 45), BackgroundTransparency = 1 })
+New("UIPadding", {
+    Parent = root,
+    PaddingTop = UDim.new(0, 8),
+    PaddingBottom = UDim.new(0, 12),
+    PaddingLeft = UDim.new(0, 5),
+    PaddingRight = UDim.new(0, 5)
+})
 
-local backBtn = New("TextButton", { Parent = topBar, Size = UDim2.fromOffset(45, 45), BackgroundColor3 = Color3.fromRGB(12, 13, 19), AutoButtonColor = false, Text = "" })
-Corner(backBtn, 10)
-local backStroke = Stroke(backBtn, 1, 0.4)
-local arrowLabel = New("TextLabel", { Parent = backBtn, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "←", Font = Enum.Font.GothamBold, TextSize = 18, TextColor3 = accent() })
+New("UIListLayout", {
+    Parent = root,
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Padding = UDim.new(0, 10)
+})
 
-local searchBox = New("Frame", { Parent = topBar, Position = UDim2.new(0, 55, 0, 0), Size = UDim2.new(1, -55, 1, 0), BackgroundColor3 = Color3.fromRGB(12, 13, 19) })
+local searchBox = New("Frame", {
+    Parent = root,
+    LayoutOrder = 1,
+    Size = UDim2.new(1, 0, 0, 45),
+    BackgroundColor3 = Color3.fromRGB(12, 13, 19),
+    BorderSizePixel = 0
+})
 Corner(searchBox, 10)
 local searchStroke = Stroke(searchBox, 1, 0.4)
 
-New("TextLabel", { Parent = searchBox, Position = UDim2.new(0, 12, 0, 0), Size = UDim2.new(0, 20, 1, 0), BackgroundTransparency = 1, Text = "🔍", TextSize = 14 })
-New("TextBox", { Parent = searchBox, Position = UDim2.new(0, 40, 0, 0), Size = UDim2.new(1, -50, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, PlaceholderText = "search settings...", PlaceholderColor3 = Color3.fromRGB(100, 105, 120), Text = "", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left })
+New("TextLabel", {
+    Parent = searchBox,
+    Position = UDim2.fromOffset(12, 0),
+    Size = UDim2.fromOffset(20, 45),
+    BackgroundTransparency = 1,
+    Text = "🔍",
+    Font = Enum.Font.Gotham,
+    TextSize = 14,
+    TextColor3 = Color3.fromRGB(185, 190, 205)
+})
 
-local contentFrame = New("Frame", { Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 200), BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.5 })
-Corner(contentFrame, 12)
-local contentStroke = Stroke(contentFrame, 1, 0.6)
-New("TextLabel", { Parent = contentFrame, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "Setting Options Area", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.fromRGB(200, 205, 220) })
+New("TextBox", {
+    Parent = searchBox,
+    Position = UDim2.fromOffset(40, 0),
+    Size = UDim2.new(1, -50, 1, 0),
+    BackgroundTransparency = 1,
+    ClearTextOnFocus = false,
+    PlaceholderText = "search...",
+    PlaceholderColor3 = Color3.fromRGB(100, 105, 120),
+    Text = "",
+    Font = Enum.Font.GothamMedium,
+    TextSize = 12,
+    TextColor3 = Color3.fromRGB(240, 242, 248),
+    TextXAlignment = Enum.TextXAlignment.Left
+})
 
-backBtn.Activated:Connect(function()
-    if type(context.BackToMain) == "function" then
-        context.BackToMain()
-    elseif type(context.LoadFunction) == "function" then
-        context.LoadFunction()
+local info = New("Frame", {
+    Parent = root,
+    LayoutOrder = 2,
+    Size = UDim2.new(1, 0, 0, 70),
+    BackgroundColor3 = Color3.fromRGB(8, 9, 14),
+    BorderSizePixel = 0
+})
+Corner(info, 12)
+local infoStroke = Stroke(info, 1, 0.58)
+
+New("TextLabel", {
+    Parent = info,
+    Position = UDim2.fromOffset(14, 10),
+    Size = UDim2.new(1, -28, 0, 22),
+    BackgroundTransparency = 1,
+    Text = "SETTING",
+    Font = Enum.Font.GothamBlack,
+    TextSize = 13,
+    TextColor3 = Color3.fromRGB(240, 242, 248),
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
+New("TextLabel", {
+    Parent = info,
+    Position = UDim2.fromOffset(14, 35),
+    Size = UDim2.new(1, -28, 0, 22),
+    BackgroundTransparency = 1,
+    Text = "FishHub settings",
+    Font = Enum.Font.GothamMedium,
+    TextSize = 9,
+    TextColor3 = Color3.fromRGB(120, 125, 140),
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
+task.spawn(function()
+    while root.Parent do
+        local a = accent()
+        searchStroke.Color = a
+        infoStroke.Color = a
+        task.wait(0)
     end
 end)
 
-local connection
-connection = RunService.RenderStepped:Connect(function()
-    if not root.Parent then
-        connection:Disconnect()
-        return
-    end
-    local a = accent()
-    backStroke.Color = a
-    searchStroke.Color = a
-    contentStroke.Color = a
-    arrowLabel.TextColor3 = a
-end)
-
-return { Root = root }
+return { Root = Tab }
