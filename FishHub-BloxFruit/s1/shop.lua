@@ -56,8 +56,6 @@ end
 for _, c in ipairs(Tab:GetChildren()) do c:Destroy() end
 Tab.BackgroundTransparency = 1
 Tab.BorderSizePixel       = 0
-Tab.ScrollBarThickness    = 0
-Tab.AutomaticCanvasSize   = Enum.AutomaticSize.Y
 
 -- =================== root ===================
 local root = new("Frame", {
@@ -105,7 +103,7 @@ local searchInput = new("TextBox", {
 
 -- =================== main area (left tabs | right content) ===================
 local mainArea = new("Frame", {
-    Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 400),
+    Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 500),
     BackgroundTransparency = 1,
 })
 
@@ -139,12 +137,11 @@ local divider = new("Frame", {
     BackgroundTransparency = 0.78,
 })
 
--- Right content panel (larger, no scrollbar)
-local rightPanel = new("ScrollingFrame", {
+-- Right content panel (larger, NO scroll at all)
+local rightPanel = new("Frame", {
     Parent = mainArea, Position = UDim2.new(0.28, 14, 0, 0), Size = UDim2.new(0.72, -14, 1, 0),
     BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.25,
-    ScrollBarThickness = 0, ScrollingDirection = Enum.ScrollingDirection.Y,
-    BorderSizePixel = 0, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    BorderSizePixel = 0, ClipsDescendants = true,
 })
 corner(rightPanel, 14)
 local rightStroke = stroke(rightPanel, 1, 0.45)
@@ -231,7 +228,12 @@ local function setActive(index, instant)
         end
     end
 
-    local targetY = LIST_TOP_PADDING + (index - 1) * (TAB_HEIGHT + TAB_PADDING) + 3
+    -- Count only visible tabs to compute the indicator's true visual slot
+    local visiblePos = 0
+    for i = 1, index do
+        if tabButtons[i].Button.Visible then visiblePos = visiblePos + 1 end
+    end
+    local targetY = LIST_TOP_PADDING + (visiblePos - 1) * (TAB_HEIGHT + TAB_PADDING) + 3
     if instant then
         activeIndicator.Position = UDim2.new(0, 4, 0, targetY)
     else
@@ -260,10 +262,15 @@ local function filterTabs(query)
         local matches = query == "" or string.find(string.lower(tab.Data.Name), query, 1, true) ~= nil
         tab.Button.Visible = matches
     end
+    -- If the currently active tab got hidden, smoothly slide to the first visible one
     if not tabButtons[activeIndex].Button.Visible then
         for i, tab in ipairs(tabButtons) do
-            if tab.Button.Visible then setActive(i, true); return end
+            if tab.Button.Visible then setActive(i, false); return end
         end
+        -- No tabs visible at all: hide indicator
+        activeIndicator.Visible = false
+    else
+        activeIndicator.Visible = true
     end
 end
 
