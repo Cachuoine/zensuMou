@@ -86,13 +86,22 @@ local searchInput = new("TextBox", {
     TextColor3 = Color3.fromRGB(240, 242, 248), TextXAlignment = Enum.TextXAlignment.Left,
 })
 
--- =================== content panel (NO scroll at all) ===================
-local content = new("Frame", {
+-- =================== content panel ===================
+-- ScrollingFrame swallows wheel/touch events so the parent Tab does NOT scroll
+-- while this module is showing. No visible scrollbar, no internal scroll.
+local content = new("ScrollingFrame", {
     Parent = root, LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 460),
     BackgroundColor3 = Color3.fromRGB(9, 10, 15), BackgroundTransparency = 0.25,
     BorderSizePixel = 0, ClipsDescendants = true,
+    ScrollBarThickness = 0, ScrollBarImageTransparency = 1,
+    ScrollingDirection = Enum.ScrollingDirection.Y,
+    ScrollingEnabled = false,
+    ElasticBehavior = Enum.ElasticBehavior.Never,
+    CanvasSize = UDim2.new(0, 0, 0, 0),
+    AutomaticCanvasSize = Enum.AutomaticSize.Y,
 })
 corner(content, 14)
+content.Active = true  -- absorb wheel input
 local contentStroke = stroke(content, 1, 0.45)
 new("UIPadding", { Parent = content, PaddingTop = UDim.new(0, 18), PaddingBottom = UDim.new(0, 18), PaddingLeft = UDim.new(0, 20), PaddingRight = UDim.new(0, 20) })
 
