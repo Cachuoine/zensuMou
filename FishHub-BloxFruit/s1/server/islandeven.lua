@@ -47,7 +47,6 @@ end
 Tab.BackgroundTransparency = 1
 Tab.BorderSizePixel = 0
 
--- Đổi thành ScrollingFrame để nhận các thuộc tính thanh cuộn
 local container = New("ScrollingFrame", {
     Parent = Tab,
     Size = UDim2.new(1, 0, 1, 0),
@@ -160,41 +159,49 @@ task.spawn(function()
     while alive and container.Parent do
         local a = accent()
         container.ScrollBarImageColor3 = a
-        local seaEventsFolder = Workspace:FindFirstChild("SeaEvents")
         
         for name, data in pairs(cards) do
             data.stroke.Color = a
             data.badgeStroke.Color = a
             
             local found = false
-            local foundObjName = ""
             
-            if seaEventsFolder then
-                for _, obj in ipairs(seaEventsFolder:GetChildren()) do
+            local function recursiveSearch(parentObj)
+                for _, obj in ipairs(parentObj:GetChildren()) do
                     local objNameLower = string.lower(obj.Name)
                     for _, kw in ipairs(data.keywords) do
                         if string.find(objNameLower, string.lower(kw)) then
                             found = true
-                            foundObjName = obj.Name
-                            break
+                            return true
                         end
                     end
-                    if found then break end
+                    if obj:IsA("Folder") or obj:IsA("Model") then
+                        if recursiveSearch(obj) then return true end
+                    end
+                end
+                return false
+            end
+
+            -- Ưu tiên quét thẳng vào workspace.Map trước vì nó chứa dữ liệu đảo
+            local mapFolder = Workspace:FindFirstChild("Map")
+            if mapFolder then
+                recursiveSearch(mapFolder)
+            end
+
+            -- Nếu chưa thấy thì quét mở rộng các mục phụ khác trong Workspace
+            if not found then
+                local otherFolders = {"SeaBeasts", "SeaEvents", "_WorldOrigin", "ActiveFishingSpots"}
+                for _, folderName in ipairs(otherFolders) do
+                    local folder = Workspace:FindFirstChild(folderName)
+                    if folder then
+                        if recursiveSearch(folder) then break end
+                    end
                 end
             end
-            
+
+            -- Quét vét cạn toàn bộ Workspace nếu vẫn chưa khớp
             if not found then
-                for _, obj in ipairs(Workspace:GetChildren()) do
-                    local objNameLower = string.lower(obj.Name)
-                    for _, kw in ipairs(data.keywords) do
-                        if string.find(objNameLower, string.lower(kw)) then
-                            found = true
-                            foundObjName = obj.Name
-                            break
-                        end
-                    end
-                    if found then break end
-                end
+                recursiveSearch(Workspace)
             end
 
             if found then
