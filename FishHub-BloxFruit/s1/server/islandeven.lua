@@ -110,7 +110,7 @@ for i, island in ipairs(eventIslands) do
         Size = UDim2.new(1, -90, 0, 16),
         BackgroundTransparency = 1,
         Text = "Checking...",
-        Font = Enum.Font.Gotham, -- Đã sửa lỗi Enum.Font.Medium
+        Font = Enum.Font.Gotham,
         TextSize = 11,
         TextColor3 = Color3.fromRGB(150, 155, 170),
         TextXAlignment = Enum.TextXAlignment.Left
@@ -160,37 +160,38 @@ task.spawn(function()
         local a = accent()
         container.ScrollBarImageColor3 = a
         
+        -- Lấy sẵn các thư mục mục tiêu một lần thay vì gọi liên tục
+        local mapFolder = Workspace:FindFirstChild("Map")
+        local seaBeastsFolder = Workspace:FindFirstChild("SeaBeasts")
+        
         for name, data in pairs(cards) do
             data.stroke.Color = a
             data.badgeStroke.Color = a
             
             local found = false
             
-            local function recursiveSearch(parentObj)
-                for _, obj in ipairs(parentObj:GetChildren()) do
-                    local objNameLower = string.lower(obj.Name)
+            -- Hàm kiểm tra nhanh các đối tượng con ở cấp nông để tiết kiệm hiệu năng CPU
+            local function quickCheck(folder)
+                if not folder then return false end
+                for _, obj in ipairs(folder:GetChildren()) do
+                    local objName = obj.Name
                     for _, kw in ipairs(data.keywords) do
-                        if string.find(objNameLower, string.lower(kw)) then
-                            found = true
+                        if objName == kw or string.find(objName, kw) then
                             return true
                         end
-                    end
-                    if obj:IsA("Folder") or obj:IsA("Model") then
-                        if recursiveSearch(obj) then return true end
                     end
                 end
                 return false
             end
 
-            -- Quét thẳng vào workspace.Map vì đảo sự kiện thường nằm ở đây
-            local mapFolder = Workspace:FindFirstChild("Map")
-            if mapFolder then
-                recursiveSearch(mapFolder)
+            -- Kiểm tra trong Map
+            if mapFolder and quickCheck(mapFolder) then
+                found = true
             end
 
-            -- Quét vét toàn bộ Workspace nếu chưa thấy
-            if not found then
-                recursiveSearch(Workspace)
+            -- Kiểm tra trong SeaBeasts nếu chưa thấy
+            if not found and seaBeastsFolder and quickCheck(seaBeastsFolder) then
+                found = true
             end
 
             if found then
@@ -206,7 +207,8 @@ task.spawn(function()
             end
         end
 
-        task.wait(0.1)
+        -- Tăng thời gian chờ lên 3 giây để máy thở và không bị giật lag khung hình
+        task.wait(3)
     end
 end)
 
