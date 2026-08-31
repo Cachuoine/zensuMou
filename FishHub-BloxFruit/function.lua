@@ -1,6 +1,5 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
-local SoundService = game:GetService("SoundService")
 
 local context = ...
 if type(context) ~= "table" or not context.Tab then return end
@@ -10,37 +9,7 @@ local Config = context.Config or {}
 local function accent()
     return typeof(Config.ThemeColor) == "Color3"
         and Config.ThemeColor
-        and Color3.fromRGB(0, 229, 255)
-end
-
--- Hàm hỗ trợ phát âm thanh tên tab khi bấm
-local function playAudioPrompt(text)
-    task.spawn(function()
-        pcall(function()
-            -- Mã hóa chuỗi thành URL dạng Text-to-Speech của Google Translate
-            local encodedText = text:gsub(" ", "%%20")
-            local soundUrl = "https://translate.google.com/translate_tts?ie=UTF-8&q=" .. encodedText .. "&tl=en&client=tw-ob"
-            
-            local sound = Instance.new("Sound")
-            sound.SoundId = soundUrl
-            sound.Volume = 1
-            sound.Parent = SoundService
-            
-            sound:Play()
-            
-            -- Tự động dọn dẹp bộ nhớ sau khi phát xong
-            sound.Ended:Connect(function()
-                sound:Destroy()
-            end)
-            
-            -- Phòng hờ âm thanh lỗi không gọi được sự kiện Ended
-            task.delay(5, function()
-                if sound and sound.Parent then
-                    sound:Destroy()
-                end
-            end)
-        end)
-    end)
+        or Color3.fromRGB(0, 229, 255)
 end
 
 local function New(className, props)
@@ -62,7 +31,7 @@ end
 local function Stroke(parent, thickness, transparency)
     return New("UIStroke", {
         Parent = parent,
-        Color = Color3.fromRGB(0, 229, 255),
+        Color = accent(),
         Thickness = thickness or 1,
         Transparency = transparency or 0.5,
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border
@@ -140,7 +109,7 @@ loadFunction = function()
         Parent = head,
         Position = UDim2.fromOffset(12, 14),
         Size = UDim2.fromOffset(4, 38),
-        BackgroundColor3 = Color3.fromRGB(0, 229, 255),
+        BackgroundColor3 = accent(),
         BorderSizePixel = 0
     })
     Corner(accentBar, 4)
@@ -174,10 +143,20 @@ loadFunction = function()
         Position = UDim2.new(1, -28, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Size = UDim2.fromOffset(7, 7),
-        BackgroundColor3 = Color3.fromRGB(0, 229, 255),
+        BackgroundColor3 = accent(),
         BorderSizePixel = 0
     })
     Corner(headerDot, 99)
+
+    task.spawn(function()
+        while headerDot.Parent do
+            Tween(headerDot, 0.9, {BackgroundTransparency = 0.1}, Enum.EasingStyle.Sine)
+            task.wait(0.9)
+            if not headerDot.Parent then break end
+            Tween(headerDot, 0.9, {BackgroundTransparency = 0.7}, Enum.EasingStyle.Sine)
+            task.wait(0.9)
+        end
+    end)
 
     local holder = New("Frame", {
         Parent = root,
@@ -201,7 +180,7 @@ loadFunction = function()
         {"SETTING FARM", "settingfarm", "Farming preferences."},
         {"FARM", "farm", "Farming functions and controls."},
         {"STACK FARM", "stackfarm", "Stack farm and quest utilities."},
-        {"TELEPORT", "teleport", "Teleport utilities and navigation."}, -- Đã đổi từ ISLAND thành TELEPORT
+        {"TELEPORT", "teleport", "Island travel and navigation."},
         {"PLAYER", "player", "Player utilities and helpers."},
         {"FRUIT", "fruit", "Fruit utilities and helpers."},
         {"SETTING", "setting", "FishHub settings and controls."},
@@ -263,7 +242,7 @@ loadFunction = function()
             AnchorPoint = Vector2.new(0.5, 0.5),
             Position = UDim2.fromOffset(34, 35),
             Size = UDim2.fromOffset(50, 50),
-            BackgroundColor3 = Color3.fromRGB(0, 229, 255),
+            BackgroundColor3 = accent(),
             BackgroundTransparency = 0.88,
             BorderSizePixel = 0
         })
@@ -286,7 +265,7 @@ loadFunction = function()
             Text = string.sub(title, 1, 1),
             Font = Enum.Font.GothamBlack,
             TextSize = 13,
-            TextColor3 = Color3.fromRGB(0, 229, 255)
+            TextColor3 = accent()
         })
 
         New("TextLabel", {
@@ -323,8 +302,17 @@ loadFunction = function()
             Text = "›",
             Font = Enum.Font.GothamBold,
             TextSize = 18,
-            TextColor3 = Color3.fromRGB(0, 229, 255)
+            TextColor3 = accent()
         })
+
+        local state = {
+            stroke = stroke,
+            iconStroke = iconStroke,
+            iconGlow = iconGlow,
+            titleLabelText = titleLabelText,
+            chevron = chevron
+        }
+        cards[#cards + 1] = state
 
         card.MouseEnter:Connect(function()
             Tween(scale, 0.18, {Scale = 1.045}, Enum.EasingStyle.Back)
@@ -336,10 +324,8 @@ loadFunction = function()
             Tween(stroke, 0.18, {Transparency = 0.68, Thickness = 1})
         end)
 
-        -- Phát âm thanh tên tab và gọi module khi bấm vào
         card.Activated:Connect(function()
-            playAudioPrompt(title) -- Sẽ đọc to chữ "TELEPORT" khi bấm vào
-            loadModule(fileName)   -- Sẽ tải file `teleport.lua` từ GitHub
+            loadModule(fileName)
         end)
 
         task.delay(index * 0.045, function()
@@ -353,6 +339,31 @@ loadFunction = function()
     for i, moduleData in ipairs(modules) do
         makeCard(i, moduleData)
     end
+
+    task.spawn(function()
+        while root.Parent do
+            local a = accent()
+            accentBar.BackgroundColor3 = a
+            headerDot.BackgroundColor3 = a
+            headStroke.Color = a
+
+            for _, item in ipairs(cards) do
+                if item.stroke and item.stroke.Parent then
+                    item.stroke.Color = a
+                    item.iconStroke.Color = a
+                    item.iconGlow.BackgroundColor3 = a
+                    if item.titleLabelText then
+                        item.titleLabelText.TextColor3 = a
+                    end
+                    if item.chevron then
+                        item.chevron.TextColor3 = a
+                    end
+                end
+            end
+
+            task.wait(0)
+        end
+    end)
 end
 
 loadFunction()
