@@ -72,7 +72,6 @@ New("UIListLayout", {
     Padding = UDim.new(0, 8)
 })
 
--- Danh sách boss tích hợp đường dẫn Timer chuẩn và từ khóa nhận diện
 local bossDataList = {
     {name = "Stone", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("STONE Respawn Marker"), keyword = "Stone"},
     {name = "Hydra Leader", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("HYDRA LEADER Respawn Marker"), keyword = "Hydra Leader"},
@@ -82,7 +81,6 @@ local bossDataList = {
     {name = "Longma", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("LONGMA Respawn Marker"), keyword = "Longma"},
     {name = "Cake Queen", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("CAKE QUEEN Respawn Marker"), keyword = "Cake Queen"},
     
-    -- Precious Boss (Boss điều kiện)
     {name = "Soul Reaper", type = "precious", keyword = "Soul Reaper"},
     {name = "Cake Prince", type = "precious", keyword = "Cake Prince"},
     {name = "Dough King", type = "precious", keyword = "Dough King"},
@@ -120,6 +118,7 @@ for i, boss in ipairs(bossDataList) do
         Position = UDim2.fromOffset(15, 33),
         Size = UDim2.new(1, -90, 0, 18),
         BackgroundTransparency = 1,
+        RichText = true, -- Bật tính năng đọc mã màu HTML
         Text = "Checking...",
         Font = Enum.Font.Gotham,
         TextSize = 11,
@@ -178,12 +177,12 @@ task.spawn(function()
             local isSpawned = false
             local detailText = "Status: False"
 
-            -- Kiểm tra xem thực thể có trong Enemies hay không (dù ở xa nếu game stream vào)
-            local foundInEnemies = false
+            -- Check xem boss có mặt thực tế trong Workspace.Enemies hay không
+            local inWorld = false
             if enemiesFolder and info.data.keyword then
                 for _, enemy in ipairs(enemiesFolder:GetChildren()) do
                     if string.find(enemy.Name, info.data.keyword) then
-                        foundInEnemies = true
+                        inWorld = true
                         break
                     end
                 end
@@ -206,23 +205,24 @@ task.spawn(function()
                     end
                 end
 
-                if foundInEnemies then
+                -- LOGIC CHUẨN: Nếu thực tế đã có trong Enemies HOẶC đồng hồ về 00:00 / trống -> True. Ngược lại còn giờ là False.
+                if inWorld then
                     isSpawned = true
-                    detailText = "Status: True | [Boss đang có mặt trong thế giới]"
+                    detailText = '<font color="rgb(80,255,120)">Status: True | [Đã xuất hiện]</font>'
                 elseif timerString and timerString ~= "" and timerString ~= "00:00" and not string.find(timerString, "-") then
                     isSpawned = false
-                    detailText = "Thời gian xuất hiện: " .. timerString
+                    detailText = 'Thời gian xuất hiện: <font color="rgb(255,150,50)">[' .. timerString .. ']</font>'
                 else
                     isSpawned = true
-                    detailText = "Trạng thái: True (Sẵn sàng / Đã spawn)"
+                    detailText = '<font color="rgb(80,255,120)">Trạng thái: True (Sẵn sàng)</font>'
                 end
 
             elseif info.data.type == "precious" then
-                isSpawned = foundInEnemies
+                isSpawned = inWorld
                 if isSpawned then
-                    detailText = "Status: True [Boss đã xuất hiện]"
+                    detailText = '<font color="rgb(80,255,120)">Status: True [Đã xuất hiện]</font>'
                 else
-                    detailText = "Status: False [Chưa kích hoạt]"
+                    detailText = '<font color="rgb(150,155,170)">Status: False [Chưa kích hoạt]</font>'
                 end
             end
 
