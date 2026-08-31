@@ -46,10 +46,8 @@ end
 
 Tab.BackgroundTransparency = 1
 Tab.BorderSizePixel = 0
-Tab.ScrollBarThickness = 2
-Tab.ScrollBarImageColor3 = accent()
-Tab.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
+-- Đổi thành ScrollingFrame để nhận các thuộc tính thanh cuộn
 local container = New("ScrollingFrame", {
     Parent = Tab,
     Size = UDim2.new(1, 0, 1, 0),
@@ -57,7 +55,8 @@ local container = New("ScrollingFrame", {
     BorderSizePixel = 0,
     CanvasSize = UDim2.new(0, 0, 0, 0),
     AutomaticCanvasSize = Enum.AutomaticSize.Y,
-    ScrollBarThickness = 2
+    ScrollBarThickness = 2,
+    ScrollBarImageColor3 = accent()
 })
 
 New("UIPadding", {
@@ -74,7 +73,6 @@ New("UIListLayout", {
     Padding = UDim.new(0, 8)
 })
 
--- Danh sách các đảo sự kiện biển lớn trong Blox Fruits cần theo dõi
 local eventIslands = {
     {name = "Mirage Island", keywords = {"Mirage", "MirageIsland"}},
     {name = "Kitsune Island", keywords = {"Kitsune", "KitsuneIsland"}},
@@ -158,10 +156,10 @@ Tab.AncestryChanged:Connect(function(_, parent)
     if not parent then alive = false end
 end)
 
--- Vòng lặp quét vô hạn không gian (Infinity ESP Scan) qua SeaEvents và Workspace
 task.spawn(function()
     while alive and container.Parent do
         local a = accent()
+        container.ScrollBarImageColor3 = a
         local seaEventsFolder = Workspace:FindFirstChild("SeaEvents")
         
         for name, data in pairs(cards) do
@@ -171,7 +169,6 @@ task.spawn(function()
             local found = false
             local foundObjName = ""
             
-            -- 1. Quét trong SeaEvents trước
             if seaEventsFolder then
                 for _, obj in ipairs(seaEventsFolder:GetChildren()) do
                     local objNameLower = string.lower(obj.Name)
@@ -186,7 +183,6 @@ task.spawn(function()
                 end
             end
             
-            -- 2. Quét mở rộng toàn bộ Workspace (ESP tầm xa phòng hờ game spawn ngoài thư mục SeaEvents)
             if not found then
                 for _, obj in ipairs(Workspace:GetChildren()) do
                     local objNameLower = string.lower(obj.Name)
@@ -201,7 +197,6 @@ task.spawn(function()
                 end
             end
 
-            -- Cập nhật giao diện True / False
             if found then
                 data.indicator.Text = "✓"
                 data.indicator.TextColor3 = Color3.fromRGB(80, 255, 120)
