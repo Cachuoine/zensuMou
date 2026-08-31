@@ -118,7 +118,7 @@ for i, boss in ipairs(bossDataList) do
         Position = UDim2.fromOffset(15, 33),
         Size = UDim2.new(1, -90, 0, 18),
         BackgroundTransparency = 1,
-        RichText = true, -- Bật tính năng đọc mã màu HTML
+        RichText = true,
         Text = "Checking...",
         Font = Enum.Font.Gotham,
         TextSize = 11,
@@ -177,7 +177,7 @@ task.spawn(function()
             local isSpawned = false
             local detailText = "Status: False"
 
-            -- Check xem boss có mặt thực tế trong Workspace.Enemies hay không
+            -- ƯU TIÊN SỐ 1: Quét xem boss có thực sự đang nằm trong Workspace.Enemies hay không
             local inWorld = false
             if enemiesFolder and info.data.keyword then
                 for _, enemy in ipairs(enemiesFolder:GetChildren()) do
@@ -188,40 +188,38 @@ task.spawn(function()
                 end
             end
 
-            if info.data.type == "normal" then
-                local marker = info.data.path
-                local timerString = ""
-                
-                if marker then
-                    local timerGui = marker:FindFirstChild("RespawnTimer")
-                    if timerGui then
-                        local frame = timerGui:FindFirstChild("Frame")
-                        if frame then
-                            local timerLabel = frame:FindFirstChild("Timer")
-                            if timerLabel and timerLabel:IsA("TextLabel") then
-                                timerString = timerLabel.Text
+            if inWorld then
+                -- Nếu đã có trong thế giới -> Lập tức True, bất chấp đồng hồ ra sao
+                isSpawned = true
+                detailText = '<font color="rgb(80,255,120)">Status: True | [Đã xuất hiện trong thế giới]</font>'
+            else
+                -- Nếu chưa có trong thế giới, mới bắt đầu check đến đồng hồ (Respawn Marker)
+                if info.data.type == "normal" then
+                    local marker = info.data.path
+                    local timerString = ""
+                    
+                    if marker then
+                        local timerGui = marker:FindFirstChild("RespawnTimer")
+                        if timerGui then
+                            local frame = timerGui:FindFirstChild("Frame")
+                            if frame then
+                                local timerLabel = frame:FindFirstChild("Timer")
+                                if timerLabel and timerLabel:IsA("TextLabel") then
+                                    timerString = timerLabel.Text
+                                end
                             end
                         end
                     end
-                end
 
-                -- LOGIC CHUẨN: Nếu thực tế đã có trong Enemies HOẶC đồng hồ về 00:00 / trống -> True. Ngược lại còn giờ là False.
-                if inWorld then
-                    isSpawned = true
-                    detailText = '<font color="rgb(80,255,120)">Status: True | [Đã xuất hiện]</font>'
-                elseif timerString and timerString ~= "" and timerString ~= "00:00" and not string.find(timerString, "-") then
+                    if timerString and timerString ~= "" and timerString ~= "00:00" and not string.find(timerString, "-") then
+                        isSpawned = false
+                        detailText = 'Thời gian xuất hiện: <font color="rgb(255,150,50)">[' .. timerString .. ']</font>'
+                    else
+                        isSpawned = true
+                        detailText = '<font color="rgb(80,255,120)">Trạng thái: True (Sẵn sàng)</font>'
+                    end
+                elseif info.data.type == "precious" then
                     isSpawned = false
-                    detailText = 'Thời gian xuất hiện: <font color="rgb(255,150,50)">[' .. timerString .. ']</font>'
-                else
-                    isSpawned = true
-                    detailText = '<font color="rgb(80,255,120)">Trạng thái: True (Sẵn sàng)</font>'
-                end
-
-            elseif info.data.type == "precious" then
-                isSpawned = inWorld
-                if isSpawned then
-                    detailText = '<font color="rgb(80,255,120)">Status: True [Đã xuất hiện]</font>'
-                else
                     detailText = '<font color="rgb(150,155,170)">Status: False [Chưa kích hoạt]</font>'
                 end
             end
