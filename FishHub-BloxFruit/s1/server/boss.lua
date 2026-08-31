@@ -72,18 +72,18 @@ New("UIListLayout", {
     Padding = UDim.new(0, 8)
 })
 
--- Danh sách Boss bao gồm Normal Boss và các Precious Boss (có thêm Tyrant of the Skies)
+-- Danh sách Normal Boss (có kèm thời gian & check true/false) và Precious Boss (chỉ check true/false)
 local bossDataList = {
-    -- Normal Boss
-    {name = "Stone", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("STONE Respawn Marker")},
-    {name = "Hydra Leader", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("HYDRA LEADER Respawn Marker")},
-    {name = "Kilo Admiral", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("KILO ADMIRAL Respawn Marker")},
-    {name = "Captain Elephant", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("CAPTAIN ELEPHANT Respawn Marker")},
-    {name = "Beautiful Pirate", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("BEAUTIFUL PIRATE Respawn Marker")},
-    {name = "Longma", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("LONGMA Respawn Marker")},
-    {name = "Cake Queen", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("CAKE QUEEN Respawn Marker")},
+    -- Normal Boss (Có marker thời gian và keyword kiểm tra Enemies)
+    {name = "Stone", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("STONE Respawn Marker"), keyword = "Stone"},
+    {name = "Hydra Leader", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("HYDRA LEADER Respawn Marker"), keyword = "Hydra Leader"},
+    {name = "Kilo Admiral", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("KILO ADMIRAL Respawn Marker"), keyword = "Kilo Admiral"},
+    {name = "Captain Elephant", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("CAPTAIN ELEPHANT Respawn Marker"), keyword = "Captain Elephant"},
+    {name = "Beautiful Pirate", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("BEAUTIFUL PIRATE Respawn Marker"), keyword = "Beautiful Pirate"},
+    {name = "Longma", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("LONGMA Respawn Marker"), keyword = "Longma"},
+    {name = "Cake Queen", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("CAKE QUEEN Respawn Marker"), keyword = "Cake Queen"},
     
-    -- Precious Boss (Boss điều kiện dựa trên Workspace.Enemies)
+    -- Precious Boss (Chỉ check true/false dựa trên Workspace.Enemies)
     {name = "Soul Reaper", type = "precious", keyword = "Soul Reaper"},
     {name = "Cake Prince", type = "precious", keyword = "Cake Prince"},
     {name = "Dough King", type = "precious", keyword = "Dough King"},
@@ -179,8 +179,20 @@ task.spawn(function()
             local isAlive = false
             local detailText = "Status: False"
 
+            -- Kiểm tra xem boss thực tế có đang ở trong Workspace.Enemies hay không (True/False chung)
+            local isInEnemies = false
+            if enemiesFolder and info.data.keyword then
+                for _, enemy in ipairs(enemiesFolder:GetChildren()) do
+                    if string.find(enemy.Name, info.data.keyword) then
+                        isInEnemies = true
+                        break
+                    end
+                end
+            end
+
             if info.data.type == "normal" then
                 local marker = info.data.path
+                local timeText = ""
                 if marker then
                     local timerGui = marker:FindFirstChild("RespawnTimer")
                     if timerGui then
@@ -188,30 +200,25 @@ task.spawn(function()
                         if frame then
                             local timerLabel = frame:FindFirstChild("Timer")
                             if timerLabel and timerLabel:IsA("TextLabel") then
-                                local timeText = timerLabel.Text
-                                if timeText and timeText ~= "" and timeText ~= "00:00" and not string.find(timeText, "-") then
-                                    detailText = "Respawn in: " .. timeText
-                                    isAlive = false
-                                else
-                                    detailText = "Status: True (Ready/Spawned)"
-                                    isAlive = true
-                                end
+                                timeText = timerLabel.Text
                             end
-                        end
-                    end
-                else
-                    detailText = "Marker not found"
-                end
-            elseif info.data.type == "precious" then
-                if enemiesFolder then
-                    for _, enemy in ipairs(enemiesFolder:GetChildren()) do
-                        if string.find(enemy.Name, info.data.keyword) then
-                            isAlive = true
-                            break
                         end
                     end
                 end
 
+                if isInEnemies then
+                    detailText = "Status: True | In World"
+                    isAlive = true
+                elseif timeText and timeText ~= "" and timeText ~= "00:00" and not string.find(timeText, "-") then
+                    detailText = "Respawn in: " .. timeText
+                    isAlive = false
+                else
+                    detailText = "Status: True (Ready)"
+                    isAlive = true
+                end
+
+            elseif info.data.type == "precious" then
+                isAlive = isInEnemies
                 if isAlive then
                     detailText = "Status: True (Spawned)"
                 else
@@ -224,7 +231,7 @@ task.spawn(function()
                 info.indicator.TextColor3 = Color3.fromRGB(80, 255, 120)
                 info.statusLabel.TextColor3 = Color3.fromRGB(180, 255, 190)
             else
-                info.indicator.Text = "×"
+                info.indicator.Text = "✕"
                 info.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
                 info.statusLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
             end
@@ -232,7 +239,7 @@ task.spawn(function()
             info.statusLabel.Text = detailText
         end
 
-        task.wait(3)
+        task.wait(1)
     end
 end)
 
