@@ -84,7 +84,6 @@ New("UIListLayout", {
     Padding = UDim.new(0, 10)
 })
 
--- Top bar: Back + Search, kept compatible with the main function.lua.
 local topBar = New("Frame", {
     Parent = root,
     LayoutOrder = 1,
@@ -154,7 +153,6 @@ local search = New("TextBox", {
     TextXAlignment = Enum.TextXAlignment.Left
 })
 
--- Two-panel layout: left menu is deliberately smaller than right content.
 local workspace = New("Frame", {
     Parent = root,
     LayoutOrder = 2,
@@ -369,6 +367,8 @@ end
 
 local definitions = {
     {"player", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/player/player.lua"},
+    {"teleport", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/player/teleport.lua"},
+    {"esp", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/player/esp.lua"},
     {"pvp", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/player/pvp.lua"}
 }
 
