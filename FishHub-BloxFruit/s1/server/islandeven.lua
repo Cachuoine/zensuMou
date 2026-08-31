@@ -73,7 +73,7 @@ New("UIListLayout", {
 })
 
 local eventIslands = {
-    {name = "Mirage Island", keywords = {"Mirage", "MirageIsland"}},
+    {name = "Mirage Island", keywords = {"Mirage", "MysticIsland", "MirageIsland"}},
     {name = "Kitsune Island", keywords = {"Kitsune", "KitsuneIsland"}},
     {name = "Prehistoric Island", keywords = {"Prehistoric", "PrehistoricIsland"}},
     {name = "Frozen Dimension", keywords = {"Frozen", "FrozenDimension", "Leviathan"}}
@@ -110,7 +110,7 @@ for i, island in ipairs(eventIslands) do
         Size = UDim2.new(1, -90, 0, 16),
         BackgroundTransparency = 1,
         Text = "Checking...",
-        Font = Enum.Font.Medium,
+        Font = Enum.Font.Gotham, -- Đã sửa lỗi Enum.Font.Medium
         TextSize = 11,
         TextColor3 = Color3.fromRGB(150, 155, 170),
         TextXAlignment = Enum.TextXAlignment.Left
@@ -182,24 +182,13 @@ task.spawn(function()
                 return false
             end
 
-            -- Ưu tiên quét thẳng vào workspace.Map trước vì nó chứa dữ liệu đảo
+            -- Quét thẳng vào workspace.Map vì đảo sự kiện thường nằm ở đây
             local mapFolder = Workspace:FindFirstChild("Map")
             if mapFolder then
                 recursiveSearch(mapFolder)
             end
 
-            -- Nếu chưa thấy thì quét mở rộng các mục phụ khác trong Workspace
-            if not found then
-                local otherFolders = {"SeaBeasts", "SeaEvents", "_WorldOrigin", "ActiveFishingSpots"}
-                for _, folderName in ipairs(otherFolders) do
-                    local folder = Workspace:FindFirstChild(folderName)
-                    if folder then
-                        if recursiveSearch(folder) then break end
-                    end
-                end
-            end
-
-            -- Quét vét cạn toàn bộ Workspace nếu vẫn chưa khớp
+            -- Quét vét toàn bộ Workspace nếu chưa thấy
             if not found then
                 recursiveSearch(Workspace)
             end
@@ -217,7 +206,7 @@ task.spawn(function()
             end
         end
 
-        task.wait(0.1)
+        task.wait(1)
     end
 end)
 
