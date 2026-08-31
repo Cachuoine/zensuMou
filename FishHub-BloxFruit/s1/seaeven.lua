@@ -366,8 +366,8 @@ local function selectTab(item, instant)
 end
 
 local definitions = {
-    {"up race", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/race/up.lua"},
-    {"volcano", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/race/volcano.lua"}
+    {"sea even", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/seaeven/seaeven.lua"},
+    {"island even", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/seaeven/islandeven.lua"}
 }
 
 for index, data in ipairs(definitions) do
@@ -458,7 +458,7 @@ backBtn.Activated:Connect(function()
     end
 end)
 
-val alive = true
+local alive = true
 Tab.AncestryChanged:Connect(function(_, parent)
     if not parent then alive = false end
 end)
