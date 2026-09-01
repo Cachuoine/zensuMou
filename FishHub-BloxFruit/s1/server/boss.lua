@@ -73,27 +73,28 @@ New("UIListLayout", {
     Padding = UDim.new(0, 8)
 })
 
--- Danh sách Normal Boss (Sử dụng từ khóa để tìm kiếm linh hoạt trong _WorldOrigin)
+-- Danh sách Normal Boss kèm khoảng cách vị trí để check lách luật khi bay tới gần
 local normalBosses = {
-    {name = "STONE", keyword = "stone", cframe = CFrame.new(-1109.92603, 58.3789978, 6811.7251, 0.275688112, -0, -0.961247265, 0, 1, -0, 0.961247265, 0, 0.275688112)},
-    {name = "HYDRA LEADER", keyword = "hydra leader", cframe = CFrame.new(-1109.92603, 58.3789978, 6811.7251, 0.275688112, -0, -0.961247265, 0, 1, -0, 0.961247265, 0, 0.275688112)},
-    {name = "Kilo Admiral", keyword = "kilo admiral", cframe = CFrame.new(2998.29492, 513.794006, -7344.32178, 0.207885921, 0, 0.97815311, 0, 1, 0, -0.97815311, 0, 0.207885921)},
-    {name = "Captain Elephant", keyword = "captain elephant", cframe = CFrame.new(-13365.5293, 321.230988, -8484.99023, -0.997842431, 0, 0.0656556115, 0, 1, 0, -0.0656556115, 0, -0.997842431)},
-    {name = "Beautiful Pirate", keyword = "beautiful pirate", cframe = CFrame.new(5367.31348, 26.3950043, -64.7008362, 1, 0, 0, 0, 1, 0, 0, 0, 1)},
-    {name = "Longma", keyword = "longma", cframe = CFrame.new(-10156.2227, 337.778015, -9445.86523, -0.0348494053, 0, 0.999392569, 0, 1, 0, -0.999392569, 0, -0.0348494053)},
-    {name = "Cake Queen", keyword = "cake queen", cframe = CFrame.new(-678.478027, 386.856995, -11114.3457, -0.93524456, 0, 0.354002535, 0, 1, 0, -0.354002535, 0, -0.93524456)}
+    {name = "STONE", keyword = "stone", position = Vector3.new(-1109.92603, 58.3789978, 6811.7251)},
+    {name = "HYDRA LEADER", keyword = "hydra leader", position = Vector3.new(-1109.92603, 58.3789978, 6811.7251)},
+    {name = "Kilo Admiral", keyword = "kilo admiral", position = Vector3.new(2998.29492, 513.794006, -7344.32178)},
+    {name = "Captain Elephant", keyword = "captain elephant", position = Vector3.new(-13365.5293, 321.230988, -8484.99023)},
+    {name = "Beautiful Pirate", keyword = "beautiful pirate", position = Vector3.new(5367.31348, 26.3950043, -64.7008362)},
+    {name = "Longma", keyword = "longma", position = Vector3.new(-10156.2227, 337.778015, -9445.86523)},
+    {name = "Cake Queen", keyword = "cake queen", position = Vector3.new(-678.478027, 386.856995, -11114.3457)}
 }
 
 -- Danh sách Precious Boss / Boss điều kiện
 local preciousBosses = {
-    {name = "Soul Reaper", keywords = {"soul reaper"}, cframe = CFrame.new(-9522.2334, 314.747986, 6789.48193, 0.999388874, -0, -0.0349550731, 0, 1, -0, 0.0349550731, 0, 0.999388874)},
-    {name = "Cake Prince", keywords = {"cake prince"}, cframe = CFrame.new(-2089.86597, 4536.92383, -14800.0068, 0.868320882, -0, -0.496002853, 0, 1, -0, 0.496002853, 0, 0.868320882)},
-    {name = "Dough King", keywords = {"dough king"}, cframe = CFrame.new(-2089.86597, 4536.92383, -14800.0068, 0.868320882, -0, -0.496002853, 0, 1, -0, 0.496002853, 0, 0.868320882)},
-    {name = "Rip_Indra", keywords = {"rip_indra", "rip indra"}, cframe = CFrame.new(-5395.71582, 319.981995, -2588.76001, 0.927179396, 0, 0.374617696, 0, 1, 0, -0.374617696, 0, 0.927179396)},
-    {name = "Tyrant of the Skies", keywords = {"tyrant of the skies", "tyrant"}, cframe = CFrame.new(-5395.71582, 319.981995, -2588.76001, 0.927179396, 0, 0.374617696, 0, 1, 0, -0.374617696, 0, 0.927179396)}
+    {name = "Soul Reaper", keywords = {"soul reaper"}, position = Vector3.new(-9522.2334, 314.747986, 6789.48193)},
+    {name = "Cake Prince", keywords = {"cake prince"}, position = Vector3.new(-2089.86597, 4536.92383, -14800.0068)},
+    {name = "Dough King", keywords = {"dough king"}, position = Vector3.new(-2089.86597, 4536.92383, -14800.0068)},
+    {name = "Rip_Indra", keywords = {"rip_indra", "rip indra"}, position = Vector3.new(-5395.71582, 319.981995, -2588.76001)},
+    {name = "Tyrant of the Skies", keywords = {"tyrant of the skies", "tyrant"}, position = Vector3.new(-5395.71582, 319.981995, -2588.76001)}
 }
 
 local cards = {}
+local lockedTimers = {} -- Bộ nhớ lưu cố định thời gian và trạng thái False khi đã ở gần boss chết
 local layoutOrder = 0
 
 -- Tiêu đề Normal Boss
@@ -141,7 +142,7 @@ for _, boss in ipairs(normalBosses) do
         Text = "Status: False",
         Font = Enum.Font.Gotham,
         TextSize = 11,
-        TextColor3 = Color3.fromRGB(150, 155, 170),
+        TextColor3 = Color3.fromRGB(255, 90, 90),
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
@@ -177,7 +178,7 @@ for _, boss in ipairs(normalBosses) do
         badgeStroke = badgeStroke,
         indicator = indicator,
         keyword = boss.keyword,
-        cframe = boss.cframe
+        position = boss.position
     }
 end
 
@@ -226,7 +227,7 @@ for _, boss in ipairs(preciousBosses) do
         Text = "Status: False",
         Font = Enum.Font.Gotham,
         TextSize = 11,
-        TextColor3 = Color3.fromRGB(150, 155, 170),
+        TextColor3 = Color3.fromRGB(255, 90, 90),
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
@@ -262,7 +263,7 @@ for _, boss in ipairs(preciousBosses) do
         badgeStroke = badgeStroke,
         indicator = indicator,
         keywords = boss.keywords,
-        cframe = boss.cframe
+        position = boss.position
     }
 end
 
@@ -278,17 +279,28 @@ task.spawn(function()
 
         local worldOrigin = Workspace:FindFirstChild("_WorldOrigin")
         local enemiesFolder = Workspace:FindFirstChild("Enemies")
+        local localPlayer = Players.LocalPlayer
+        local char = localPlayer and localPlayer.Character
+        local rootPart = char and char:FindFirstChild("HumanoidRootPart")
 
         for name, data in pairs(cards) do
             data.stroke.Color = a
             data.badgeStroke.Color = a
+
+            -- Kiểm tra khoảng cách người chơi tới vị trí boss (trong vòng bán kính 300 studs coi như bay tới đúng đảo/boss đó)
+            local isNear = false
+            if rootPart then
+                local dist = (rootPart.Position - data.position).Magnitude
+                if dist <= 300 then
+                    isNear = true
+                end
+            end
 
             if data.type == "normal" then
                 local markerExist = false
                 local timerText = ""
 
                 if worldOrigin then
-                    -- Quét tìm marker không phân biệt hoa thường và khoảng trắng để tránh sót tên
                     for _, obj in ipairs(worldOrigin:GetChildren()) do
                         local objNameLower = string.lower(obj.Name)
                         if string.find(objNameLower, data.keyword) then
@@ -300,7 +312,6 @@ task.spawn(function()
                                     local timerLabel = frame:FindFirstChild("Timer")
                                     if timerLabel then
                                         timerText = tostring(timerLabel.Text or "")
-                                        -- Lọc bỏ sạch các thẻ màu định dạng HTML rác để lấy mỗi thời gian
                                         timerText = string.gsub(timerText, "<[^%s>]+[^>]*>", "")
                                         timerText = string.gsub(timerText, "</[^>]+>", "")
                                         timerText = string.gsub(timerText, "^%s*(.-)%s*$", "%1")
@@ -312,7 +323,26 @@ task.spawn(function()
                     end
                 end
 
-                if markerExist then
+                -- Nếu người chơi ở gần boss mà marker biến mất (hoặc boss đã chết), tiến hành khóa cố định trạng thái
+                if isNear and not markerExist then
+                    if not lockedTimers[name] then
+                        lockedTimers[name] = timerText ~= "" and timerText or "Dead"
+                    end
+                elseif not isNear and markerExist then
+                    -- Nếu người chơi bay đi nơi khác và marker xuất hiện lại thì mở khóa
+                    lockedTimers[name] = nil
+                end
+
+                if lockedTimers[name] then
+                    data.indicator.Text = "✕"
+                    data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
+                    if lockedTimers[name] ~= "Dead" and lockedTimers[name] ~= "" then
+                        data.statusLabel.Text = "Status: False: " .. lockedTimers[name]
+                    else
+                        data.statusLabel.Text = "Status: False"
+                    end
+                    data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90) -- Full màu đỏ
+                elseif markerExist then
                     data.indicator.Text = "✕"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
                     if timerText ~= "" and timerText ~= "0" and timerText ~= "00:00" then
@@ -320,7 +350,7 @@ task.spawn(function()
                     else
                         data.statusLabel.Text = "Status: False"
                     end
-                    data.statusLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
+                    data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90) -- Full màu đỏ
                 else
                     data.indicator.Text = "✓"
                     data.indicator.TextColor3 = Color3.fromRGB(80, 255, 120)
@@ -353,12 +383,12 @@ task.spawn(function()
                     data.indicator.Text = "✕"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
                     data.statusLabel.Text = "Status: False"
-                    data.statusLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
+                    data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90) -- Full màu đỏ
                 end
             end
         end
 
-        task.wait(0.1)
+        task.wait(1)
     end
 end)
 
