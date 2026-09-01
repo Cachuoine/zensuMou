@@ -2,12 +2,25 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
+local SoundService = game:GetService("SoundService")
+local HttpService = game:GetService("HttpService")
 
 local context = ...
 if type(context) ~= "table" or not context.Tab then return end
 
 local Tab = context.Tab
 local Config = context.Config or {}
+
+------------------------------------------------------------
+-- Settings
+------------------------------------------------------------
+local SETTINGS = {
+    SoundVolume = 0.6,
+    NotifyCooldown = 30,            -- chống spam cùng 1 boss trong 30s
+    NotificationDuration = 6,       -- toast tồn tại bao nhiêu giây
+    NotifyQueueDelay = 0.6,         -- delay giữa 2 toast khi stack
+    WebhookURL = nil,               -- paste Discord webhook vào đây nếu muốn
+}
 
 local function accent()
     if Config.Rainbow or Config.RainbowMode then
@@ -31,14 +44,28 @@ local function Corner(parent, radius)
     })
 end
 
-local function Stroke(parent, thickness, transparency)
+local function Stroke(parent, thickness, transparency, color)
     return New("UIStroke", {
         Parent = parent,
-        Color = accent(),
+        Color = color or accent(),
         Thickness = thickness or 1,
         Transparency = transparency or 0.4,
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     })
+end
+
+local function Tween(obj, duration, props, style, direction)
+    local t = TweenService:Create(
+        obj,
+        TweenInfo.new(
+            duration or 0.2,
+            style or Enum.EasingStyle.Quint,
+            direction or Enum.EasingDirection.Out
+        ),
+        props
+    )
+    t:Play()
+    return t
 end
 
 for _, child in ipairs(Tab:GetChildren()) do
@@ -48,9 +75,30 @@ end
 Tab.BackgroundTransparency = 1
 Tab.BorderSizePixel = 0
 
+------------------------------------------------------------
+-- Notification area (top of Tab)
+------------------------------------------------------------
+local notifyFrame = New("Frame", {
+    Parent = Tab,
+    Position = UDim2.new(0, 5, 0, 5),
+    Size = UDim2.new(1, -10, 0, 130),
+    BackgroundTransparency = 1,
+    ClipsDescendants = true
+})
+New("UIListLayout", {
+    Parent = notifyFrame,
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Padding = UDim.new(0, 4),
+    VerticalAlignment = Enum.VerticalAlignment.Top
+})
+
+------------------------------------------------------------
+-- Scrolling container (below notification area)
+------------------------------------------------------------
 local container = New("ScrollingFrame", {
     Parent = Tab,
-    Size = UDim2.new(1, 0, 1, 0),
+    Position = UDim2.new(0, 5, 0, 140),
+    Size = UDim2.new(1, -10, 1, -145),
     BackgroundTransparency = 1,
     BorderSizePixel = 0,
     CanvasSize = UDim2.new(0, 0, 0, 0),
@@ -72,6 +120,126 @@ New("UIListLayout", {
     SortOrder = Enum.SortOrder.LayoutOrder,
     Padding = UDim.new(0, 8)
 })
+
+------------------------------------------------------------
+-- Notification sound
+------------------------------------------------------------
+local sound = nil
+pcall(function()
+    sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://4590662766"
+    sound.Volume = SETTINGS.SoundVolume
+    sound.Parent = SoundService
+end)
+
+------------------------------------------------------------
+-- Toast queue + showNotification
+------------------------------------------------------------
+local notifyQueue = {}
+local notifying = false
+local function showNotification(title, message, color, duration)
+    duration = duration or SETTINGS.NotificationDuration
+    color = color or Color3.fromRGB(0, 229, 255)
+
+    -- newest first
+    local toast = New("Frame", {
+        Parent = notifyFrame,
+        LayoutOrder = math.floor(tick() * 1000) % 1000000,
+        Size = UDim2.new(1, 0, 0, 60),
+        BackgroundColor3 = Color3.fromRGB(15, 17, 26),
+        BorderSizePixel = 0
+    })
+    Corner(toast, 10)
+    Stroke(toast, 1, 0.3, color)
+
+    local bar = New("Frame", {
+        Parent = toast,
+        Position = UDim2.fromOffset(6, 6),
+        Size = UDim2.new(0, 3, 1, -12),
+        BackgroundColor3 = color,
+        BorderSizePixel = 0
+    })
+    Corner(bar, 2)
+
+    New("TextLabel", {
+        Parent = toast,
+        Position = UDim2.fromOffset(18, 6),
+        Size = UDim2.new(1, -30, 0, 18),
+        BackgroundTransparency = 1,
+        Text = title,
+        Font = Enum.Font.GothamBold,
+        TextSize = 11,
+        TextColor3 = color,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    New("TextLabel", {
+        Parent = toast,
+        Position = UDim2.fromOffset(18, 26),
+        Size = UDim2.new(1, -30, 0, 30),
+        BackgroundTransparency = 1,
+        Text = message,
+        Font = Enum.Font.Gotham,
+        TextSize = 10,
+        TextColor3 = Color3.fromRGB(220, 225, 235),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextWrapped = true,
+        TextYAlignment = Enum.TextYAlignment.Top
+    })
+
+    toast.BackgroundTransparency = 1
+    Tween(toast, 0.25, {BackgroundTransparency = 0})
+
+    task.delay(duration, function()
+        if toast and toast.Parent then
+            Tween(toast, 0.4, {BackgroundTransparency = 1})
+            task.wait(0.45)
+            if toast and toast.Parent then
+                toast:Destroy()
+            end
+        end
+    end)
+
+    pcall(function()
+        if sound then sound:Play() end
+    end)
+end
+
+local function queueNotify(title, message, color, duration)
+    table.insert(notifyQueue, {title, message, color or Color3.fromRGB(0, 229, 255), duration})
+    if notifying then return end
+    notifying = true
+    task.spawn(function()
+        while #notifyQueue > 0 do
+            local args = table.remove(notifyQueue, 1)
+            showNotification(args[1], args[2], args[3], args[4])
+            task.wait(SETTINGS.NotifyQueueDelay)
+        end
+        notifying = false
+    end)
+end
+
+------------------------------------------------------------
+-- Discord webhook (optional)
+------------------------------------------------------------
+local function postWebhook(webhookUrl, title, message)
+    if not webhookUrl or webhookUrl == "" then return end
+    pcall(function()
+        local data = {
+            ["username"] = "FishHub Boss Alert",
+            ["embeds"] = {{
+                ["title"] = title,
+                ["description"] = message,
+                ["color"] = 16750848
+            }}
+        }
+        HttpService:PostAsync(
+            webhookUrl,
+            HttpService:JSONEncode(data),
+            Enum.HttpContentType.ApplicationJson
+        )
+    end)
+end
 
 ------------------------------------------------------------
 -- Section header
@@ -104,13 +272,13 @@ local function makeHeader(text, order)
 end
 
 ------------------------------------------------------------
--- NORMAL BOSS card (read respawn marker timer)
+-- Cards
 ------------------------------------------------------------
 local function makeNormalCard(name, marker, order)
     local card = New("Frame", {
         Parent = container,
         LayoutOrder = order,
-        Size = UDim2.new(1, 0, 0, 65),
+        Size = UDim2.new(1, 0, 0, 78),
         BackgroundColor3 = Color3.fromRGB(13, 15, 22),
         BorderSizePixel = 0
     })
@@ -119,7 +287,7 @@ local function makeNormalCard(name, marker, order)
 
     New("TextLabel", {
         Parent = card,
-        Position = UDim2.fromOffset(15, 12),
+        Position = UDim2.fromOffset(15, 10),
         Size = UDim2.new(1, -90, 0, 22),
         BackgroundTransparency = 1,
         Text = name,
@@ -131,13 +299,25 @@ local function makeNormalCard(name, marker, order)
 
     local statusLabel = New("TextLabel", {
         Parent = card,
-        Position = UDim2.fromOffset(15, 36),
+        Position = UDim2.fromOffset(15, 32),
         Size = UDim2.new(1, -90, 0, 16),
         BackgroundTransparency = 1,
         Text = "Checking...",
         Font = Enum.Font.Gotham,
         TextSize = 11,
         TextColor3 = Color3.fromRGB(150, 155, 170),
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    local lastSeenLabel = New("TextLabel", {
+        Parent = card,
+        Position = UDim2.fromOffset(15, 52),
+        Size = UDim2.new(1, -90, 0, 14),
+        BackgroundTransparency = 1,
+        Text = "Last seen: -",
+        Font = Enum.Font.Gotham,
+        TextSize = 9,
+        TextColor3 = Color3.fromRGB(95, 100, 115),
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
@@ -168,6 +348,7 @@ local function makeNormalCard(name, marker, order)
         card = card,
         stroke = stroke,
         statusLabel = statusLabel,
+        lastSeenLabel = lastSeenLabel,
         badge = badge,
         badgeStroke = badgeStroke,
         indicator = indicator,
@@ -175,9 +356,6 @@ local function makeNormalCard(name, marker, order)
     }
 end
 
-------------------------------------------------------------
--- PRECIOUS BOSS card (workspace.Enemies existence check)
-------------------------------------------------------------
 local function makePreciousCard(name, enemyName, cframe, order)
     local hasCFrame = cframe ~= nil
     local rightWidth = hasCFrame and 110 or 60
@@ -185,7 +363,7 @@ local function makePreciousCard(name, enemyName, cframe, order)
     local card = New("Frame", {
         Parent = container,
         LayoutOrder = order,
-        Size = UDim2.new(1, 0, 0, 65),
+        Size = UDim2.new(1, 0, 0, 78),
         BackgroundColor3 = Color3.fromRGB(13, 15, 22),
         BorderSizePixel = 0
     })
@@ -194,7 +372,7 @@ local function makePreciousCard(name, enemyName, cframe, order)
 
     New("TextLabel", {
         Parent = card,
-        Position = UDim2.fromOffset(15, 12),
+        Position = UDim2.fromOffset(15, 10),
         Size = UDim2.new(1, -(rightWidth + 25), 0, 22),
         BackgroundTransparency = 1,
         Text = name,
@@ -206,13 +384,25 @@ local function makePreciousCard(name, enemyName, cframe, order)
 
     local statusLabel = New("TextLabel", {
         Parent = card,
-        Position = UDim2.fromOffset(15, 36),
+        Position = UDim2.fromOffset(15, 32),
         Size = UDim2.new(1, -(rightWidth + 25), 0, 16),
         BackgroundTransparency = 1,
         Text = "Checking...",
         Font = Enum.Font.Gotham,
         TextSize = 11,
         TextColor3 = Color3.fromRGB(150, 155, 170),
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    local lastSeenLabel = New("TextLabel", {
+        Parent = card,
+        Position = UDim2.fromOffset(15, 52),
+        Size = UDim2.new(1, -(rightWidth + 25), 0, 14),
+        BackgroundTransparency = 1,
+        Text = "Last seen: -",
+        Font = Enum.Font.Gotham,
+        TextSize = 9,
+        TextColor3 = Color3.fromRGB(95, 100, 115),
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
@@ -243,6 +433,7 @@ local function makePreciousCard(name, enemyName, cframe, order)
         card = card,
         stroke = stroke,
         statusLabel = statusLabel,
+        lastSeenLabel = lastSeenLabel,
         badge = badge,
         badgeStroke = badgeStroke,
         indicator = indicator,
@@ -363,8 +554,6 @@ end
 ------------------------------------------------------------
 -- Helpers
 ------------------------------------------------------------
--- Timer text such as "0:00", "00:00", "0:00:00", "" -> boss is alive
--- Any non-zero digit anywhere in the timer text -> boss is dead
 local function isTimerZero(text)
     if not text or text == "" then return true end
     local digits = string.gsub(text, "%D", "")
@@ -377,13 +566,101 @@ local function isTimerZero(text)
     return true
 end
 
+local function timeAgo(ts)
+    if not ts then return "-" end
+    local elapsed = math.max(0, tick() - ts)
+    if elapsed < 5 then return "just now"
+    elseif elapsed < 60 then return math.floor(elapsed) .. "s ago"
+    elseif elapsed < 3600 then return math.floor(elapsed / 60) .. "m ago"
+    else return math.floor(elapsed / 3600) .. "h ago" end
+end
+
+------------------------------------------------------------
+-- State tracking
+------------------------------------------------------------
 local alive = true
 Tab.AncestryChanged:Connect(function(_, parent)
     if not parent then alive = false end
 end)
 
+local lastState = {}    -- name -> bool (alive?)
+local lastSeen = {}     -- name -> tick()
+local lastNotify = {}   -- name -> tick() (anti-spam cooldown)
+local firstScan = true
+
+for name in pairs(normalCards) do lastState[name] = false end
+for name in pairs(preciousCards) do lastState[name] = false end
+
+local PRECIOUS_COLOR = Color3.fromRGB(255, 200, 80)
+local NORMAL_COLOR   = Color3.fromRGB(0, 229, 255)
+
+local function fireSpawnAlert(category, bossName)
+    local now = tick()
+    if lastNotify[bossName] and (now - lastNotify[bossName]) < SETTINGS.NotifyCooldown then
+        return
+    end
+    lastNotify[bossName] = now
+
+    local title, color
+    if category == "precious" then
+        title = "💎 PRECIOUS BOSS SPAWNED"
+        color = PRECIOUS_COLOR
+    else
+        title = "⚔ NORMAL BOSS READY"
+        color = NORMAL_COLOR
+    end
+
+    local message = bossName .. " vừa xuất hiện trong server!"
+    queueNotify(title, message, color, SETTINGS.NotificationDuration)
+
+    if SETTINGS.WebhookURL and SETTINGS.WebhookURL ~= "" then
+        task.spawn(function()
+            postWebhook(SETTINGS.WebhookURL, title, message)
+        end)
+    end
+end
+
 ------------------------------------------------------------
--- Main loop
+-- Instant detection: workspace.Enemies.ChildAdded (precious)
+------------------------------------------------------------
+pcall(function()
+    local enemiesFolder = Workspace:FindFirstChild("Enemies")
+    if enemiesFolder then
+        enemiesFolder.ChildAdded:Connect(function(child)
+            if not child:IsA("Model") then return end
+            if not child:FindFirstChildOfClass("Humanoid") then return end
+            local lowerName = string.lower(child.Name)
+            for bossName, data in pairs(preciousCards) do
+                local lowerBoss = string.lower(data.enemyName)
+                if lowerName == lowerBoss or string.find(lowerName, lowerBoss, 1, true) then
+                    if lastState[bossName] ~= true then
+                        lastState[bossName] = true
+                        lastSeen[bossName] = tick()
+                        fireSpawnAlert("precious", bossName)
+                    end
+                    break
+                end
+            end
+        end)
+
+        enemiesFolder.ChildRemoved:Connect(function(child)
+            if not child:IsA("Model") then return end
+            local lowerName = string.lower(child.Name)
+            for bossName in pairs(preciousCards) do
+                local lowerBoss = string.lower(preciousCards[bossName].enemyName)
+                if lowerName == lowerBoss or string.find(lowerName, lowerBoss, 1, true) then
+                    if lastState[bossName] then
+                        lastState[bossName] = false
+                    end
+                    break
+                end
+            end
+        end)
+    end
+end)
+
+------------------------------------------------------------
+-- Polling loop (state change detection + UI refresh)
 ------------------------------------------------------------
 task.spawn(function()
     while alive and container.Parent do
@@ -394,7 +671,7 @@ task.spawn(function()
         local enemiesFolder = Workspace:FindFirstChild("Enemies")
 
         -------------------- NORMAL BOSSES --------------------
-        for _, data in pairs(normalCards) do
+        for bossName, data in pairs(normalCards) do
             data.stroke.Color = a
             data.badgeStroke.Color = a
 
@@ -415,16 +692,25 @@ task.spawn(function()
                             end
                         end
                     else
-                        -- marker exists but no RespawnTimer -> boss already up
                         bossAlive = true
                     end
                 else
-                    -- marker missing -> treat as alive
                     bossAlive = true
                 end
             end
 
-            if bossAlive then
+            local currentState = bossAlive
+            local prevState = lastState[bossName] or false
+
+            if currentState and not prevState then
+                lastSeen[bossName] = tick()
+                if not firstScan then
+                    fireSpawnAlert("normal", bossName)
+                end
+            end
+            lastState[bossName] = currentState
+
+            if currentState then
                 data.indicator.Text = "✓"
                 data.indicator.TextColor3 = Color3.fromRGB(80, 255, 120)
                 data.statusLabel.Text = "Status: True"
@@ -439,10 +725,12 @@ task.spawn(function()
                 end
                 data.statusLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
             end
+
+            data.lastSeenLabel.Text = "Last seen: " .. timeAgo(lastSeen[bossName])
         end
 
         -------------------- PRECIOUS BOSSES --------------------
-        for _, data in pairs(preciousCards) do
+        for bossName, data in pairs(preciousCards) do
             data.stroke.Color = a
             data.badgeStroke.Color = a
             if data.tpButton and data.tpStroke then
@@ -454,15 +742,28 @@ task.spawn(function()
             if enemiesFolder then
                 local lowerName = string.lower(data.enemyName)
                 for _, enemy in ipairs(enemiesFolder:GetChildren()) do
-                    local en = string.lower(enemy.Name)
-                    if en == lowerName or string.find(en, lowerName, 1, true) then
-                        found = true
-                        break
+                    if enemy:IsA("Model") then
+                        local en = string.lower(enemy.Name)
+                        if en == lowerName or string.find(en, lowerName, 1, true) then
+                            found = true
+                            break
+                        end
                     end
                 end
             end
 
-            if found then
+            local currentState = found
+            local prevState = lastState[bossName] or false
+
+            if currentState and not prevState then
+                lastSeen[bossName] = tick()
+                if not firstScan then
+                    fireSpawnAlert("precious", bossName)
+                end
+            end
+            lastState[bossName] = currentState
+
+            if currentState then
                 data.indicator.Text = "✓"
                 data.indicator.TextColor3 = Color3.fromRGB(80, 255, 120)
                 data.statusLabel.Text = "Status: True"
@@ -473,10 +774,12 @@ task.spawn(function()
                 data.statusLabel.Text = "Status: False"
                 data.statusLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
             end
+
+            data.lastSeenLabel.Text = "Last seen: " .. timeAgo(lastSeen[bossName])
         end
 
-        -- thường xuyên quét, vừa đủ nhẹ cho client
-        task.wait(2)
+        firstScan = false
+        task.wait(0.2)
     end
 end)
 
