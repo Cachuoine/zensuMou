@@ -1,7 +1,3 @@
---[[ 
-    Script hoàn chỉnh đã tối ưu hóa tốc độ nhận diện RespawnTimer từ _WorldOrigin
-]]
-
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
@@ -77,7 +73,7 @@ New("UIListLayout", {
     Padding = UDim.new(0, 8)
 })
 
--- Danh sách Normal Boss
+-- Danh sách Normal Boss (Sử dụng từ khóa để tìm kiếm linh hoạt trong _WorldOrigin)
 local normalBosses = {
     {name = "STONE", keyword = "stone", cframe = CFrame.new(-1109.92603, 58.3789978, 6811.7251, 0.275688112, -0, -0.961247265, 0, 1, -0, 0.961247265, 0, 0.275688112)},
     {name = "HYDRA LEADER", keyword = "hydra leader", cframe = CFrame.new(-1109.92603, 58.3789978, 6811.7251, 0.275688112, -0, -0.961247265, 0, 1, -0, 0.961247265, 0, 0.275688112)},
@@ -88,7 +84,7 @@ local normalBosses = {
     {name = "Cake Queen", keyword = "cake queen", cframe = CFrame.new(-678.478027, 386.856995, -11114.3457, -0.93524456, 0, 0.354002535, 0, 1, 0, -0.354002535, 0, -0.93524456)}
 }
 
--- Danh sách Precious Boss
+-- Danh sách Precious Boss / Boss điều kiện
 local preciousBosses = {
     {name = "Soul Reaper", keywords = {"soul reaper"}, cframe = CFrame.new(-9522.2334, 314.747986, 6789.48193, 0.999388874, -0, -0.0349550731, 0, 1, -0, 0.0349550731, 0, 0.999388874)},
     {name = "Cake Prince", keywords = {"cake prince"}, cframe = CFrame.new(-2089.86597, 4536.92383, -14800.0068, 0.868320882, -0, -0.496002853, 0, 1, -0, 0.496002853, 0, 0.868320882)},
@@ -101,7 +97,7 @@ local cards = {}
 local layoutOrder = 0
 
 -- Tiêu đề Normal Boss
-New("TextLabel", {
+local normalHeader = New("TextLabel", {
     Parent = container,
     LayoutOrder = (function() layoutOrder = layoutOrder + 1 return layoutOrder end)(),
     Size = UDim2.new(1, 0, 0, 24),
@@ -186,7 +182,7 @@ for _, boss in ipairs(normalBosses) do
 end
 
 -- Tiêu đề Precious Boss
-New("TextLabel", {
+local preciousHeader = New("TextLabel", {
     Parent = container,
     LayoutOrder = (function() layoutOrder = layoutOrder + 1 return layoutOrder end)(),
     Size = UDim2.new(1, 0, 0, 24),
@@ -275,7 +271,6 @@ Tab.AncestryChanged:Connect(function(_, parent)
     if not parent then alive = false end
 end)
 
--- Vòng lặp chính tối ưu hóa tốc độ nhận diện (kiểm tra nhanh mỗi 0.2 giây thay vì 1 giây)
 task.spawn(function()
     while alive and container.Parent do
         local a = accent()
@@ -304,7 +299,6 @@ task.spawn(function()
                                     local timerLabel = frame:FindFirstChild("Timer")
                                     if timerLabel then
                                         timerText = tostring(timerLabel.Text or "")
-                                        -- Lọc bỏ các thẻ HTML rác nếu có
                                         timerText = string.gsub(timerText, "<[^%s>]+[^>]*>", "")
                                         timerText = string.gsub(timerText, "</[^>]+>", "")
                                         timerText = string.gsub(timerText, "^%s*(.-)%s*$", "%1")
@@ -320,11 +314,11 @@ task.spawn(function()
                     data.indicator.Text = "✕"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
                     if timerText ~= "" and timerText ~= "0" and timerText ~= "00:00" then
-                        data.statusLabel.Text = "Status: False: " + timerText -- Sửa nhẹ cú pháp nối chuỗi chuẩn Lua bên dưới
+                        data.statusLabel.Text = "Status: False: " .. timerText
                     else
                         data.statusLabel.Text = "Status: False"
                     end
-                    data.statusLabel.Text = (timerText ~= "" and timerText ~= "0" and timerText ~= "00:00") and ("Status: False: " .. timerText) or "Status: False"
+                    -- Full màu đỏ cho toàn bộ dòng chữ trạng thái False và thời gian
                     data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
                 else
                     data.indicator.Text = "✓"
@@ -358,12 +352,13 @@ task.spawn(function()
                     data.indicator.Text = "✕"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
                     data.statusLabel.Text = "Status: False"
+                    -- Full màu đỏ cho precious boss khi ở trạng thái False
                     data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
                 end
             end
         end
 
-        task.wait(0.2) -- Giảm thời gian chờ xuống 0.2s để nhận diện cực nhanh khi boss vừa chết xuất hiện marker
+        task.wait(1)
     end
 end)
 
