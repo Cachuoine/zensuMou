@@ -311,7 +311,7 @@ task.spawn(function()
                 end
 
                 if markerExist then
-                    data.indicator.Text = "✕"
+                    data.indicator.Text = "×"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
                     if timerText ~= "" and timerText ~= "0" and timerText ~= "00:00" then
                         data.statusLabel.Text = "Status: False: " .. timerText
