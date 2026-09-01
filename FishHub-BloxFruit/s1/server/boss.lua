@@ -102,7 +102,7 @@ local normalHeader = New("TextLabel", {
     LayoutOrder = (function() layoutOrder = layoutOrder + 1 return layoutOrder end)(),
     Size = UDim2.new(1, 0, 0, 24),
     BackgroundTransparency = 1,
-    Text = "• NORMAL BOSS",
+    Text = "• SEA3|NORMAL BOSS",
     Font = Enum.Font.GothamBlack,
     TextSize = 11,
     TextColor3 = Color3.fromRGB(180, 190, 210),
@@ -187,7 +187,7 @@ local preciousHeader = New("TextLabel", {
     LayoutOrder = (function() layoutOrder = layoutOrder + 1 return layoutOrder end)(),
     Size = UDim2.new(1, 0, 0, 24),
     BackgroundTransparency = 1,
-    Text = "• PRECIOUS BOSS",
+    Text = "• SEA3|PRECIOUS BOSS",
     Font = Enum.Font.GothamBlack,
     TextSize = 11,
     TextColor3 = Color3.fromRGB(180, 190, 210),
@@ -349,16 +349,15 @@ task.spawn(function()
                     data.statusLabel.Text = "Status: True"
                     data.statusLabel.TextColor3 = Color3.fromRGB(180, 255, 190)
                 else
-                    data.indicator.Text = "✕"
+                    data.indicator.Text = "×"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
                     data.statusLabel.Text = "Status: False"
-                    -- Full màu đỏ cho precious boss khi ở trạng thái False
                     data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
                 end
             end
         end
 
-        task.wait(1)
+        task.wait(0.2)
     end
 end)
 
