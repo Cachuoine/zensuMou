@@ -73,9 +73,7 @@ New("UIListLayout", {
     Padding = UDim.new(0, 8)
 })
 
--- Danh sách Normal Boss và Precious Boss
 local bossList = {
-    -- Normal Boss (Có thời gian Timer + Tên Boss->True/False)
     {type = "normal", name = "Stone", markerName = "STONE Respawn Marker", cframe = CFrame.new(-1109.92603, 58.3789978, 6811.7251, 0.275688112, -0, -0.961247265, 0, 1, -0, 0.961247265, 0, 0.275688112)},
     {type = "normal", name = "Hydra Leader", markerName = "HYDRA LEADER Respawn Marker", cframe = CFrame.new(-1109.92603, 58.3789978, 6811.7251, 0.275688112, -0, -0.961247265, 0, 1, -0, 0.961247265, 0, 0.275688112)},
     {type = "normal", name = "Kilo Admiral", markerName = "KILO ADMIRAL Respawn Marker", cframe = CFrame.new(2998.29492, 513.794006, -7344.32178, 0.207885921, 0, 0.97815311, 0, 1, 0, -0.97815311, 0, 0.207885921)},
@@ -84,10 +82,9 @@ local bossList = {
     {type = "normal", name = "Longma", markerName = "LONGMA Respawn Marker", cframe = CFrame.new(-10156.2227, 337.778015, -9445.86523, -0.0348494053, 0, 0.999392569, 0, 1, 0, -0.999392569, 0, -0.0348494053)},
     {type = "normal", name = "Cake Queen", markerName = "CAKE QUEEN Respawn Marker", cframe = CFrame.new(-678.478027, 386.856995, -11114.3457, -0.93524456, 0, 0.354002535, 0, 1, 0, -0.354002535, 0, -0.93524456)},
     
-    -- Precious Boss / Boss điều kiện (True/False xuất hiện hay không dựa trên workspace.Enemies)
     {type = "precious", name = "Soul Reaper", keywords = {"Soul Reaper"}, cframe = CFrame.new(-9522.2334, 314.747986, 6789.48193, 0.999388874, -0, -0.0349550731, 0, 1, -0, 0.0349550731, 0, 0.999388874)},
     {type = "precious", name = "Cake Prince", keywords = {"Cake Prince"}, cframe = CFrame.new(-2089.86597, 4536.92383, -14800.0068, 0.868320882, -0, -0.496002853, 0, 1, -0, 0.496002853, 0, 0.868320882)},
-    {type = "precious", name = "Dough King", keywords = {"Dough King"}, cframe = CFrame.new(-2089.86597, 4536.92383, -14800.0068)}, -- Cùng khu vực đảo bánh
+    {type = "precious", name = "Dough King", keywords = {"Dough King"}, cframe = CFrame.new(-2089.86597, 4536.92383, -14800.0068)},
     {type = "precious", name = "Rip_Indra", keywords = {"rip_indra", "Rip Indra"}, cframe = CFrame.new(-5395.71582, 319.981995, -2588.76001, 0.927179396, 0, 0.374617696, 0, 1, 0, -0.374617696, 0, 0.927179396)},
     {type = "precious", name = "Tyrant of the Skies", keywords = {"Tyrant of the Skies"}, cframe = CFrame.new(-5395.71582, 319.981995, -2588.76001)}
 }
@@ -105,7 +102,6 @@ for i, boss in ipairs(bossList) do
     Corner(card, 12)
     local stroke = Stroke(card, 1, 0.5)
 
-    -- Hiển thị tiêu đề kèm phân loại Normal / Precious Boss ở phía trên đầu
     local categoryPrefix = boss.type == "normal" and "[Normal Boss] " or "[Precious Boss] "
     New("TextLabel", {
         Parent = card,
@@ -114,7 +110,7 @@ for i, boss in ipairs(bossList) do
         BackgroundTransparency = 1,
         Text = categoryPrefix .. boss.name,
         Font = Enum.Font.GothamBold,
-        TextSize: 12,
+        TextSize = 12, -- Đã sửa dấu : thành dấu =
         TextColor3 = Color3.fromRGB(240, 242, 248),
         TextXAlignment = Enum.TextXAlignment.Left
     })
@@ -187,7 +183,6 @@ task.spawn(function()
             local bossData = entry.data
             local isNear = true
             
-            -- Quét phạm vi người chơi đến gần tầm 500m so với CFrame của boss
             if rootPart and bossData.cframe then
                 local distance = (rootPart.Position - bossData.cframe.Position).Magnitude
                 if distance > 500 then
@@ -205,7 +200,6 @@ task.spawn(function()
                 local detailText = "False"
 
                 if bossData.type == "normal" then
-                    -- Kiểm tra code respawn maker cho boss thường
                     if worldOrigin then
                         local marker = worldOrigin:FindFirstChild(bossData.markerName)
                         if marker then
@@ -213,7 +207,6 @@ task.spawn(function()
                             if timerGui and timerGui:FindFirstChild("Frame") and timerGui.Frame:FindFirstChild("Timer") then
                                 local timerVal = timerGui.Frame.Timer
                                 local textVal = tostring(timerVal.Text or "")
-                                -- Nếu thời gian kết thúc hoặc hiển thị số 0 / trống nghĩa là boss đã sẵn sàng/xuất hiện (True)
                                 if textVal == "" or textVal == "0" or string.find(textVal, "00:") or not timerVal.Visible then
                                     found = true
                                     detailText = "True"
@@ -221,7 +214,6 @@ task.spawn(function()
                                     detailText = "False (" .. textVal .. ")"
                                 end
                             else
-                                -- Không có khung timer hiển thị -> có thể boss đang sống
                                 found = true
                                 detailText = "True"
                             end
@@ -231,7 +223,6 @@ task.spawn(function()
                         end
                     end
                 elseif bossData.type == "precious" then
-                    -- Kiểm tra code workspace.Enemies cho boss điều kiện
                     if enemiesFolder then
                         for _, enemy in ipairs(enemiesFolder:GetChildren()) do
                             for _, kw in ipairs(bossData.keywords) do
