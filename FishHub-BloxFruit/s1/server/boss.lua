@@ -73,7 +73,6 @@ New("UIListLayout", {
     Padding = UDim.new(0, 8)
 })
 
--- Danh sách Normal Boss kèm vị trí đảo để check khoảng cách quét
 local normalBosses = {
     {name = "STONE", keyword = "stone", position = Vector3.new(-1109.92603, 58.3789978, 6811.7251)},
     {name = "HYDRA LEADER", keyword = "hydra leader", position = Vector3.new(-1109.92603, 58.3789978, 6811.7251)},
@@ -84,7 +83,6 @@ local normalBosses = {
     {name = "Cake Queen", keyword = "cake queen", position = Vector3.new(-678.478027, 386.856995, -11114.3457)}
 }
 
--- Danh sách Precious Boss kèm vị trí đảo để check khoảng cách quét
 local preciousBosses = {
     {name = "Soul Reaper", keywords = {"soul reaper"}, position = Vector3.new(-9522.2334, 314.747986, 6789.48193)},
     {name = "Cake Prince", keywords = {"cake prince"}, position = Vector3.new(-2089.86597, 4536.92383, -14800.0068)},
@@ -97,9 +95,10 @@ local cards = {}
 local layoutOrder = 0
 
 -- Tiêu đề Normal Boss
-local normalHeader = New("TextLabel", {
+layoutOrder = layoutOrder + 1
+New("TextLabel", {
     Parent = container,
-    LayoutOrder = (function() layoutOrder = layoutOrder + 1 return layoutOrder end)(),
+    LayoutOrder = layoutOrder,
     Size = UDim2.new(1, 0, 0, 24),
     BackgroundTransparency = 1,
     Text = "• NORMAL BOSS",
@@ -109,12 +108,26 @@ local normalHeader = New("TextLabel", {
     TextXAlignment = Enum.TextXAlignment.Left
 })
 
+-- Note chung đặt ở đầu phần Normal Boss
+layoutOrder = layoutOrder + 1
+New("TextLabel", {
+    Parent = container,
+    LayoutOrder = layoutOrder,
+    Size = UDim2.new(1, 0, 0, 22),
+    BackgroundTransparency = 1,
+    Text = "Note: Must be within island range to scan boss info.",
+    Font = Enum.Font.Gotham,
+    TextSize = 10,
+    TextColor3 = Color3.fromRGB(130, 140, 160),
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
 for _, boss in ipairs(normalBosses) do
     layoutOrder = layoutOrder + 1
     local card = New("Frame", {
         Parent = container,
         LayoutOrder = layoutOrder,
-        Size = UDim2.new(1, 0, 0, 80), -- Mở rộng nhẹ chiều cao để chứa thêm note
+        Size = UDim2.new(1, 0, 0, 65),
         BackgroundColor3 = Color3.fromRGB(13, 15, 22),
         BorderSizePixel = 0
     })
@@ -123,8 +136,8 @@ for _, boss in ipairs(normalBosses) do
 
     New("TextLabel", {
         Parent = card,
-        Position = UDim2.fromOffset(15, 8),
-        Size = UDim2.new(1, -90, 0, 18),
+        Position = UDim2.fromOffset(15, 10),
+        Size = UDim2.new(1, -90, 0, 20),
         BackgroundTransparency = 1,
         Text = boss.name,
         Font = Enum.Font.GothamBold,
@@ -135,8 +148,8 @@ for _, boss in ipairs(normalBosses) do
 
     local statusLabel = New("TextLabel", {
         Parent = card,
-        Position = UDim2.fromOffset(15, 27),
-        Size = UDim2.new(1, -90, 0, 18),
+        Position = UDim2.fromOffset(15, 33),
+        Size = UDim2.new(1, -90, 0, 20),
         BackgroundTransparency = 1,
         Text = "Status: False",
         Font = Enum.Font.Gotham,
@@ -145,26 +158,11 @@ for _, boss in ipairs(normalBosses) do
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    -- Thêm note cảnh báo khoảng cách đảo
-    local noteLabel = New("TextLabel", {
-        Parent = card,
-        Position = UDim2.fromOffset(15, 47),
-        Size = UDim2.new(1, -25, 0, 25),
-        BackgroundTransparency = 1,
-        Text = "Note: The information appears that the boss must be within the range of the island's location to scan for the boss's information.",
-        Font = Enum.Font.Gotham,
-        TextSize = 9,
-        TextColor3 = Color3.fromRGB(130, 140, 160),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Top,
-        TextWrapped = true
-    })
-
     local badge = New("Frame", {
         Parent = card,
-        AnchorPoint = Vector2.new(1, 0),
-        Position = UDim2.new(1, -15, 0, 10),
-        Size = UDim2.fromOffset(32, 32),
+        AnchorPoint = Vector2.new(1, 0.5),
+        Position = UDim2.new(1, -15, 0.5, 0),
+        Size = UDim2.fromOffset(36, 36),
         BackgroundColor3 = Color3.fromRGB(22, 25, 37),
         BorderSizePixel = 0
     })
@@ -175,9 +173,9 @@ for _, boss in ipairs(normalBosses) do
         Parent = badge,
         Size = UDim2.fromScale(1, 1),
         BackgroundTransparency = 1,
-        Text = "danh", -- Thay ký tự X thành chữ "danh" đúng yêu cầu
+        Text = "✕", -- Đổi lại thành dấu nhân chuẩn
         Font = Enum.Font.GothamBold,
-        TextSize = 11,
+        TextSize = 16,
         TextColor3 = Color3.fromRGB(255, 90, 90),
         TextXAlignment = Enum.TextXAlignment.Center,
         TextYAlignment = Enum.TextYAlignment.Center
@@ -197,9 +195,10 @@ for _, boss in ipairs(normalBosses) do
 end
 
 -- Tiêu đề Precious Boss
-local preciousHeader = New("TextLabel", {
+layoutOrder = layoutOrder + 1
+New("TextLabel", {
     Parent = container,
-    LayoutOrder = (function() layoutOrder = layoutOrder + 1 return layoutOrder end)(),
+    LayoutOrder = layoutOrder,
     Size = UDim2.new(1, 0, 0, 24),
     BackgroundTransparency = 1,
     Text = "• PRECIOUS BOSS",
@@ -209,12 +208,26 @@ local preciousHeader = New("TextLabel", {
     TextXAlignment = Enum.TextXAlignment.Left
 })
 
+-- Note chung đặt ở đầu phần Precious Boss
+layoutOrder = layoutOrder + 1
+New("TextLabel", {
+    Parent = container,
+    LayoutOrder = layoutOrder,
+    Size = UDim2.new(1, 0, 0, 22),
+    BackgroundTransparency = 1,
+    Text = "Note: Must be within island range to scan boss info.",
+    Font = Enum.Font.Gotham,
+    TextSize = 10,
+    TextColor3 = Color3.fromRGB(130, 140, 160),
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
 for _, boss in ipairs(preciousBosses) do
     layoutOrder = layoutOrder + 1
     local card = New("Frame", {
         Parent = container,
         LayoutOrder = layoutOrder,
-        Size = UDim2.new(1, 0, 0, 80), -- Mở rộng nhẹ chiều cao để chứa thêm note
+        Size = UDim2.new(1, 0, 0, 65),
         BackgroundColor3 = Color3.fromRGB(13, 15, 22),
         BorderSizePixel = 0
     })
@@ -223,8 +236,8 @@ for _, boss in ipairs(preciousBosses) do
 
     New("TextLabel", {
         Parent = card,
-        Position = UDim2.fromOffset(15, 8),
-        Size = UDim2.new(1, -90, 0, 18),
+        Position = UDim2.fromOffset(15, 10),
+        Size = UDim2.new(1, -90, 0, 20),
         BackgroundTransparency = 1,
         Text = boss.name,
         Font = Enum.Font.GothamBold,
@@ -235,8 +248,8 @@ for _, boss in ipairs(preciousBosses) do
 
     local statusLabel = New("TextLabel", {
         Parent = card,
-        Position = UDim2.fromOffset(15, 27),
-        Size = UDim2.new(1, -90, 0, 18),
+        Position = UDim2.fromOffset(15, 33),
+        Size = UDim2.new(1, -90, 0, 20),
         BackgroundTransparency = 1,
         Text = "Status: False",
         Font = Enum.Font.Gotham,
@@ -245,26 +258,11 @@ for _, boss in ipairs(preciousBosses) do
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    -- Thêm note cảnh báo khoảng cách đảo cho cả precious boss
-    local noteLabel = New("TextLabel", {
-        Parent = card,
-        Position = UDim2.fromOffset(15, 47),
-        Size = UDim2.new(1, -25, 0, 25),
-        BackgroundTransparency = 1,
-        Text = "Note: The information appears that the boss must be within the range of the island's location to scan for the boss's information.",
-        Font = Enum.Font.Gotham,
-        TextSize = 9,
-        TextColor3 = Color3.fromRGB(130, 140, 160),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Top,
-        TextWrapped = true
-    })
-
     local badge = New("Frame", {
         Parent = card,
-        AnchorPoint = Vector2.new(1, 0),
-        Position = UDim2.new(1, -15, 0, 10),
-        Size = UDim2.fromOffset(32, 32),
+        AnchorPoint = Vector2.new(1, 0.5),
+        Position = UDim2.new(1, -15, 0.5, 0),
+        Size = UDim2.fromOffset(36, 36),
         BackgroundColor3 = Color3.fromRGB(22, 25, 37),
         BorderSizePixel = 0
     })
@@ -275,9 +273,9 @@ for _, boss in ipairs(preciousBosses) do
         Parent = badge,
         Size = UDim2.fromScale(1, 1),
         BackgroundTransparency = 1,
-        Text = "danh", -- Thay ký tự X thành chữ "danh"
+        Text = "✕", -- Đổi lại thành dấu nhân chuẩn
         Font = Enum.Font.GothamBold,
-        TextSize = 11,
+        TextSize = 16,
         TextColor3 = Color3.fromRGB(255, 90, 90),
         TextXAlignment = Enum.TextXAlignment.Center,
         TextYAlignment = Enum.TextYAlignment.Center
@@ -316,7 +314,7 @@ task.spawn(function()
             data.stroke.Color = a
             data.badgeStroke.Color = a
 
-            -- Kiểm tra xem người chơi có đang ở gần vị trí đảo chứa boss không (bán kính 350 studs)
+            -- Kiểm tra khoảng cách tới đảo (trong phạm vi 350 studs)
             local isNear = false
             if rootPart then
                 local dist = (rootPart.Position - data.position).Magnitude
@@ -329,11 +327,10 @@ task.spawn(function()
                 local markerExist = false
                 local timerText = ""
 
-                if worldOrigin then
+                if isNear and worldOrigin then
                     for _, obj in ipairs(worldOrigin:GetChildren()) do
                         local objNameLower = string.lower(obj.Name)
                         if string.find(objNameLower, data.keyword) then
-                            markerExist = true
                             local respawnTimer = obj:FindFirstChild("RespawnTimer")
                             if respawnTimer then
                                 local frame = respawnTimer:FindFirstChild("Frame")
@@ -343,7 +340,12 @@ task.spawn(function()
                                         timerText = tostring(timerLabel.Text or "")
                                         timerText = string.gsub(timerText, "<[^%s>]+[^>]*>", "")
                                         timerText = string.gsub(timerText, "</[^>]+>", "")
-                                        timerText = string.gsub(timerText, "^%s*(.-)%s*$", "%1")
+                                        timerText = string.gsub(timerText, "^%s*(.-)%s*$', "%1")
+                                        
+                                        -- Chỉ xác nhận có timer (False) khi đoạn code RespawnTimer...Timer thực sự xuất hiện và có nội dung thời gian hợp lệ
+                                        if timerText ~= "" and timerText ~= "0" and timerText ~= "00:00" then
+                                            markerExist = true
+                                        end
                                     end
                                 end
                             end
@@ -352,31 +354,22 @@ task.spawn(function()
                     end
                 end
 
-                -- Nếu KHÔNG ở gần đảo hoặc marker không hiện diện -> Bắt buộc hiển thị False (tránh bị True ảo khi chưa quét)
-                if not isNear or not markerExist then
-                    data.indicator.Text = "danh"
+                -- Nếu đường dẫn code RespawnTimer không xuất hiện / không ở gần -> Mặc định True (Boss đang sống hoặc chưa quét thấy), ngược lại hiện Status: False kèm time màu đỏ
+                if markerExist then
+                    data.indicator.Text = "✕"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
-                    data.statusLabel.Text = "Status: False"
+                    data.statusLabel.Text = "Status: False: " .. timerText
                     data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
                 else
-                    -- Đang ở gần và quét thấy marker thực tế
-                    if timerText ~= "" and timerText ~= "0" and timerText ~= "00:00" then
-                        data.indicator.Text = "danh"
-                        data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
-                        data.statusLabel.Text = "Status: False: " .. timerText
-                        data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
-                    else
-                        data.indicator.Text = "✓"
-                        data.indicator.TextColor3 = Color3.fromRGB(80, 255, 120)
-                        data.statusLabel.Text = "Status: True"
-                        data.statusLabel.TextColor3 = Color3.fromRGB(180, 255, 190)
-                    end
+                    data.indicator.Text = "✓"
+                    data.indicator.TextColor3 = Color3.fromRGB(80, 255, 120)
+                    data.statusLabel.Text = "Status: True"
+                    data.statusLabel.TextColor3 = Color3.fromRGB(180, 255, 190)
                 end
 
             elseif data.type == "precious" then
                 local found = false
 
-                -- Precious boss cũng áp dụng điều kiện phải ở gần phạm vi đảo mới cho phép quét
                 if isNear and enemiesFolder then
                     for _, enemy in ipairs(enemiesFolder:GetChildren()) do
                         local enemyNameLower = string.lower(enemy.Name)
@@ -396,7 +389,7 @@ task.spawn(function()
                     data.statusLabel.Text = "Status: True"
                     data.statusLabel.TextColor3 = Color3.fromRGB(180, 255, 190)
                 else
-                    data.indicator.Text = "danh"
+                    data.indicator.Text = "✕"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
                     data.statusLabel.Text = "Status: False"
                     data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
