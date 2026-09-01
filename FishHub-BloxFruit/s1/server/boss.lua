@@ -96,7 +96,7 @@ local preciousBosses = {
 local cards = {}
 local layoutOrder = 0
 
--- Tiêu đề Normal Boss trên đầu dấu chấm
+-- Tiêu đề Normal Boss
 local normalHeader = New("TextLabel", {
     Parent = container,
     LayoutOrder = (function() layoutOrder = layoutOrder + 1 return layoutOrder end)(),
@@ -138,7 +138,7 @@ for _, boss in ipairs(normalBosses) do
         Position = UDim2.fromOffset(15, 33),
         Size = UDim2.new(1, -90, 0, 20),
         BackgroundTransparency = 1,
-        Text = "status: false",
+        Text = "Status: False",
         Font = Enum.Font.Gotham,
         TextSize = 11,
         TextColor3 = Color3.fromRGB(150, 155, 170),
@@ -181,7 +181,7 @@ for _, boss in ipairs(normalBosses) do
     }
 end
 
--- Tiêu đề Precious Boss trên đầu dấu chấm
+-- Tiêu đề Precious Boss
 local preciousHeader = New("TextLabel", {
     Parent = container,
     LayoutOrder = (function() layoutOrder = layoutOrder + 1 return layoutOrder end)(),
@@ -223,7 +223,7 @@ for _, boss in ipairs(preciousBosses) do
         Position = UDim2.fromOffset(15, 33),
         Size = UDim2.new(1, -90, 0, 20),
         BackgroundTransparency = 1,
-        Text = "status: false",
+        Text = "Status: False",
         Font = Enum.Font.Gotham,
         TextSize = 11,
         TextColor3 = Color3.fromRGB(150, 155, 170),
@@ -296,8 +296,13 @@ task.spawn(function()
                             local frame = respawnTimer:FindFirstChild("Frame")
                             if frame then
                                 local timerLabel = frame:FindFirstChild("Timer")
-                                if timerLabel and timerLabel:IsA("TextLabel") then
-                                    timerText = timerLabel.Text or ""
+                                if timerLabel then
+                                    -- Lấy trực tiếp .Text hoặc nội dung hiển thị sạch sẽ không dính thẻ màu HTML
+                                    timerText = tostring(timerLabel.Text or "")
+                                    -- Loại bỏ các thẻ HTML rác nếu có (như <font ...>)
+                                    timerText = string.gsub(timerText, "<[^%s>]+[^>]*>", "")
+                                    timerText = string.gsub(timerText, "</[^>]+>", "")
+                                    timerText = string.gsub(timerText, "^%s*(.-)%s*$", "%1")
                                 end
                             end
                         end
@@ -305,20 +310,18 @@ task.spawn(function()
                 end
 
                 if markerExist then
-                    -- Nếu Marker tồn tại trong _WorldOrigin (boss đã chết/đang hồi sinh): status: false: time
                     data.indicator.Text = "✕"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
                     if timerText ~= "" then
-                        data.statusLabel.Text = "status: false: " .. timerText
+                        data.statusLabel.Text = "Status: False: " .. timerText
                     else
-                        data.statusLabel.Text = "status: false"
+                        data.statusLabel.Text = "Status: False"
                     end
                     data.statusLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
                 else
-                    -- Nếu Marker không có trong _WorldOrigin (boss đang xuất hiện/sống): status: true
                     data.indicator.Text = "✓"
                     data.indicator.TextColor3 = Color3.fromRGB(80, 255, 120)
-                    data.statusLabel.Text = "status: true"
+                    data.statusLabel.Text = "Status: True"
                     data.statusLabel.TextColor3 = Color3.fromRGB(180, 255, 190)
                 end
 
@@ -341,12 +344,12 @@ task.spawn(function()
                 if found then
                     data.indicator.Text = "✓"
                     data.indicator.TextColor3 = Color3.fromRGB(80, 255, 120)
-                    data.statusLabel.Text = "status: true"
+                    data.statusLabel.Text = "Status: True"
                     data.statusLabel.TextColor3 = Color3.fromRGB(180, 255, 190)
                 else
                     data.indicator.Text = "✕"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
-                    data.statusLabel.Text = "status: false"
+                    data.statusLabel.Text = "Status: False"
                     data.statusLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
                 end
             end
