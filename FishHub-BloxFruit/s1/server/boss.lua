@@ -73,7 +73,7 @@ New("UIListLayout", {
     Padding = UDim.new(0, 8)
 })
 
--- Danh sách Normal Boss (Sử dụng từ khóa để tìm kiếm linh hoạt trong _WorldOrigin)
+-- Danh sách Normal Boss
 local normalBosses = {
     {name = "STONE", keyword = "stone", cframe = CFrame.new(-1109.92603, 58.3789978, 6811.7251, 0.275688112, -0, -0.961247265, 0, 1, -0, 0.961247265, 0, 0.275688112)},
     {name = "HYDRA LEADER", keyword = "hydra leader", cframe = CFrame.new(-1109.92603, 58.3789978, 6811.7251, 0.275688112, -0, -0.961247265, 0, 1, -0, 0.961247265, 0, 0.275688112)},
@@ -94,6 +94,7 @@ local preciousBosses = {
 }
 
 local cards = {}
+local bossStates = {} -- Bộ nhớ lưu trữ trạng thái và thời gian chết của từng boss để chống lỗi Streaming
 local layoutOrder = 0
 
 -- Tiêu đề Normal Boss
@@ -310,15 +311,30 @@ task.spawn(function()
                     end
                 end
 
+                -- Xử lý chống lỗi Streaming khi rời khỏi đảo:
+                -- Nếu marker thực sự tồn tại và hiển thị thời gian hợp lệ -> Cập nhật bộ nhớ (Boss đang chết/đếm ngược)
                 if markerExist then
+                    if timerText ~= "" and timerText ~= "0" and timerText ~= "00:00" then
+                        bossStates[name] = {isFalse = true, time = timerText}
+                    else
+                        bossStates[name] = {isFalse = true, time = ""}
+                    end
+                else
+                    -- Nếu marker không thấy (do ở xa bị ẩn đi), nhưng trước đó nó đang đếm ngược -> Giữ nguyên trạng thái False và thời gian cũ thay vì nhảy về True
+                    if not bossStates[name] then
+                        bossStates[name] = {isFalse = false, time = ""}
+                    end
+                end
+
+                local state = bossStates[name]
+                if state and state.isFalse then
                     data.indicator.Text = "✕"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
-                    if timerText ~= "" and timerText ~= "0" and timerText ~= "00:00" then
-                        data.statusLabel.Text = "Status: False: " .. timerText
+                    if state.time ~= "" then
+                        data.statusLabel.Text = "Status: False: " .. state.time
                     else
                         data.statusLabel.Text = "Status: False"
                     end
-                    -- Full màu đỏ cho toàn bộ dòng chữ trạng thái False và thời gian
                     data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
                 else
                     data.indicator.Text = "✓"
@@ -352,13 +368,12 @@ task.spawn(function()
                     data.indicator.Text = "✕"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
                     data.statusLabel.Text = "Status: False"
-                    -- Full màu đỏ cho precious boss khi ở trạng thái False
                     data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
                 end
             end
         end
 
-        task.wait(0.1)
+        task.wait(1)
     end
 end)
 
