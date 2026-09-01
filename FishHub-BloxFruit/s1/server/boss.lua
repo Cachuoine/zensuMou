@@ -1,5 +1,4 @@
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local context = ...
@@ -73,18 +72,20 @@ New("UIListLayout", {
 })
 
 local bossDataList = {
-    {name = "Stone", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("STONE Respawn Marker"), keyword = "Stone"},
-    {name = "Hydra Leader", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("HYDRA LEADER Respawn Marker"), keyword = "Hydra Leader"},
+    -- Normal Bosses (Có thời gian đếm ngược từ Respawn Marker)
+    {name = "STONE", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("STONE Respawn Marker"), keyword = "Stone"},
+    {name = "HYDRA LEADER", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("HYDRA LEADER Respawn Marker"), keyword = "Hydra Leader"},
     {name = "Kilo Admiral", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("KILO ADMIRAL Respawn Marker"), keyword = "Kilo Admiral"},
     {name = "Captain Elephant", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("CAPTAIN ELEPHANT Respawn Marker"), keyword = "Captain Elephant"},
     {name = "Beautiful Pirate", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("BEAUTIFUL PIRATE Respawn Marker"), keyword = "Beautiful Pirate"},
     {name = "Longma", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("LONGMA Respawn Marker"), keyword = "Longma"},
     {name = "Cake Queen", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("CAKE QUEEN Respawn Marker"), keyword = "Cake Queen"},
     
+    -- Precious / Condition Bosses (Chỉ check True / False dựa trên Enemies)
     {name = "Soul Reaper", type = "precious", keyword = "Soul Reaper"},
     {name = "Cake Prince", type = "precious", keyword = "Cake Prince"},
     {name = "Dough King", type = "precious", keyword = "Dough King"},
-    {name = "rip_indra True Form", type = "precious", keyword = "rip_indra"},
+    {name = "Rip_Indra", type = "precious", keyword = "rip_indra"},
     {name = "Tyrant of the Skies", type = "precious", keyword = "Tyrant of the Skies"}
 }
 
@@ -170,14 +171,14 @@ task.spawn(function()
         
         local enemiesFolder = Workspace:FindFirstChild("Enemies")
 
-        for name, info in pairs(cards) do
+        for _, info in pairs(cards) do
             info.stroke.Color = a
             info.badgeStroke.Color = a
             
             local isSpawned = false
-            local detailText = "Status: False"
+            local detailText = ""
 
-            -- ƯU TIÊN SỐ 1: Quét xem boss có thực sự đang nằm trong Workspace.Enemies hay không
+            -- Kiểm tra xem thực tế có trong Enemies không
             local inWorld = false
             if enemiesFolder and info.data.keyword then
                 for _, enemy in ipairs(enemiesFolder:GetChildren()) do
@@ -189,11 +190,13 @@ task.spawn(function()
             end
 
             if inWorld then
-                -- Nếu đã có trong thế giới -> Lập tức True, bất chấp đồng hồ ra sao
                 isSpawned = true
-                detailText = '<font color="rgb(80,255,120)">Status: True | [Đã xuất hiện trong thế giới]</font>'
+                if info.data.type == "normal" then
+                    detailText = '<font color="rgb(80,255,120)">Trạng thái: True | [Đã xuất hiện]</font>'
+                else
+                    detailText = '<font color="rgb(80,255,120)">Status: True</font>'
+                end
             else
-                -- Nếu chưa có trong thế giới, mới bắt đầu check đến đồng hồ (Respawn Marker)
                 if info.data.type == "normal" then
                     local marker = info.data.path
                     local timerString = ""
@@ -213,14 +216,14 @@ task.spawn(function()
 
                     if timerString and timerString ~= "" and timerString ~= "00:00" and not string.find(timerString, "-") then
                         isSpawned = false
-                        detailText = 'Thời gian xuất hiện: <font color="rgb(255,150,50)">[' .. timerString .. ']</font>'
+                        detailText = 'time: <font color="rgb(255,150,50)">[' .. timerString .. ']</font>'
                     else
                         isSpawned = true
                         detailText = '<font color="rgb(80,255,120)">Trạng thái: True (Sẵn sàng)</font>'
                     end
                 elseif info.data.type == "precious" then
                     isSpawned = false
-                    detailText = '<font color="rgb(150,155,170)">Status: False [Chưa kích hoạt]</font>'
+                    detailText = '<font color="rgb(150,155,170)">Status: False</font>'
                 end
             end
 
