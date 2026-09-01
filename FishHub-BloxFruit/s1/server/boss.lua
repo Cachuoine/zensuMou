@@ -1,20 +1,7 @@
-local TweenService = game:GetService("TweenService")
-local Workspace = game:GetService("Workspace")
+local Context = ...
+if type(Context) ~= "table" or not Context.Tab then return end
 
-local context = ...
-if type(context) ~= "table" or not context.Tab then return end
-
-local Tab = context.Tab
-local Config = context.Config or {}
-
-local function accent()
-    if Config.Rainbow or Config.RainbowMode then
-        return Color3.fromHSV((tick() % 5) / 5, 1, 1)
-    end
-    return typeof(Config.ThemeColor) == "Color3"
-        and Config.ThemeColor
-        or Color3.fromRGB(0, 229, 255)
-end
+local Tab = Context.Tab
 
 local function New(className, props)
     local obj = Instance.new(className)
@@ -29,231 +16,158 @@ local function Corner(parent, radius)
     })
 end
 
-local function Stroke(parent, thickness, transparency)
-    return New("UIStroke", {
-        Parent = parent,
-        Color = accent(),
-        Thickness = thickness or 1,
-        Transparency = transparency or 0.4,
-        ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    })
-end
-
-for _, child in ipairs(Tab:GetChildren()) do
-    child:Destroy()
-end
-
-Tab.BackgroundTransparency = 1
-Tab.BorderSizePixel = 0
-
-local container = New("ScrollingFrame", {
+local root = New("ScrollingFrame", {
     Parent = Tab,
     Size = UDim2.new(1, 0, 1, 0),
     BackgroundTransparency = 1,
     BorderSizePixel = 0,
-    CanvasSize = UDim2.new(0, 0, 0, 0),
-    AutomaticCanvasSize = Enum.AutomaticSize.Y,
-    ScrollBarThickness = 2,
-    ScrollBarImageColor3 = accent()
-})
-
-New("UIPadding", {
-    Parent = container,
-    PaddingTop = UDim.new(0, 5),
-    PaddingBottom = UDim.new(0, 15),
-    PaddingLeft = UDim.new(0, 2),
-    PaddingRight = UDim.new(0, 5)
+    ScrollBarThickness = 3,
+    AutomaticCanvasSize = Enum.AutomaticSize.Y
 })
 
 New("UIListLayout", {
-    Parent = container,
+    Parent = root,
     SortOrder = Enum.SortOrder.LayoutOrder,
     Padding = UDim.new(0, 8)
 })
 
--- Danh sách boss cấu trúc đầy đủ
-local itemsList = {
-    -- Nhóm tiêu đề Normal Bosses
-    {isHeader = true, name = "NORMAL BOSSES"},
-    {name = "STONE", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("STONE Respawn Marker")},
-    {name = "HYDRA LEADER", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("HYDRA LEADER Respawn Marker")},
-    {name = "Kilo Admiral", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("KILO ADMIRAL Respawn Marker")},
-    {name = "Captain Elephant", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("CAPTAIN ELEPHANT Respawn Marker")},
-    {name = "Beautiful Pirate", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("BEAUTIFUL PIRATE Respawn Marker")},
-    {name = "Longma", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("LONGMA Respawn Marker")},
-    {name = "Cake Queen", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("CAKE QUEEN Respawn Marker")},
-    
-    -- Nhóm tiêu đề Precious Bosses
-    {isHeader = true, name = "PRECIOUS BOSSES"},
-    {name = "Soul Reaper", type = "precious", keyword = "Soul Reaper"},
-    {name = "Cake Prince", type = "precious", keyword = "Cake Prince"},
-    {name = "Dough King", type = "precious", keyword = "Dough King"},
-    {name = "Rip_Indra", type = "precious", keyword = "rip_indra"},
-    {name = "Tyrant of the Skies", type = "precious", keyword = "Tyrant of the Skies"}
+New("UIPadding", {
+    Parent = root,
+    PaddingTop = UDim.new(0, 5),
+    PaddingBottom = UDim.new(0, 10),
+    PaddingLeft = UDim.new(0, 2),
+    PaddingRight = UDim.new(0, 2)
+})
+
+-- Header: Normal Boss
+New("TextLabel", {
+    Parent = root,
+    LayoutOrder = 1,
+    Size = UDim2.new(1, 0, 0, 24),
+    BackgroundTransparency = 1,
+    Text = "• NORMAL BOSS",
+    Font = Enum.Font.GothamBold,
+    TextSize = 11,
+    TextColor3 = Color3.fromRGB(0, 229, 255),
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
+local normalBosses = {
+    {name = "STONE", marker = "STONE Respawn Marker"},
+    {name = "HYDRA LEADER", marker = "HYDRA LEADER Respawn Marker"},
+    {name = "Kilo Admiral", marker = "KILO ADMIRAL Respawn Marker"},
+    {name = "Captain Elephant", marker = "CAPTAIN ELEPHANT Respawn Marker"},
+    {name = "Beautiful Pirate", marker = "BEAUTIFUL PIRATE Respawn Marker"},
+    {name = "Longma", marker = "LONGMA Respawn Marker"},
+    {name = "Cake Queen", marker = "CAKE QUEEN Respawn Marker"},
 }
 
-local cards = {}
+for i, boss in ipairs(normalBosses) do
+    local card = New("Frame", {
+        Parent = root,
+        LayoutOrder = 10 + i,
+        Size = UDim2.new(1, 0, 0, 32),
+        BackgroundColor3 = Color3.fromRGB(12, 14, 20),
+        BorderSizePixel = 0
+    })
+    Corner(card, 8)
 
-for i, data in ipairs(itemsList) do
-    if data.isHeader then
-        local headerLabel = New("TextLabel", {
-            Parent = container,
-            LayoutOrder = i,
-            Size = UDim2.new(1, 0, 0, 25),
-            BackgroundTransparency = 1,
-            Text = "• " .. data.name,
-            Font = Enum.Font.GothamBlack,
-            TextSize = 10,
-            TextColor3 = accent(),
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-    else
-        local card = New("Frame", {
-            Parent = container,
-            LayoutOrder = i,
-            Size = UDim2.new(1, 0, 0, 60),
-            BackgroundColor3 = Color3.fromRGB(13, 15, 22),
-            BorderSizePixel = 0
-        })
-        Corner(card, 12)
-        local stroke = Stroke(card, 1, 0.5)
+    local label = New("TextLabel", {
+        Parent = card,
+        Position = UDim2.new(0, 10, 0, 0),
+        Size = UDim2.new(1, -20, 1, 0),
+        BackgroundTransparency = 1,
+        Text = boss.name .. " -> TIME: Checking...",
+        Font = Enum.Font.GothamMedium,
+        TextSize = 10,
+        TextColor3 = Color3.fromRGB(220, 225, 235),
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
 
-        New("TextLabel", {
-            Parent = card,
-            Position = UDim2.fromOffset(15, 9),
-            Size = UDim2.new(1, -80, 0, 18),
-            BackgroundTransparency = 1,
-            Text = data.name,
-            Font = Enum.Font.GothamBold,
-            TextSize = 11,
-            TextColor3 = Color3.fromRGB(240, 242, 248),
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
+    task.spawn(function()
+        while card.Parent do
+            local success, timeText = pcall(function()
+                local marker = workspace._WorldOrigin[boss.marker]
+                if marker and marker:FindFirstChild("RespawnTimer") then
+                    local timerFrame = marker.RespawnTimer:FindFirstChild("Frame")
+                    if timerFrame and timerFrame:FindFirstChild("Timer") then
+                        return timerFrame.Timer.Text
+                    end
+                end
+                return "Alive / Ready"
+            end)
 
-        local statusLabel = New("TextLabel", {
-            Parent = card,
-            Position = UDim2.fromOffset(15, 30),
-            Size = UDim2.new(1, -80, 0, 18),
-            BackgroundTransparency = 1,
-            RichText = true,
-            Text = "Checking...",
-            Font = Enum.Font.Gotham,
-            TextSize = 10,
-            TextColor3 = Color3.fromRGB(150, 155, 170),
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-
-        local badge = New("Frame", {
-            Parent = card,
-            AnchorPoint = Vector2.new(1, 0.5),
-            Position = UDim2.new(1, -12, 0.5, 0),
-            Size = UDim2.fromOffset(32, 32),
-            BackgroundColor3 = Color3.fromRGB(22, 25, 37),
-            BorderSizePixel = 0
-        })
-        Corner(badge, 8)
-        local badgeStroke = Stroke(badge, 1, 0.4)
-
-        local indicator = New("TextLabel", {
-            Parent = badge,
-            Size = UDim2.fromScale(1, 1),
-            BackgroundTransparency = 1,
-            Text = "✕",
-            Font = Enum.Font.GothamBold,
-            TextSize = 13,
-            TextColor3 = Color3.fromRGB(255, 90, 90),
-            TextXAlignment = Enum.TextXAlignment.Center,
-            TextYAlignment = Enum.TextYAlignment.Center
-        })
-
-        cards[data.name] = {
-            data = data,
-            stroke = stroke,
-            statusLabel = statusLabel,
-            badgeStroke = badgeStroke,
-            indicator = indicator
-        }
-    end
+            if success then
+                label.Text = boss.name .. " -> TIME: " .. tostring(timeText)
+            else
+                label.Text = boss.name .. " -> TIME: Unknown"
+            end
+            task.wait(1)
+        end
+    end)
 end
 
-local alive = true
-Tab.AncestryChanged:Connect(function(_, parent)
-    if not parent then alive = false end
-end)
+-- Header: Precious Boss (Conditional)
+New("TextLabel", {
+    Parent = root,
+    LayoutOrder = 50,
+    Size = UDim2.new(1, 0, 0, 28),
+    BackgroundTransparency = 1,
+    Text = "• PRECIOUS BOSS",
+    Font = Enum.Font.GothamBold,
+    TextSize = 11,
+    TextColor3 = Color3.fromRGB(255, 180, 50),
+    TextXAlignment = Enum.TextXAlignment.Left
+})
 
-task.spawn(function()
-    while alive and container.Parent do
-        local a = accent()
-        container.ScrollBarImageColor3 = a
-        
-        local enemiesFolder = Workspace:FindFirstChild("Enemies")
+local preciousBosses = {
+    "Soul Reaper",
+    "Cake Prince",
+    "Dough King",
+    "Rip_Indra",
+    "Tyrant of the Skies"
+}
 
-        for _, info in pairs(cards) do
-            info.stroke.Color = a
-            info.badgeStroke.Color = a
-            
-            local isSpawned = false
-            local detailText = ""
+for i, bossName in ipairs(preciousBosses) do
+    local card = New("Frame", {
+        Parent = root,
+        LayoutOrder = 60 + i,
+        Size = UDim2.new(1, 0, 0, 32),
+        BackgroundColor3 = Color3.fromRGB(12, 14, 20),
+        BorderSizePixel = 0
+    })
+    Corner(card, 8)
 
-            if info.data.type == "normal" then
-                local marker = info.data.path
-                local timerString = ""
-                
-                if marker then
-                    local timerGui = marker:FindFirstChild("RespawnTimer")
-                    if timerGui then
-                        local frame = timerGui:FindFirstChild("Frame")
-                        if frame then
-                            local timerLabel = frame:FindFirstChild("Timer")
-                            if timerLabel and timerLabel:IsA("TextLabel") then
-                                timerString = timerLabel.Text
-                            end
-                        end
-                    end
+    local label = New("TextLabel", {
+        Parent = card,
+        Position = UDim2.new(0, 10, 0, 0),
+        Size = UDim2.new(1, -20, 1, 0),
+        BackgroundTransparency = 1,
+        Text = bossName .. " -> false",
+        Font = Enum.Font.GothamMedium,
+        TextSize = 10,
+        TextColor3 = Color3.fromRGB(220, 225, 235),
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    task.spawn(function()
+        while card.Parent do
+            local exists = false
+            pcall(function()
+                if workspace.Enemies:FindFirstChild(bossName) or workspace._WorldOrigin:FindFirstChild(bossName) then
+                    exists = true
                 end
+            end)
 
-                if timerString ~= "" and timerString ~= "00:00" and not string.find(timerString, "-") then
-                    isSpawned = false
-                    detailText = info.data.name .. '->TIME: <font color="rgb(255,150,50)">[' .. timerString .. ']</font>'
-                else
-                    isSpawned = true
-                    detailText = '<font color="rgb(80,255,120)">Status: True | [Đã xuất hiện]</font>'
-                end
-
-            elseif info.data.type == "precious" then
-                local inWorld = false
-                if enemiesFolder and info.data.keyword then
-                    for _, enemy in ipairs(enemiesFolder:GetChildren()) do
-                        if string.find(enemy.Name, info.data.keyword) then
-                            inWorld = true
-                            break
-                        end
-                    end
-                end
-
-                isSpawned = inWorld
-                if isSpawned then
-                    detailText = '<font color="rgb(80,255,120)">Status: True</font>'
-                else
-                    detailText = '<font color="rgb(150,155,170)">Status: False</font>'
-                end
-            end
-
-            if isSpawned then
-                info.indicator.Text = "✓"
-                info.indicator.TextColor3 = Color3.fromRGB(80, 255, 120)
-                info.statusLabel.TextColor3 = Color3.fromRGB(180, 255, 190)
+            label.Text = bossName .. " -> " .. tostring(exists)
+            if exists then
+                label.TextColor3 = Color3.fromRGB(100, 255, 100)
             else
-                info.indicator.Text = "✕"
-                info.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
-                info.statusLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
+                label.TextColor3 = Color3.fromRGB(255, 100, 100)
             end
-            
-            info.statusLabel.Text = detailText
+            task.wait(1.5)
         end
+    end)
+end
 
-        task.wait(1)
-    end
-end)
-
-return {}
+return root
