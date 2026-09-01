@@ -389,7 +389,7 @@ task.spawn(function()
                     data.statusLabel.Text = "Status: True"
                     data.statusLabel.TextColor3 = Color3.fromRGB(180, 255, 190)
                 else
-                    data.indicator.Text = "✕"
+                    data.indicator.Text = "×"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
                     data.statusLabel.Text = "Status: False"
                     data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
