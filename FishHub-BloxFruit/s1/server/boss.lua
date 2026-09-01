@@ -73,7 +73,7 @@ New("UIListLayout", {
     Padding = UDim.new(0, 8)
 })
 
--- Danh sách Normal Boss (Kiểm tra RespawnTimer trong _WorldOrigin)
+-- Danh sách Normal Boss (Kiểm tra RespawnMarker trong _WorldOrigin)
 local normalBosses = {
     {name = "STONE", markerName = "STONE Respawn Marker", cframe = CFrame.new(-1109.92603, 58.3789978, 6811.7251, 0.275688112, -0, -0.961247265, 0, 1, -0, 0.961247265, 0, 0.275688112)},
     {name = "HYDRA LEADER", markerName = "HYDRA LEADER Respawn Marker", cframe = CFrame.new(-1109.92603, 58.3789978, 6811.7251, 0.275688112, -0, -0.961247265, 0, 1, -0, 0.961247265, 0, 0.275688112)},
@@ -96,7 +96,7 @@ local preciousBosses = {
 local cards = {}
 local layoutOrder = 0
 
--- Tiêu đề Normal Boss trên đầu dấu chấm
+-- Tiêu đề Normal Boss
 local normalHeader = New("TextLabel", {
     Parent = container,
     LayoutOrder = (function() layoutOrder = layoutOrder + 1 return layoutOrder end)(),
@@ -138,7 +138,7 @@ for _, boss in ipairs(normalBosses) do
         Position = UDim2.fromOffset(15, 33),
         Size = UDim2.new(1, -90, 0, 20),
         BackgroundTransparency = 1,
-        Text = boss.name .. "->False:",
+        Text = "Status: False",
         Font = Enum.Font.Gotham,
         TextSize = 11,
         TextColor3 = Color3.fromRGB(150, 155, 170),
@@ -181,7 +181,7 @@ for _, boss in ipairs(normalBosses) do
     }
 end
 
--- Tiêu đề Precious Boss trên đầu dấu chấm
+-- Tiêu đề Precious Boss
 local preciousHeader = New("TextLabel", {
     Parent = container,
     LayoutOrder = (function() layoutOrder = layoutOrder + 1 return layoutOrder end)(),
@@ -223,7 +223,7 @@ for _, boss in ipairs(preciousBosses) do
         Position = UDim2.fromOffset(15, 33),
         Size = UDim2.new(1, -90, 0, 20),
         BackgroundTransparency = 1,
-        Text = boss.name .. "->False",
+        Text = "Status: False",
         Font = Enum.Font.Gotham,
         TextSize = 11,
         TextColor3 = Color3.fromRGB(150, 155, 170),
@@ -271,16 +271,6 @@ Tab.AncestryChanged:Connect(function(_, parent)
     if not parent then alive = false end
 end)
 
--- Hàm quét khoảng cách người chơi quanh tâm CFrame của boss (Phạm vi vô hạn mét)
-local function isPlayerNearby(bossCFrame)
-    if not bossCFrame then return true end
-    local localPlayer = Players.LocalPlayer
-    if not localPlayer or not localPlayer.Character then return true end
-    local hrp = localPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return true end
-    return true -- Quét toàn bộ tầm vô hạn theo yêu cầu
-end
-
 task.spawn(function()
     while alive and container.Parent do
         local a = accent()
@@ -294,46 +284,51 @@ task.spawn(function()
             data.badgeStroke.Color = a
 
             if data.type == "normal" then
-                local isNear = isPlayerNearby(data.cframe)
-                local foundTimer = false
+                local markerExist = false
                 local timerText = ""
 
-                if worldOrigin and isNear then
+                if worldOrigin then
                     local marker = worldOrigin:FindFirstChild(data.markerName)
                     if marker then
+                        markerExist = true
                         local respawnTimer = marker:FindFirstChild("RespawnTimer")
                         if respawnTimer then
                             local frame = respawnTimer:FindFirstChild("Frame")
                             if frame then
                                 local timerLabel = frame:FindFirstChild("Timer")
-                                if timerLabel and timerLabel:IsA("TextLabel") then
-                                    timerText = timerLabel.Text or ""
-                                    if timerText ~= "" and timerText ~= "0" and timerText ~= "00:00" then
-                                        foundTimer = true
-                                    end
+                                if timerLabel then
+                                    -- Lấy trực tiếp .Text hoặc nội dung hiển thị sạch sẽ không dính thẻ màu HTML
+                                    timerText = tostring(timerLabel.Text or "")
+                                    -- Loại bỏ các thẻ HTML rác nếu có (như <font ...>)
+                                    timerText = string.gsub(timerText, "<[^%s>]+[^>]*>", "")
+                                    timerText = string.gsub(timerText, "</[^>]+>", "")
+                                    timerText = string.gsub(timerText, "^%s*(.-)%s*$", "%1")
                                 end
                             end
                         end
                     end
                 end
 
-                if foundTimer then
+                if markerExist then
                     data.indicator.Text = "✕"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
-                    data.statusLabel.Text = name .. "->False: " .. timerText
+                    if timerText ~= "" then
+                        data.statusLabel.Text = "Status: False: " .. timerText
+                    else
+                        data.statusLabel.Text = "Status: False"
+                    end
                     data.statusLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
                 else
                     data.indicator.Text = "✓"
                     data.indicator.TextColor3 = Color3.fromRGB(80, 255, 120)
-                    data.statusLabel.Text = name .. "->True:"
+                    data.statusLabel.Text = "Status: True"
                     data.statusLabel.TextColor3 = Color3.fromRGB(180, 255, 190)
                 end
 
             elseif data.type == "precious" then
-                local isNear = isPlayerNearby(data.cframe)
                 local found = false
 
-                if enemiesFolder and isNear then
+                if enemiesFolder then
                     for _, enemy in ipairs(enemiesFolder:GetChildren()) do
                         local enemyName = enemy.Name
                         for _, kw in ipairs(data.keywords) do
@@ -349,12 +344,12 @@ task.spawn(function()
                 if found then
                     data.indicator.Text = "✓"
                     data.indicator.TextColor3 = Color3.fromRGB(80, 255, 120)
-                    data.statusLabel.Text = name .. "->True"
+                    data.statusLabel.Text = "Status: True"
                     data.statusLabel.TextColor3 = Color3.fromRGB(180, 255, 190)
                 else
                     data.indicator.Text = "✕"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
-                    data.statusLabel.Text = name .. "->False"
+                    data.statusLabel.Text = "Status: False"
                     data.statusLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
                 end
             end
