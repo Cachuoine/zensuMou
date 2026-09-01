@@ -72,21 +72,13 @@ New("UIListLayout", {
 })
 
 local bossDataList = {
-    -- Normal Bosses
-    {name = "STONE", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("STONE Respawn Marker"), keyword = "Stone"},
-    {name = "HYDRA LEADER", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("HYDRA LEADER Respawn Marker"), keyword = "Hydra Leader"},
-    {name = "Kilo Admiral", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("KILO ADMIRAL Respawn Marker"), keyword = "Kilo Admiral"},
-    {name = "Captain Elephant", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("CAPTAIN ELEPHANT Respawn Marker"), keyword = "Captain Elephant"},
-    {name = "Beautiful Pirate", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("BEAUTIFUL PIRATE Respawn Marker"), keyword = "Beautiful Pirate"},
-    {name = "Longma", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("LONGMA Respawn Marker"), keyword = "Longma"},
-    {name = "Cake Queen", type = "normal", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("CAKE QUEEN Respawn Marker"), keyword = "Cake Queen"},
-    
-    -- Precious / Condition Bosses
-    {name = "Soul Reaper", type = "precious", keyword = "Soul Reaper"},
-    {name = "Cake Prince", type = "precious", keyword = "Cake Prince"},
-    {name = "Dough King", type = "precious", keyword = "Dough King"},
-    {name = "Rip_Indra", type = "precious", keyword = "rip_indra"},
-    {name = "Tyrant of the Skies", type = "precious", keyword = "Tyrant of the Skies"}
+    {name = "STONE", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("STONE Respawn Marker")},
+    {name = "HYDRA LEADER", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("HYDRA LEADER Respawn Marker")},
+    {name = "Kilo Admiral", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("KILO ADMIRAL Respawn Marker")},
+    {name = "Captain Elephant", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("CAPTAIN ELEPHANT Respawn Marker")},
+    {name = "Beautiful Pirate", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("BEAUTIFUL PIRATE Respawn Marker")},
+    {name = "Longma", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("LONGMA Respawn Marker")},
+    {name = "Cake Queen", path = Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("CAKE QUEEN Respawn Marker")}
 }
 
 local cards = {}
@@ -168,59 +160,37 @@ task.spawn(function()
     while alive and container.Parent do
         local a = accent()
         container.ScrollBarImageColor3 = a
-        
-        local enemiesFolder = Workspace:FindFirstChild("Enemies")
 
         for _, info in pairs(cards) do
             info.stroke.Color = a
             info.badgeStroke.Color = a
             
-            local isSpawned = false
-            local detailText = ""
-
-            -- Kiểm tra thực tế trong Enemies
-            local inWorld = false
-            if enemiesFolder and info.data.keyword then
-                for _, enemy in ipairs(enemiesFolder:GetChildren()) do
-                    if string.find(enemy.Name, info.data.keyword) then
-                        inWorld = true
-                        break
+            local marker = info.data.path
+            local timerString = ""
+            
+            if marker then
+                local timerGui = marker:FindFirstChild("RespawnTimer")
+                if timerGui then
+                    local frame = timerGui:FindFirstChild("Frame")
+                    if frame then
+                        local timerLabel = frame:FindFirstChild("Timer")
+                        if timerLabel and timerLabel:IsA("TextLabel") then
+                            timerString = timerLabel.Text
+                        end
                     end
                 end
             end
 
-            if info.data.type == "normal" then
-                local marker = info.data.path
-                local timerString = ""
-                
-                if marker then
-                    local timerGui = marker:FindFirstChild("RespawnTimer")
-                    if timerGui then
-                        local frame = timerGui:FindFirstChild("Frame")
-                        if frame then
-                            local timerLabel = frame:FindFirstChild("Timer")
-                            if timerLabel and timerLabel:IsA("TextLabel") then
-                                timerString = timerLabel.Text
-                            end
-                        end
-                    end
-                end
+            local isSpawned = false
+            local detailText = ""
 
-                -- Điều kiện: Nếu đã có trong thế giới HOẶC đồng hồ về 00:00 / trống (hết giờ) mới là True + tick
-                if inWorld or (timerString == "" or timerString == "00:00" or string.find(timerString, "-")) then
-                    isSpawned = true
-                    detailText = '<font color="rgb(80,255,120)">Status: True | [Đã xuất hiện]</font>'
-                else
-                    isSpawned = false
-                    detailText = info.data.name .. '->TIME: <font color="rgb(255,150,50)">[' .. timerString .. ']</font>'
-                end
-            elseif info.data.type == "precious" then
-                isSpawned = inWorld
-                if isSpawned then
-                    detailText = '<font color="rgb(80,255,120)">Status: True</font>'
-                else
-                    detailText = '<font color="rgb(150,155,170)">Status: False</font>'
-                end
+            -- Kiểm tra giá trị chuỗi của Timer
+            if timerString ~= "" and timerString ~= "00:00" and not string.find(timerString, "-") then
+                isSpawned = false
+                detailText = info.data.name .. '->TIME: <font color="rgb(255,150,50)">[' .. timerString .. ']</font>'
+            else
+                isSpawned = true
+                detailText = '<font color="rgb(80,255,120)">Status: True | [Đã xuất hiện]</font>'
             end
 
             if isSpawned then
