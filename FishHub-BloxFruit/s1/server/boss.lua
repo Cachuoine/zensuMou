@@ -141,7 +141,7 @@ for _, boss in ipairs(normalBosses) do
         Text = "Status: False",
         Font = Enum.Font.Gotham,
         TextSize = 11,
-        TextColor3 = Color3.fromRGB(255, 90, 90),
+        TextColor3 = Color3.fromRGB(150, 155, 170),
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
@@ -226,7 +226,7 @@ for _, boss in ipairs(preciousBosses) do
         Text = "Status: False",
         Font = Enum.Font.Gotham,
         TextSize = 11,
-        TextColor3 = Color3.fromRGB(255, 90, 90),
+        TextColor3 = Color3.fromRGB(150, 155, 170),
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
@@ -288,6 +288,7 @@ task.spawn(function()
                 local timerText = ""
 
                 if worldOrigin then
+                    -- Quét tìm marker không phân biệt hoa thường và khoảng trắng để tránh sót tên
                     for _, obj in ipairs(worldOrigin:GetChildren()) do
                         local objNameLower = string.lower(obj.Name)
                         if string.find(objNameLower, data.keyword) then
@@ -299,6 +300,7 @@ task.spawn(function()
                                     local timerLabel = frame:FindFirstChild("Timer")
                                     if timerLabel then
                                         timerText = tostring(timerLabel.Text or "")
+                                        -- Lọc bỏ sạch các thẻ màu định dạng HTML rác để lấy mỗi thời gian
                                         timerText = string.gsub(timerText, "<[^%s>]+[^>]*>", "")
                                         timerText = string.gsub(timerText, "</[^>]+>", "")
                                         timerText = string.gsub(timerText, "^%s*(.-)%s*$", "%1")
@@ -318,8 +320,7 @@ task.spawn(function()
                     else
                         data.statusLabel.Text = "Status: False"
                     end
-                    -- Full màu đỏ cho toàn bộ dòng chữ trạng thái False và thời gian
-                    data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
+                    data.statusLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
                 else
                     data.indicator.Text = "✓"
                     data.indicator.TextColor3 = Color3.fromRGB(80, 255, 120)
@@ -352,8 +353,7 @@ task.spawn(function()
                     data.indicator.Text = "✕"
                     data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
                     data.statusLabel.Text = "Status: False"
-                    -- Full màu đỏ cho precious boss khi ở trạng thái False
-                    data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
+                    data.statusLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
                 end
             end
         end
