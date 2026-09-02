@@ -203,7 +203,7 @@ task.spawn(function()
                 data.indicator.Text = "×"
                 data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
                 data.statusLabel.Text = "Status: False"
-                data.statusLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
+                data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
             end
         end
 
