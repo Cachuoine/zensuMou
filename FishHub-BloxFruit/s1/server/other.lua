@@ -76,21 +76,6 @@ New("UIListLayout", {
     Padding = UDim.new(0, 8)
 })
 
--- Hàm gọi CommF an toàn tối ưu cho Blox Fruits
-local function invokeCommF(...)
-    local remotes = ReplicatedStorage:FindFirstChild("Remotes")
-    if remotes then
-        local commF = remotes:FindFirstChild("CommF_") or remotes:FindFirstChild("CommF")
-        if commF and commF:IsA("RemoteFunction") then
-            local success, res = pcall(function(...)
-                return commF:InvokeServer(...)
-            end, ...)
-            if success then return res end
-        end
-    end
-    return nil
-end
-
 local layoutOrder = 0
 
 -- Nhóm 1: Server Info
@@ -108,11 +93,8 @@ New("TextLabel", {
 })
 
 local serverMetrics = {
-    {key = "uptime", title = "Server Uptime", desc = "Synchronizing..."},
-    {key = "chest", title = "Chest Forecast (Fist / Chalice)", desc = "Scanning server..."},
-    {key = "elite", title = "Elite Progress", desc = "Fetching data..."},
-    {key = "cakeprince", title = "Cake Prince", desc = "Fetching data..."},
-    {key = "spystatus", title = "Spy Status", desc = "Checking..."}
+    {key = "uptime", title = "Server Uptime", desc = "Calculating..."},
+    {key = "chest", title = "Chest Forecast (Fist / Chalice)", desc = "Scanning server players..."}
 }
 
 local serverCards = {}
@@ -170,10 +152,8 @@ New("TextLabel", {
 })
 
 local playerMetrics = {
-    {key = "kenlevel", title = "Ken Level (Dodges)", desc = "Synchronizing..."},
-    {key = "moonstatus", title = "Moon Status", desc = "Synchronizing..."},
-    {key = "racetier", title = "Race Tier", desc = "Synchronizing..."},
-    {key = "pulllever", title = "Pull Lever", desc = "Synchronizing..."}
+    {key = "kenlevel", title = "Ken Level (Dodges)", desc = "Checking character..."},
+    {key = "moonstatus", title = "Moon Status", desc = "Checking lighting..."}
 }
 
 local playerCards = {}
@@ -221,7 +201,7 @@ Tab.AncestryChanged:Connect(function(_, parent)
     if not parent then alive = false end
 end)
 
--- Mốc thời gian thực tế của Server dựa vào DistributedGameTime
+-- Mốc tính thời gian hoạt động thực tế của Server
 local serverStartTick = tick() - Workspace.DistributedGameTime
 
 task.spawn(function()
@@ -231,7 +211,7 @@ task.spawn(function()
         for _, c in pairs(serverCards) do c.stroke.Color = a end
         for _, c in pairs(playerCards) do c.stroke.Color = a end
 
-        -- 1. Server Uptime (Động 100% theo thời gian sống thực tế của server)
+        -- 1. Server Uptime (Động 100% theo thời gian hoạt động của server)
         if serverCards["uptime"] then
             local uptimeSec = math.floor(tick() - serverStartTick)
             local upH = math.floor(uptimeSec / 3600)
@@ -241,28 +221,25 @@ task.spawn(function()
             serverCards["uptime"].descLabel.TextColor3 = Color3.fromRGB(240, 242, 248)
         end
 
-        -- 2. Chest Forecast (Quét kỹ balo & nhân vật của toàn bộ người chơi trong server xem có Fist / Chalice không)
+        -- 2. Chest Forecast (Quét thực tế item trong toàn bộ người chơi hiện tại ở server)
         if serverCards["chest"] then
-            local foundItemName = nil
+            local foundItem = nil
             for _, p in ipairs(Players:GetPlayers()) do
                 local bp = p:FindFirstChild("Backpack")
                 local char = p.Character
-                
-                local function checkContainer(cont)
-                    if not cont then return end
-                    for _, item in ipairs(cont:GetChildren()) do
-                        if item.Name == "Fist of Darkness" or item.Name == "God's Chalice" then
-                            return item.Name
-                        end
-                    end
+                if bp then
+                    if bp:FindFirstChild("Fist of Darkness") then foundItem = "Fist of Darkness" end
+                    if bp:FindFirstChild("God's Chalice") then foundItem = "God's Chalice" end
                 end
-                
-                foundItemName = checkContainer(bp) or checkContainer(char)
-                if foundItemName then break end
+                if char then
+                    if char:FindFirstChild("Fist of Darkness") then foundItem = "Fist of Darkness" end
+                    if char:FindFirstChild("God's Chalice") then foundItem = "God's Chalice" end
+                end
+                if foundItem then break end
             end
-            
-            if foundItemName then
-                serverCards["chest"].descLabel.Text = "Found: " .. foundItemName
+
+            if foundItem then
+                serverCards["chest"].descLabel.Text = "Found Item: " .. foundItem
                 serverCards["chest"].descLabel.TextColor3 = Color3.fromRGB(80, 255, 120)
             else
                 serverCards["chest"].descLabel.Text = "No Special Item in Server"
@@ -270,45 +247,9 @@ task.spawn(function()
             end
         end
 
-        -- 3. Elite Progress (Lấy dữ liệu thật từ Server qua CommF)
-        if serverCards["elite"] then
-            local eliteVal = invokeCommF("EliteHunter", "Progress")
-            if eliteVal ~= nil then
-                serverCards["elite"].descLabel.Text = "Killed/Progress: " .. tostring(eliteVal)
-                serverCards["elite"].descLabel.TextColor3 = Color3.fromRGB(240, 242, 248)
-            else
-                serverCards["elite"].descLabel.Text = "Not Available / No Data"
-                serverCards["elite"].descLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
-            end
-        end
-
-        -- 4. Cake Prince Progress
-        if serverCards["cakeprince"] then
-            local cakeVal = invokeCommF("CakePrince", "Progress")
-            if cakeVal ~= nil then
-                serverCards["cakeprince"].descLabel.Text = "Progress: " .. tostring(cakeVal) .. "/500"
-                serverCards["cakeprince"].descLabel.TextColor3 = Color3.fromRGB(240, 242, 248)
-            else
-                serverCards["cakeprince"].descLabel.Text = "Progress: 0/500 (Not Spawned)"
-                serverCards["cakeprince"].descLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
-            end
-        end
-
-        -- 5. Spy Status
-        if serverCards["spystatus"] then
-            local spyVal = invokeCommF("Spy", "Check")
-            if spyVal == true or spyVal == 1 then
-                serverCards["spystatus"].descLabel.Text = "Status: Available / Ready"
-                serverCards["spystatus"].descLabel.TextColor3 = Color3.fromRGB(80, 255, 120)
-            else
-                serverCards["spystatus"].descLabel.Text = "Status: Cooldown / Not Ready"
-                serverCards["spystatus"].descLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
-            end
-        end
-
         -- PLAYER INFO UPDATES
         
-        -- Ken Level (Lấy trực tiếp từ giá trị Dodges trong thư mục Character thực tế)
+        -- Ken Level (Đọc trực tiếp từ thông số giá trị Dodges trên character của bạn)
         if playerCards["kenlevel"] then
             local currentDodges = 0
             if LocalPlayer.Character then
@@ -323,44 +264,17 @@ task.spawn(function()
             playerCards["kenlevel"].descLabel.TextColor3 = Color3.fromRGB(240, 242, 248)
         end
 
-        -- Moon Status (Đọc trực tiếp Lighting ClockTime và GetMoonPhase của server thực tế)
+        -- Moon Status (Đọc trực tiếp pha mặt trăng chuẩn xác từ Lighting engine của Roblox)
         if playerCards["moonstatus"] then
             local moonPhase = Lighting:GetMoonPhase()
-            local clockTime = Lighting.ClockTime
-            local phaseStr = "Normal"
+            local phaseText = "Normal Phase"
             if moonPhase > 0.75 then
-                phaseStr = "Full Moon (100%)"
-            elseif clockTime >= 18 or clockTime < 6 then
-                phaseStr = string.format("Night (Phase: %.2f)", moonPhase)
+                phaseText = "Full Moon (100%)"
             else
-                phaseStr = string.format("Day (Phase: %.2f)", moonPhase)
+                phaseText = string.format("Phase: %.2f", moonPhase)
             end
-            playerCards["moonstatus"].descLabel.Text = phaseStr
+            playerCards["moonstatus"].descLabel.Text = phaseText
             playerCards["moonstatus"].descLabel.TextColor3 = Color3.fromRGB(240, 242, 248)
-        end
-
-        -- Race Tier (Kiểm tra trạng thái Tộc qua hệ thống game)
-        if playerCards["racetier"] then
-            local raceVal = invokeCommF("Wenlocktoad", "1")
-            if raceVal then
-                playerCards["racetier"].descLabel.Text = "Tier/Status: " .. tostring(raceVal)
-                playerCards["racetier"].descLabel.TextColor3 = Color3.fromRGB(80, 255, 120)
-            else
-                playerCards["racetier"].descLabel.Text = "Tier: Not Unlocked / V3/V4"
-                playerCards["racetier"].descLabel.TextColor3 = Color3.fromRGB(150, 155, 170)
-            end
-        end
-
-        -- Pull Lever
-        if playerCards["pulllever"] then
-            local leverVal = invokeCommF("Lever", "Check")
-            if leverVal then
-                playerCards["pulllever"].descLabel.Text = "Pull Lever: Pulled (✔)"
-                playerCards["pulllever"].descLabel.TextColor3 = Color3.fromRGB(80, 255, 120)
-            else
-                playerCards["pulllever"].descLabel.Text = "Pull Lever: Not Yet (❌)"
-                playerCards["pulllever"].descLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
-            end
         end
 
         task.wait(1)
