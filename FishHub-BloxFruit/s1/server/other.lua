@@ -6,6 +6,12 @@ local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
+-- Các Remote chuẩn xác từ ReplicatedStorage của bạn
+local Remotes = ReplicatedStorage:FindFirstChild("Remotes")
+local ServerBrowser = ReplicatedStorage:FindFirstChild("__ServerBrowser")
+local PingRemote = ReplicatedStorage:FindFirstChild("Ping")
+local ClockFunc = Remotes and Remotes:FindFirstChild("Clock") and Remotes.Clock:FindFirstChild("DelayedRequestFunction")
+
 local context = ...
 if type(context) ~= "table" or not context.Tab then return end
 
@@ -78,7 +84,7 @@ New("UIListLayout", {
 
 local layoutOrder = 0
 
--- Nhóm 1: Server Info
+-- Tiêu đề nhóm 1: Server Info
 layoutOrder = layoutOrder + 1
 New("TextLabel", {
     Parent = container,
@@ -93,7 +99,8 @@ New("TextLabel", {
 })
 
 local serverMetrics = {
-    {key = "uptime", title = "Server Uptime", desc = "Calculating..."},
+    {key = "uptime", title = "Server Uptime", desc = "Synchronizing..."},
+    {key = "ping", title = "Server Ping", desc = "Checking network..."},
     {key = "chest", title = "Chest Forecast (Fist / Chalice)", desc = "Scanning server players..."}
 }
 
@@ -137,7 +144,7 @@ for _, info in ipairs(serverMetrics) do
     serverCards[info.key] = {card = card, stroke = stroke, descLabel = descLabel}
 end
 
--- Nhóm 2: Player Info
+-- Tiêu đề nhóm 2: Player Info
 layoutOrder = layoutOrder + 1
 New("TextLabel", {
     Parent = container,
@@ -152,8 +159,8 @@ New("TextLabel", {
 })
 
 local playerMetrics = {
-    {key = "kenlevel", title = "Ken Level (Dodges)", desc = "Checking character..."},
-    {key = "moonstatus", title = "Moon Status", desc = "Checking lighting..."}
+    {key = "kenlevel", title = "Ken Level (Dodges)", desc = "Reading character data..."},
+    {key = "moonstatus", title = "Moon Status (Clock Sync)", desc = "Synchronizing clock..."}
 }
 
 local playerCards = {}
@@ -201,7 +208,7 @@ Tab.AncestryChanged:Connect(function(_, parent)
     if not parent then alive = false end
 end)
 
--- Mốc tính thời gian hoạt động thực tế của Server
+-- Mốc tính thời gian hoạt động thực tế dựa trên DistributedGameTime của server
 local serverStartTick = tick() - Workspace.DistributedGameTime
 
 task.spawn(function()
@@ -211,7 +218,7 @@ task.spawn(function()
         for _, c in pairs(serverCards) do c.stroke.Color = a end
         for _, c in pairs(playerCards) do c.stroke.Color = a end
 
-        -- 1. Server Uptime (Động 100% theo thời gian hoạt động của server)
+        -- 1. Server Uptime (Động 100% theo thời gian sống thực tế của server)
         if serverCards["uptime"] then
             local uptimeSec = math.floor(tick() - serverStartTick)
             local upH = math.floor(uptimeSec / 3600)
@@ -221,7 +228,26 @@ task.spawn(function()
             serverCards["uptime"].descLabel.TextColor3 = Color3.fromRGB(240, 242, 248)
         end
 
-        -- 2. Chest Forecast (Quét thực tế item trong toàn bộ người chơi hiện tại ở server)
+        -- 2. Server Ping (Đọc trực tiếp từ Remote Ping chuẩn của game)
+        if serverCards["ping"] then
+            local currentPing = "Unknown"
+            local success = pcall(function()
+                if PingRemote and PingRemote:IsA("RemoteFunction") then
+                    local t1 = tick()
+                    PingRemote:InvokeServer()
+                    currentPing = math.floor((tick() - t1) * 1000)
+                end
+            end)
+            if not success or currentPing == "Unknown" then
+                -- Fallback sang NetworkStats nếu RemoteFunction không phản hồi trực tiếp
+                local stats = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()
+                currentPing = math.floor(stats)
+            end
+            serverCards["ping"].descLabel.Text = "Latency: " .. tostring(currentPing) .. " ms"
+            serverCards["ping"].descLabel.TextColor3 = Color3.fromRGB(80, 255, 120)
+        end
+
+        -- 3. Chest Forecast (Quét kỹ Balo và Nhân vật của toàn bộ người chơi trong server xem có Fist / Chalice không)
         if serverCards["chest"] then
             local foundItem = nil
             for _, p in ipairs(Players:GetPlayers()) do
@@ -249,7 +275,7 @@ task.spawn(function()
 
         -- PLAYER INFO UPDATES
         
-        -- Ken Level (Đọc trực tiếp từ thông số giá trị Dodges trên character của bạn)
+        -- Ken Level (Đọc chính xác số lượng Dodges từ nhân vật thực tế)
         if playerCards["kenlevel"] then
             local currentDodges = 0
             if LocalPlayer.Character then
@@ -264,15 +290,28 @@ task.spawn(function()
             playerCards["kenlevel"].descLabel.TextColor3 = Color3.fromRGB(240, 242, 248)
         end
 
-        -- Moon Status (Đọc trực tiếp pha mặt trăng chuẩn xác từ Lighting engine của Roblox)
+        -- Moon Status (Đồng bộ thời gian qua Remote Clock chuẩn xác của game kết hợp Lighting engine)
         if playerCards["moonstatus"] then
             local moonPhase = Lighting:GetMoonPhase()
+            local serverClock = Lighting.ClockTime
+            
+            -- Đồng bộ thời gian qua Clock.DelayedRequestFunction nếu có thể
+            pcall(function()
+                if ClockFunc and ClockFunc:IsA("RemoteFunction") then
+                    local res = ClockFunc:InvokeServer()
+                    if type(res) == "number" then
+                        serverClock = res
+                    end
+                end
+            end)
+
             local phaseText = "Normal Phase"
             if moonPhase > 0.75 then
-                phaseText = "Full Moon (100%)"
+                phaseText = string.format("Full Moon (100%%) - Time: %.1fh", serverClock)
             else
-                phaseText = string.format("Phase: %.2f", moonPhase)
+                phaseText = string.format("Phase: %.2f - Time: %.1fh", moonPhase, serverClock)
             end
+            
             playerCards["moonstatus"].descLabel.Text = phaseText
             playerCards["moonstatus"].descLabel.TextColor3 = Color3.fromRGB(240, 242, 248)
         end
