@@ -370,7 +370,7 @@ end
 local definitions = {
     {"island even", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/server/islandeven.lua"},
     {"boss", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/server/boss.lua"},
-    {"miss", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/server/missserver.lua"}
+    {"other", "https://raw.githubusercontent.com/Cachuoine/zensuMou/refs/heads/main/FishHub-BloxFruit/s1/server/other.lua"}
 }
 
 for index, data in ipairs(definitions) do
