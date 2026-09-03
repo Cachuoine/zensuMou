@@ -40,25 +40,6 @@ local function Stroke(parent, thickness, transparency)
     })
 end
 
-local function Gradient(parent, colorSeq, rotation)
-    return New("UIGradient", {
-        Parent = parent,
-        Color = colorSeq,
-        Rotation = rotation or 90
-    })
-end
-
-local function Tween(obj, props, time, style, dir)
-    local info = TweenInfo.new(
-        time or 0.25,
-        style or Enum.EasingStyle.Quad,
-        dir or Enum.EasingDirection.Out
-    )
-    local tw = TweenService:Create(obj, info, props)
-    tw:Play()
-    return tw
-end
-
 for _, child in ipairs(Tab:GetChildren()) do
     child:Destroy()
 end
@@ -66,79 +47,36 @@ end
 Tab.BackgroundTransparency = 1
 Tab.BorderSizePixel = 0
 
--- ===== Header =====
-local header = New("Frame", {
-    Parent = Tab,
-    Size = UDim2.new(1, 0, 0, 46),
-    Position = UDim2.new(0, 0, 0, 0),
-    BackgroundTransparency = 1,
-    BorderSizePixel = 0
-})
-
-local headerTitle = New("TextLabel", {
-    Parent = header,
-    Position = UDim2.fromOffset(4, 4),
-    Size = UDim2.new(1, -8, 0, 22),
-    BackgroundTransparency = 1,
-    Text = "Event Islands",
-    Font = Enum.Font.GothamBold,
-    TextSize = 16,
-    TextColor3 = Color3.fromRGB(245, 247, 252),
-    TextXAlignment = Enum.TextXAlignment.Left
-})
-
-local headerSub = New("TextLabel", {
-    Parent = header,
-    Position = UDim2.fromOffset(4, 24),
-    Size = UDim2.new(1, -8, 0, 16),
-    BackgroundTransparency = 1,
-    Text = "Auto-tracking · updates every 3s",
-    Font = Enum.Font.Gotham,
-    TextSize = 11,
-    TextColor3 = Color3.fromRGB(130, 135, 150),
-    TextXAlignment = Enum.TextXAlignment.Left
-})
-
-local headerLine = New("Frame", {
-    Parent = header,
-    Position = UDim2.new(0, 0, 1, -1),
-    Size = UDim2.new(1, 0, 0, 1),
-    BackgroundColor3 = Color3.fromRGB(35, 38, 50),
-    BorderSizePixel = 0
-})
-
--- ===== Scroll container =====
 local container = New("ScrollingFrame", {
     Parent = Tab,
-    Position = UDim2.new(0, 0, 0, 46),
-    Size = UDim2.new(1, 0, 1, -46),
+    Size = UDim2.new(1, 0, 1, 0),
     BackgroundTransparency = 1,
     BorderSizePixel = 0,
     CanvasSize = UDim2.new(0, 0, 0, 0),
     AutomaticCanvasSize = Enum.AutomaticSize.Y,
-    ScrollBarThickness = 3,
+    ScrollBarThickness = 2,
     ScrollBarImageColor3 = accent()
 })
 
 New("UIPadding", {
     Parent = container,
-    PaddingTop = UDim.new(0, 6),
+    PaddingTop = UDim.new(0, 5),
     PaddingBottom = UDim.new(0, 15),
     PaddingLeft = UDim.new(0, 2),
-    PaddingRight = UDim.new(0, 6)
+    PaddingRight = UDim.new(0, 5)
 })
 
 New("UIListLayout", {
     Parent = container,
     SortOrder = Enum.SortOrder.LayoutOrder,
-    Padding = UDim.new(0, 10)
+    Padding = UDim.new(0, 8)
 })
 
 local eventIslands = {
-    {name = "Mirage Island", icon = "🏝️", keywords = {"Mirage", "MysticIsland", "MirageIsland"}},
-    {name = "Kitsune Island", icon = "🦊", keywords = {"Kitsune", "KitsuneIsland"}},
-    {name = "Prehistoric Island", icon = "🦖", keywords = {"Prehistoric", "PrehistoricIsland"}},
-    {name = "Frozen Dimension", icon = "❄️", keywords = {"Frozen", "FrozenDimension", "Leviathan"}}
+    {name = "Mirage Island", keywords = {"Mirage", "MysticIsland", "MirageIsland"}},
+    {name = "Kitsune Island", keywords = {"Kitsune", "KitsuneIsland"}},
+    {name = "Prehistoric Island", keywords = {"Prehistoric", "PrehistoricIsland"}},
+    {name = "Frozen Dimension", keywords = {"Frozen", "FrozenDimension", "Leviathan"}}
 }
 
 local cards = {}
@@ -147,55 +85,29 @@ for i, island in ipairs(eventIslands) do
     local card = New("Frame", {
         Parent = container,
         LayoutOrder = i,
-        Size = UDim2.new(1, 0, 0, 68),
-        BackgroundColor3 = Color3.fromRGB(16, 18, 26),
-        BorderSizePixel = 0,
-        ClipsDescendants = true
-    })
-    Corner(card, 14)
-    local stroke = Stroke(card, 1, 0.55)
-
-    Gradient(card, ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 22, 32)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(12, 13, 19))
-    }), 90)
-
-    -- thanh nhấn màu accent bên trái
-    local accentBar = New("Frame", {
-        Parent = card,
-        Size = UDim2.new(0, 3, 1, 0),
-        BackgroundColor3 = accent(),
+        Size = UDim2.new(1, 0, 0, 65),
+        BackgroundColor3 = Color3.fromRGB(13, 15, 22),
         BorderSizePixel = 0
     })
-
-    local iconLabel = New("TextLabel", {
-        Parent = card,
-        Position = UDim2.fromOffset(16, 0),
-        Size = UDim2.fromOffset(30, 68),
-        BackgroundTransparency = 1,
-        Text = island.icon,
-        Font = Enum.Font.GothamBold,
-        TextSize = 20,
-        TextXAlignment = Enum.TextXAlignment.Center,
-        TextYAlignment = Enum.TextYAlignment.Center
-    })
+    Corner(card, 12)
+    local stroke = Stroke(card, 1, 0.5)
 
     New("TextLabel", {
         Parent = card,
-        Position = UDim2.fromOffset(54, 14),
-        Size = UDim2.new(1, -110, 0, 20),
+        Position = UDim2.fromOffset(15, 12),
+        Size = UDim2.new(1, -90, 0, 22),
         BackgroundTransparency = 1,
         Text = island.name,
         Font = Enum.Font.GothamBold,
-        TextSize = 14,
-        TextColor3 = Color3.fromRGB(245, 247, 252),
+        TextSize = 13,
+        TextColor3 = Color3.fromRGB(240, 242, 248),
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
     local statusLabel = New("TextLabel", {
         Parent = card,
-        Position = UDim2.fromOffset(54, 36),
-        Size = UDim2.new(1, -110, 0, 16),
+        Position = UDim2.fromOffset(15, 36),
+        Size = UDim2.new(1, -90, 0, 16),
         BackgroundTransparency = 1,
         Text = "Checking...",
         Font = Enum.Font.Gotham,
@@ -207,13 +119,13 @@ for i, island in ipairs(eventIslands) do
     local badge = New("Frame", {
         Parent = card,
         AnchorPoint = Vector2.new(1, 0.5),
-        Position = UDim2.new(1, -16, 0.5, 0),
-        Size = UDim2.fromOffset(38, 38),
-        BackgroundColor3 = Color3.fromRGB(24, 27, 39),
+        Position = UDim2.new(1, -15, 0.5, 0),
+        Size = UDim2.fromOffset(36, 36),
+        BackgroundColor3 = Color3.fromRGB(22, 25, 37),
         BorderSizePixel = 0
     })
-    Corner(badge, 10)
-    local badgeStroke = Stroke(badge, 1.5, 0.35)
+    Corner(badge, 8)
+    local badgeStroke = Stroke(badge, 1, 0.4)
 
     local indicator = New("TextLabel", {
         Parent = badge,
@@ -221,7 +133,7 @@ for i, island in ipairs(eventIslands) do
         BackgroundTransparency = 1,
         Text = "✕",
         Font = Enum.Font.GothamBold,
-        TextSize = 17,
+        TextSize = 16,
         TextColor3 = Color3.fromRGB(255, 90, 90),
         TextXAlignment = Enum.TextXAlignment.Center,
         TextYAlignment = Enum.TextYAlignment.Center
@@ -230,13 +142,11 @@ for i, island in ipairs(eventIslands) do
     cards[island.name] = {
         card = card,
         stroke = stroke,
-        accentBar = accentBar,
         statusLabel = statusLabel,
         badge = badge,
         badgeStroke = badgeStroke,
         indicator = indicator,
-        keywords = island.keywords,
-        lastFound = nil
+        keywords = island.keywords
     }
 end
 
@@ -249,17 +159,18 @@ task.spawn(function()
     while alive and container.Parent do
         local a = accent()
         container.ScrollBarImageColor3 = a
-
+        
+        -- Lấy sẵn các thư mục mục tiêu một lần thay vì gọi liên tục
         local mapFolder = Workspace:FindFirstChild("Map")
         local seaBeastsFolder = Workspace:FindFirstChild("SeaBeasts")
-
+        
         for name, data in pairs(cards) do
-            Tween(data.stroke, {Color = a}, 0.3)
-            Tween(data.badgeStroke, {Color = a}, 0.3)
-            Tween(data.accentBar, {BackgroundColor3 = a}, 0.3)
-
+            data.stroke.Color = a
+            data.badgeStroke.Color = a
+            
             local found = false
-
+            
+            -- Hàm kiểm tra nhanh các đối tượng con ở cấp nông để tiết kiệm hiệu năng CPU
             local function quickCheck(folder)
                 if not folder then return false end
                 for _, obj in ipairs(folder:GetChildren()) do
@@ -273,37 +184,30 @@ task.spawn(function()
                 return false
             end
 
+            -- Kiểm tra trong Map
             if mapFolder and quickCheck(mapFolder) then
                 found = true
             end
+
+            -- Kiểm tra trong SeaBeasts nếu chưa thấy
             if not found and seaBeastsFolder and quickCheck(seaBeastsFolder) then
                 found = true
             end
 
-            if found ~= data.lastFound then
-                data.lastFound = found
-                if found then
-                    Tween(data.card, {BackgroundColor3 = Color3.fromRGB(14, 24, 20)}, 0.35)
-                    Tween(data.badge, {BackgroundColor3 = Color3.fromRGB(18, 34, 26)}, 0.35)
-                else
-                    Tween(data.card, {BackgroundColor3 = Color3.fromRGB(16, 18, 26)}, 0.35)
-                    Tween(data.badge, {BackgroundColor3 = Color3.fromRGB(24, 27, 39)}, 0.35)
-                end
-            end
-
             if found then
                 data.indicator.Text = "✓"
-                Tween(data.indicator, {TextColor3 = Color3.fromRGB(80, 255, 150)}, 0.3)
+                data.indicator.TextColor3 = Color3.fromRGB(80, 255, 120)
                 data.statusLabel.Text = "Status: True (Found)"
-                Tween(data.statusLabel, {TextColor3 = Color3.fromRGB(150, 255, 190)}, 0.3)
+                data.statusLabel.TextColor3 = Color3.fromRGB(180, 255, 190)
             else
                 data.indicator.Text = "×"
-                Tween(data.indicator, {TextColor3 = Color3.fromRGB(255, 90, 90)}, 0.3)
+                data.indicator.TextColor3 = Color3.fromRGB(255, 90, 90)
                 data.statusLabel.Text = "Status: False"
-                Tween(data.statusLabel, {TextColor3 = Color3.fromRGB(255, 120, 120)}, 0.3)
+                data.statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
             end
         end
 
+        -- Tăng thời gian chờ lên 3 giây để máy thở và không bị giật lag khung hình
         task.wait(3)
     end
 end)
