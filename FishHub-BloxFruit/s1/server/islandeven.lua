@@ -160,7 +160,6 @@ task.spawn(function()
         local a = accent()
         container.ScrollBarImageColor3 = a
         
-        -- Lấy sẵn các thư mục mục tiêu một lần thay vì gọi liên tục
         local mapFolder = Workspace:FindFirstChild("Map")
         local seaBeastsFolder = Workspace:FindFirstChild("SeaBeasts")
         
@@ -170,8 +169,7 @@ task.spawn(function()
             
             local found = false
             
-            -- Hàm kiểm tra nhanh các đối tượng con ở cấp nông để tiết kiệm hiệu năng CPU
-            local function quickCheck(folder)
+                local function quickCheck(folder)
                 if not folder then return false end
                 for _, obj in ipairs(folder:GetChildren()) do
                     local objName = obj.Name
@@ -184,12 +182,10 @@ task.spawn(function()
                 return false
             end
 
-            -- Kiểm tra trong Map
             if mapFolder and quickCheck(mapFolder) then
                 found = true
             end
 
-            -- Kiểm tra trong SeaBeasts nếu chưa thấy
             if not found and seaBeastsFolder and quickCheck(seaBeastsFolder) then
                 found = true
             end
@@ -207,7 +203,6 @@ task.spawn(function()
             end
         end
 
-        -- Tăng thời gian chờ lên 3 giây để máy thở và không bị giật lag khung hình
         task.wait(3)
     end
 end)
